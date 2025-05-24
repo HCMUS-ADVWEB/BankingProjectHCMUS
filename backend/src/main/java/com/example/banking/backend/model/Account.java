@@ -20,7 +20,7 @@ public class Account {
     @Id
     @ColumnDefault("gen_random_uuid()")
     @Column(name = "account_id", nullable = false)
-    private UUID id;
+    private UUID accountId;
 
     @NotNull
     @Column(name = "account_number", nullable = false)

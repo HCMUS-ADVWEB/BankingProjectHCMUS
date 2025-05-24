@@ -1,5 +1,7 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
 public enum AccountType {
     PAYMENT("PAYMENT");
 
