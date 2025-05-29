@@ -2,7 +2,11 @@ package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.auth.*;
+import com.example.banking.backend.dto.response.auth.LoginResponse;
+import com.example.banking.backend.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +17,17 @@ import java.util.UUID;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    // private final AuthService authService;
+    private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request) {
-        return null;
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
+                .message("Login successful!")
+                .status(HttpStatus.OK.value())
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/refresh-token")

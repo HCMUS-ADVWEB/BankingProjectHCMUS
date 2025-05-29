@@ -25,6 +25,7 @@ public class ApiResponse<T> {
 
 
     public String toJson() {
+        LocalDateTime time = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         return "{"
                 + "\"status\":" + status + ","
                 + "\"message\":\"" + message + "\","

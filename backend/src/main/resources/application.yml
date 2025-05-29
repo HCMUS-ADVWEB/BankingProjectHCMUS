@@ -52,3 +52,7 @@ management:
     web:
       exposure:
         include: "*"
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  expiration: 3600

@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum TransactionStatusType {
     PENDING("PENDING"),
     COMPLETED("COMPLETED"),
@@ -10,10 +13,6 @@ public enum TransactionStatusType {
 
     TransactionStatusType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static TransactionStatusType fromValue(String value) {
