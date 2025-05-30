@@ -72,6 +72,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(ReCaptchaException.class)
+    public ResponseEntity<ApiResponse<?>> handleReCaptchaException(ReCaptchaException ex) {
+        final ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("reCAPTCHA token is invalid: " + ex.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidBody(HttpMessageNotReadableException ex) {
         final ApiResponse<?> response = ApiResponse.builder()

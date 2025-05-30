@@ -3,6 +3,8 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.auth.*;
 import com.example.banking.backend.dto.response.auth.LoginResponse;
+import com.example.banking.backend.dto.response.auth.LogoutResponse;
+import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
 import com.example.banking.backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,16 +25,33 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
-                .message("Login successful!")
+                .message("Login successfully!")
                 .status(HttpStatus.OK.value())
                 .data(response)
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponse<?>> refreshToken(@RequestBody RefreshTokenRequest request) {
-        return null;
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        RefreshTokenResponse response = authService.refresh(request);
+        ApiResponse<RefreshTokenResponse> apiResponse = ApiResponse.<RefreshTokenResponse>builder()
+                .message("Refresh successfully!")
+                .status(HttpStatus.OK.value())
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<LogoutResponse>> refreshToken(@RequestParam UUID refreshToken) {
+        LogoutResponse response = authService.logout(refreshToken);
+        ApiResponse<LogoutResponse> apiResponse = ApiResponse.<LogoutResponse>builder()
+                .message("Log out successfully!")
+                .status(HttpStatus.OK.value())
+                .data(response)
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/forgot-password")

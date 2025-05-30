@@ -1,5 +1,6 @@
 package com.example.banking.backend.security.jwt;
 
+import com.example.banking.backend.model.User;
 import com.example.banking.backend.security.service.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -13,17 +14,15 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Map;
 
 @Component
 @Slf4j
 public class JwtUtils {
 
-    @Value("${jwt.secret}")
+    @Value("${security.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
+    @Value("${security.jwt.expiration}")
     private int jwtExpiration;
 
     public String generateAccessToken(UserDetailsImpl userDetails) {
@@ -36,6 +35,11 @@ public class JwtUtils {
                 .setExpiration(Date.from(Instant.now().plusSeconds(jwtExpiration)))
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String generateAccessToken(User user) {
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+        return generateAccessToken(userDetails);
     }
 
     private Key key() {

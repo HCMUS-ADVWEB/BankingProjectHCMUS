@@ -15,7 +15,8 @@ public class CorsConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("*");
+        corsConfig.addAllowedOriginPattern("*");
+        corsConfig.setAllowCredentials(true);
         corsConfig.addAllowedHeader("Authorization");
         corsConfig.addAllowedHeader("Content-Type");
         corsConfig.addAllowedHeader("Accept");
@@ -26,7 +27,6 @@ public class CorsConfig {
         corsConfig.addAllowedMethod("PUT");
         corsConfig.addAllowedMethod("DELETE");
         corsConfig.addAllowedMethod("OPTIONS");
-        corsConfig.setAllowCredentials(true);
         corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

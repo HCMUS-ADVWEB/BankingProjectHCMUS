@@ -16,4 +16,7 @@ public class LoginRequest {
 
     @NotNull(message = "Password is required")
     private String password;
+
+    @NotNull(message = "reCAPTCHA is required")
+    private String token;
 }
