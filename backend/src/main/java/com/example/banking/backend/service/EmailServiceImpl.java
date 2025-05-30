@@ -1,6 +1,7 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.model.type.OtpType;
+import com.example.banking.backend.util.AppConstants;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("purpose", otpType.getDisplayName());
             context.setVariable("purposeIcon", otpType.getIcon());
             context.setVariable("currentYear", Year.now().getValue());
+            context.setVariable("expirationMinutes", AppConstants.OTP_EXPIRATION_MINUTES);
 
             String htmlContent = emailTemplateEngine.process("email-otp", context);
 

@@ -189,7 +189,7 @@
         <div class="otp-container">
             <div class="otp-label">Mã xác thực OTP</div>
             <div class="otp-code" th:text="${otpCode}">123456</div>
-            <div class="otp-validity">⏰ Mã có hiệu lực trong 10 phút</div>
+            <div class="otp-validity">⏰ Mã có hiệu lực trong <span th:text="${expirationMinutes}">10</span> phút</div>
         </div>
 
         <div class="security-notice">

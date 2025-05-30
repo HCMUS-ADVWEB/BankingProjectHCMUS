@@ -16,18 +16,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OtpServiceImpl implements OtpService {
 
-    private final static Integer OTP_TTL = 10;
     private final RedisService redisService;
     private final EmailService emailService;
     private final UserRepository userRepository;
 
-    @Override
-    public void generateAndSendOtp(UUID userId, String email, OtpType otpType) {
+    private String generateRandomOtp() {
         SecureRandom secureRandom = new SecureRandom();
         int otpInt = secureRandom.nextInt(1_000_000);
-        String otp = String.format("%06d", otpInt);
+        return String.format("%06d", otpInt);
+    }
 
-        redisService.saveOtp(userId, email, otp, otpType, OTP_TTL);
+    @Override
+    public void generateAndSendOtp(UUID userId, String email, OtpType otpType) {
+        String otp = generateRandomOtp();
+        redisService.saveOtp(userId, email, otp, otpType);
         emailService.sendOtpEmail(email, otp, otpType);
     }
 

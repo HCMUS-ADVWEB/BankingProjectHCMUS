@@ -2,6 +2,7 @@ package com.example.banking.backend.service;
 
 import com.example.banking.backend.model.OtpPayload;
 import com.example.banking.backend.model.type.OtpType;
+import com.example.banking.backend.util.AppConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,10 +26,10 @@ public class RedisServiceImpl implements RedisService {
     }
 
     @Override
-    public void saveOtp(UUID userId, String email, String otp, OtpType purpose, Integer expirationMin) {
+    public void saveOtp(UUID userId, String email, String otp, OtpType purpose) {
         ZoneId zoneHCM = ZoneId.of("Asia/Ho_Chi_Minh");
         LocalDateTime now = LocalDateTime.now(zoneHCM);
-        LocalDateTime expiresAt = now.plus(Duration.ofMinutes(expirationMin));
+        LocalDateTime expiresAt = now.plus(Duration.ofMinutes(AppConstants.OTP_EXPIRATION_MINUTES));
 
         OtpPayload payload = new OtpPayload();
         payload.setOtp(otp);
@@ -37,7 +38,7 @@ public class RedisServiceImpl implements RedisService {
         payload.setExpiresAt(expiresAt.toString());
 
         String key = buildKey(userId, purpose);
-        redisTemplate.opsForValue().set(key, payload, Duration.ofMinutes(expirationMin));
+        redisTemplate.opsForValue().set(key, payload, Duration.ofMinutes(AppConstants.OTP_EXPIRATION_MINUTES));
     }
 
     @Override
