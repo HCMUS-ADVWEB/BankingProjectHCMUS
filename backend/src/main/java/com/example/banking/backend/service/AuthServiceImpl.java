@@ -4,14 +4,12 @@ import com.example.banking.backend.dto.request.auth.*;
 import com.example.banking.backend.dto.response.auth.LoginResponse;
 import com.example.banking.backend.dto.response.auth.LogoutResponse;
 import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
-import com.example.banking.backend.exception.ExistenceException;
-import com.example.banking.backend.exception.InvalidTokenException;
-import com.example.banking.backend.exception.ReCaptchaException;
+import com.example.banking.backend.exception.*;
 import com.example.banking.backend.model.RefreshToken;
 import com.example.banking.backend.model.User;
+import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.repository.RefreshTokenRepository;
 import com.example.banking.backend.repository.UserRepository;
-import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.security.jwt.JwtUtils;
 import com.example.banking.backend.security.service.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -34,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtils jwtUtils;
     private final CaptchaService captchaService;
+    private final OtpService otpService;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${security.refresh.expiration}")
     private int refreshExpiration;
@@ -94,12 +95,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void forgotPassword(ForgotPasswordRequest request) {
-
+        String email = request.getEmail();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ExistenceException("Email not found!"));
+        if (!user.getIsActive()) {
+            throw new InvalidUserException("User is banned or inactive");
+        }
+        otpService.generateAndSendOtp(user.getId(), email, OtpType.PASSWORD_RESET);
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
-
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new BadRequestException("Confirm password is not the same as input password");
+        }
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new ExistenceException("Email not found!"));
+        if (!user.getIsActive()) {
+            throw new InvalidUserException("User is banned or inactive");
+        }
+        boolean isValidOtp = otpService.validateOtp(user.getId(), OtpType.PASSWORD_RESET, request.getOtp());
+        if (!isValidOtp) {
+            throw new InvalidOtpException("Otp is not valid");
+        }
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
     }
 
     @Override

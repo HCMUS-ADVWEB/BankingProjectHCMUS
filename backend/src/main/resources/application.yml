@@ -30,12 +30,6 @@ spring:
       auth: true
       starttls.enable: true
       ssl.trust: smtp.gmail.com
-  rabbitmq:
-    host: ${MQ_HOST}
-    port: ${MQ_PORT}
-    username: ${MQ_USERNAME}
-    password: ${MQ_PASSWORD}
-    virtual-host: ${MQ_USERNAME}
   cloud:
     openfeign:
       client:

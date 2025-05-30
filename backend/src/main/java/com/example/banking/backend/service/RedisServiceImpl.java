@@ -21,7 +21,7 @@ public class RedisServiceImpl implements RedisService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    private String buildKey(UUID userId, OtpType purpose) {
+    private String buildOtpKey(UUID userId, OtpType purpose) {
         return "otp:" + userId.toString() + ":" + purpose.getValue();
     }
 
@@ -37,14 +37,14 @@ public class RedisServiceImpl implements RedisService {
         payload.setCreatedAt(now.toString());
         payload.setExpiresAt(expiresAt.toString());
 
-        String key = buildKey(userId, purpose);
+        String key = buildOtpKey(userId, purpose);
         redisTemplate.opsForValue().set(key, payload, Duration.ofMinutes(AppConstants.OTP_EXPIRATION_MINUTES));
     }
 
     @Override
     public Optional<OtpPayload> getOtp(UUID userId, OtpType purpose) {
 
-        String key = buildKey(userId, purpose);
+        String key = buildOtpKey(userId, purpose);
         Object obj = redisTemplate.opsForValue().get(key);
         if (obj == null) return Optional.empty();
 
@@ -54,7 +54,7 @@ public class RedisServiceImpl implements RedisService {
 
     @Override
     public void deleteOtp(UUID userId, OtpType purpose) {
-        String key = buildKey(userId, purpose);
+        String key = buildOtpKey(userId, purpose);
         redisTemplate.delete(key);
     }
 }

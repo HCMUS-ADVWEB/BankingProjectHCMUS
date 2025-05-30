@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -54,14 +55,22 @@ public class AuthController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        return null;
+    @PostMapping("/reset-password/request")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Email sent successfully!")
+                .status(HttpStatus.OK.value())
+                .build());
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
-        return null;
+    @PostMapping("/reset-password/confirm")
+    public ResponseEntity<ApiResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Reset password successfully!")
+                .status(HttpStatus.OK.value())
+                .build());
     }
 
     @PostMapping("/change-password")

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -63,11 +64,47 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiResponse<?>> handleDisabledUser(DisabledException ex) {
+        ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("Disabled user: " + ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ApiResponse<?>> handleOtpException(InvalidOtpException ex) {
+        final ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Invalid otp: " + ex.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadRequestException(BadRequestException ex) {
+        final ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Bad request: " + ex.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
     @ExceptionHandler(ExistenceException.class)
     public ResponseEntity<ApiResponse<?>> handleUsernameExistedException(ExistenceException ex) {
         final ApiResponse<?> response = ApiResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Bad request: " + ex.getMessage())
+                .build();
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(InvalidUserException.class)
+    public ResponseEntity<ApiResponse<?>> handleInvalidUserException(InvalidUserException ex) {
+        final ApiResponse<?> response = ApiResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("User not valid: " + ex.getMessage())
                 .build();
         return ResponseEntity.badRequest().body(response);
     }

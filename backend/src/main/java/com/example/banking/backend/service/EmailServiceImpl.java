@@ -1,5 +1,6 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.util.AppConstants;
 import jakarta.mail.internet.MimeMessage;
@@ -57,7 +58,7 @@ public class EmailServiceImpl implements EmailService {
 
         } catch (Exception e) {
             log.error("Error sending OTP email to: {}", to, e);
-            throw new RuntimeException("Failed to send OTP email", e);
+            throw new BadRequestException("Failed to send OTP email");
         }
     }
 }
