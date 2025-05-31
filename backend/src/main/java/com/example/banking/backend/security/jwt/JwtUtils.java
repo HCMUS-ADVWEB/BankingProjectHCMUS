@@ -2,6 +2,7 @@ package com.example.banking.backend.security.jwt;
 
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.security.service.UserDetailsImpl;
+import com.example.banking.backend.util.AppConstants;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -22,9 +23,6 @@ public class JwtUtils {
     @Value("${security.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${security.jwt.expiration}")
-    private int jwtExpiration;
-
     public String generateAccessToken(UserDetailsImpl userDetails) {
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
@@ -32,7 +30,7 @@ public class JwtUtils {
                 .claim("email", userDetails.getEmail())
                 .claim("isActive", userDetails.getIsActive())
                 .setIssuedAt(Date.valueOf(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))))
-                .setExpiration(Date.from(Instant.now().plusSeconds(jwtExpiration)))
+                .setExpiration(Date.from(Instant.now().plusSeconds(AppConstants.JWT_EXPIRATION_SECONDS)))
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
