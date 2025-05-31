@@ -83,4 +83,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private Set<Recipient> recipients = new LinkedHashSet<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private RefreshToken refreshToken;
 }

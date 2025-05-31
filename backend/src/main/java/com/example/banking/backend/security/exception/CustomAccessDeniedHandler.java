@@ -1,4 +1,4 @@
-package com.example.banking.backend.security;
+package com.example.banking.backend.security.exception;
 
 import com.example.banking.backend.dto.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
