@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum AccountType {
     PAYMENT("PAYMENT");
 
@@ -7,10 +10,6 @@ public enum AccountType {
 
     AccountType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static AccountType fromValue(String value) {

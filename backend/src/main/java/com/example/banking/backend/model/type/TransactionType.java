@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum TransactionType {
     INTERNAL_TRANSFER("INTERNAL_TRANSFER"),
     INTERBANK_TRANSFER("INTERBANK_TRANSFER"),
@@ -10,10 +13,6 @@ public enum TransactionType {
 
     TransactionType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static TransactionType fromValue(String value) {
