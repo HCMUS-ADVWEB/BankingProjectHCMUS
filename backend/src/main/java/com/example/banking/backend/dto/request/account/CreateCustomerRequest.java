@@ -12,6 +12,7 @@ public class CreateCustomerRequest {
     private String password;
     private String email;
     private String phone;
+    private String fullName;
     private String address;
     private LocalDate dob;
 }

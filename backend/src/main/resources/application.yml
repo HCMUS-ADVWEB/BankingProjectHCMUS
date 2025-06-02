@@ -75,3 +75,6 @@ app:
   mail:
     from: ${MAIL_USERNAME}
     from-name: "FINTECH HCMUS"
+
+fintechhub:
+  bank-code: 5873

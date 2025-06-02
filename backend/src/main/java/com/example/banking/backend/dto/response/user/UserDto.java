@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class UserDto implements Serializable {
+public class UserDto {
     private UUID id;
     private String username;
     private String email;
@@ -22,7 +22,7 @@ public class UserDto implements Serializable {
     private String address;
     private LocalDate dob;
     private UserRoleType role;
-    private Boolean isActive = false;
+    private Boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
 }

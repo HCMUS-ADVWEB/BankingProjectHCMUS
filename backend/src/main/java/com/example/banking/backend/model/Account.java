@@ -3,7 +3,9 @@ package com.example.banking.backend.model;
 import com.example.banking.backend.model.type.AccountType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -15,6 +17,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
     @Id

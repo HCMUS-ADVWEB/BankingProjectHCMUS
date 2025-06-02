@@ -11,7 +11,7 @@ import com.example.banking.backend.model.type.TransactionType;
 import java.util.UUID;
 
 public interface AccountService {
-    ApiResponse<GetAccountResponse> getAccount(UUID accountId);
+    ApiResponse<GetAccountResponse> getAccount(UUID userId);
 
     ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(UUID accountId, Integer size, Integer pagination, TransactionType type);
 

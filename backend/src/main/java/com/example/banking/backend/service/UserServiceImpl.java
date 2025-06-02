@@ -4,6 +4,7 @@ import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.exception.ExistenceException;
+import com.example.banking.backend.mapper.account.UserMapper;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.UserRepository;
@@ -27,6 +28,11 @@ public class UserServiceImpl implements UserService {
 
     private Instant getCurrentTime() {
         return ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+    }
+
+    @Override
+    public User getUser(UUID userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new ExistenceException("User not existed!"));
     }
 
     @Override
@@ -77,33 +83,23 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto createUser(CreateUserRequest request) {
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setFullName(request.getFullName());
-        user.setAddress(request.getAddress());
-        user.setDob(request.getDob());
-        user.setRole(request.getRole());
-        user.setIsActive(request.getIsActive());
-        user.setCreatedAt(getCurrentTime());
-        user.setUpdatedAt(getCurrentTime());
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName())
+                .address(request.getAddress())
+                .dob(request.getDob())
+                .role(request.getRole())
+                .isActive(request.getIsActive())
+                .createdAt(getCurrentTime())
+                .updatedAt(getCurrentTime())
+                .build();
 
         User savedUser = userRepository.save(user);
-        return UserDto.builder()
-                .id(user.getId())
-                .dob(user.getDob())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .role(user.getRole())
-                .address(user.getAddress())
-                .createdAt(user.getCreatedAt())
-                .fullName(user.getFullName())
-                .isActive(user.getIsActive())
-                .updatedAt(user.getUpdatedAt())
-                .username(user.getUsername())
-                .build();
+        return UserMapper.INSTANCE.userToUserDto(savedUser);
     }
 
     @Override
