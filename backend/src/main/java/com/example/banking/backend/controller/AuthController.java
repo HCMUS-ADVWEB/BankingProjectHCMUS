@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -71,45 +70,5 @@ public class AuthController {
                 .message("Reset password successfully!")
                 .status(HttpStatus.OK.value())
                 .build());
-    }
-
-    @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(@RequestBody ChangePasswordRequest request) {
-        return null;
-    }
-
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<Void>> verifyOtp(@RequestBody VerifyOtpRequest request) {
-        return null;
-    }
-
-    @GetMapping("/user-info")
-    public ResponseEntity<ApiResponse<?>> getUserInfo() {
-        return null;
-    }
-
-    @PostMapping("/employees")
-    public ResponseEntity<ApiResponse<?>> createEmployee(@RequestBody CreateEmployeeRequest request) {
-        return null;
-    }
-
-    @GetMapping("/employees")
-    public ResponseEntity<ApiResponse<?>> getEmployees(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "1") int page) {
-        return null;
-    }
-
-    @GetMapping("/employees/{employeeId}")
-    public ResponseEntity<ApiResponse<?>> getEmployeeDetails(@PathVariable UUID employeeId) {
-        return null;
-    }
-
-    @PutMapping("/employees/{employeeId}")
-    public ResponseEntity<ApiResponse<?>> updateEmployee(@PathVariable UUID employeeId, @RequestBody UpdateEmployeeRequest request) {
-        return null;
-    }
-
-    @DeleteMapping("/employees/{employeeId}")
-    public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable UUID employeeId) {
-        return null;
     }
 }

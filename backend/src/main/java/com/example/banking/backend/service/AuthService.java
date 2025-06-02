@@ -18,20 +18,4 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequest request);
 
     void resetPassword(ResetPasswordRequest request);
-
-    void changePassword(ChangePasswordRequest request);
-
-    void verifyOtp(VerifyOtpRequest request);
-
-    void getUserInfo();
-
-    void createEmployee(CreateEmployeeRequest request);
-
-    void getEmployees(int limit, int page);
-
-    void getEmployeeDetails(UUID employeeId);
-
-    void updateEmployee(UUID employeeId, UpdateEmployeeRequest request);
-
-    void deleteEmployee(UUID employeeId);
 }
