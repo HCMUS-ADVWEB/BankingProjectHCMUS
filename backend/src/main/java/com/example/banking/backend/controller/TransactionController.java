@@ -5,6 +5,7 @@ import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
 import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
+import com.example.banking.backend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,13 @@ import java.util.UUID;
 @RequestMapping("/api/transactions")
 public class TransactionController {
 
-    // private final TransactionService transactionService;
+     private final TransactionService transactionService;
 
     @PostMapping("/internal")
     public ResponseEntity<ApiResponse<?>> internalTransfer(@RequestBody TransferRequest request) {
+        transactionService.internalTransfer(request);
         return null;
+
     }
 
     @PostMapping("/external")
