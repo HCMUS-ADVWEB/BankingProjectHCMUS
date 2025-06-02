@@ -119,44 +119,4 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
     }
-
-    @Override
-    public void changePassword(ChangePasswordRequest request) {
-
-    }
-
-    @Override
-    public void verifyOtp(VerifyOtpRequest request) {
-
-    }
-
-    @Override
-    public void getUserInfo() {
-
-    }
-
-    @Override
-    public void createEmployee(CreateEmployeeRequest request) {
-
-    }
-
-    @Override
-    public void getEmployees(int limit, int page) {
-
-    }
-
-    @Override
-    public void getEmployeeDetails(UUID employeeId) {
-
-    }
-
-    @Override
-    public void updateEmployee(UUID employeeId, UpdateEmployeeRequest request) {
-
-    }
-
-    @Override
-    public void deleteEmployee(UUID employeeId) {
-
-    }
 }
