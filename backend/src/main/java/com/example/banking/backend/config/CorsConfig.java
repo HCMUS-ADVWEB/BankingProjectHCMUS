@@ -3,6 +3,7 @@ package com.example.banking.backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.Ordered;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -11,10 +12,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class CorsConfig {
 
     @Bean
-    @Order(0)
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("*");
+        corsConfig.addAllowedOriginPattern("*");
+        corsConfig.setAllowCredentials(true);
         corsConfig.addAllowedHeader("Authorization");
         corsConfig.addAllowedHeader("Content-Type");
         corsConfig.addAllowedHeader("Accept");
@@ -25,7 +27,6 @@ public class CorsConfig {
         corsConfig.addAllowedMethod("PUT");
         corsConfig.addAllowedMethod("DELETE");
         corsConfig.addAllowedMethod("OPTIONS");
-        corsConfig.setAllowCredentials(true);
         corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

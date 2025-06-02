@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum BankSecurityType {
     RSA("RSA"),
     AES("AES"),
@@ -9,10 +12,6 @@ public enum BankSecurityType {
 
     BankSecurityType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static BankSecurityType fromValue(String value) {

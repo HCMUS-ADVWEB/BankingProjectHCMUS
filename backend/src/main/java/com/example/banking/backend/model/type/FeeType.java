@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum FeeType {
     FIXED("SENDER"),
     PERCENTAGE("RECEIVER");
@@ -8,10 +11,6 @@ public enum FeeType {
 
     FeeType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static FeeType fromValue(String value) {

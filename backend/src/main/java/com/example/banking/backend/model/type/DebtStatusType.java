@@ -1,5 +1,8 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum DebtStatusType {
     PENDING("PENDING"),
     PAID("PAID"),
@@ -9,10 +12,6 @@ public enum DebtStatusType {
 
     DebtStatusType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static DebtStatusType fromValue(String value) {

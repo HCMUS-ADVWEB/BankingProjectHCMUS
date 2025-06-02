@@ -1,14 +1,19 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.*;
+import com.example.banking.backend.dto.response.auth.LogoutResponse;
+import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
+import com.example.banking.backend.dto.response.auth.LoginResponse;
 
 import java.util.UUID;
 
 public interface AuthService {
 
-    void login(LoginRequest request);
+    LoginResponse login(LoginRequest request);
 
-    void refreshToken(RefreshTokenRequest request);
+    RefreshTokenResponse refresh(RefreshTokenRequest request);
+
+    LogoutResponse logout(UUID refreshToken);
 
     void forgotPassword(ForgotPasswordRequest request);
 

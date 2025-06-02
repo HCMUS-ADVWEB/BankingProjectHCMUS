@@ -23,12 +23,13 @@ spring:
       ddl-auto: update
   mail:
     host: smtp.gmail.com
-    port: 587
+    port: ${MAIL_PORT}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties.mail.smtp:
-        auth: true
-        starttls.enable: true
+      auth: true
+      starttls.enable: true
+      ssl.trust: smtp.gmail.com
   cloud:
     openfeign:
       client:
@@ -37,6 +38,12 @@ spring:
             connectTimeout: 5000
             readTimeout: 5000
             loggerLevel: basic
+  data.redis:
+    database: 0
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+    timeout: 60000
 
 logging:
   level:
@@ -52,3 +59,19 @@ management:
     web:
       exposure:
         include: "*"
+
+security:
+  jwt:
+    secret: ${JWT_SECRET_KEY}
+  refresh:
+    expiration: 2592000
+
+google:
+  recaptcha:
+    key:
+      secret: ${GG_SECRET_KEY}
+
+app:
+  mail:
+    from: ${MAIL_USERNAME}
+    from-name: "FINTECH HCMUS"

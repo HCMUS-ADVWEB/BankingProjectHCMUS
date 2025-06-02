@@ -1,18 +1,17 @@
 package com.example.banking.backend.model.type;
 
+import lombok.Getter;
+
+@Getter
 public enum UserRoleType {
-    USER("CUSTOMER"),
+    CUSTOMER("CUSTOMER"),
     ADMIN("ADMIN"),
-    MODERATOR("EMPLOYEE");
+    EMPLOYEE("EMPLOYEE");
 
     private final String value;
 
     UserRoleType(String value) {
         this.value = value;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static UserRoleType fromValue(String value) {
