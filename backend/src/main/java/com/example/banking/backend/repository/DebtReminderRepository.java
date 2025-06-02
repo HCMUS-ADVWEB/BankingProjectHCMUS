@@ -1,10 +1,14 @@
 package com.example.banking.backend.repository;
 
-import com.example.banking.backend.model.DebtReminder;
-import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.banking.backend.model.DebtReminder;
+import com.example.banking.backend.model.type.DebtStatusType;
+
 public interface DebtReminderRepository extends JpaRepository<DebtReminder, UUID> {
-    List<DebtReminder> findAll();
+    Page<DebtReminder> findByStatus(DebtStatusType status, Pageable pageable); // Use DebtStatusType instead of String
 }
