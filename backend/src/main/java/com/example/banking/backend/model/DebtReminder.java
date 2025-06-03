@@ -3,6 +3,7 @@ package com.example.banking.backend.model;
 import com.example.banking.backend.model.type.DebtStatusType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "debt_reminders")
 public class DebtReminder {
+
     @Id
     @ColumnDefault("gen_random_uuid()")
     @Column(name = "debt_reminder_id", nullable = false)
@@ -31,6 +33,7 @@ public class DebtReminder {
     private User debtor;
 
     @NotNull
+    @Positive
     @Column(name = "amount", nullable = false)
     private Double amount;
 
@@ -56,7 +59,11 @@ public class DebtReminder {
     @Column(name = "cancelled_reason", length = Integer.MAX_VALUE)
     private String cancelledReason;
 
+    @Column(name = "transaction_id")
+    private UUID transactionId; // Add this field
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id")
+    @JoinColumn(name = "transaction_id", insertable = false, updatable = false)
     private Transaction transaction;
+
 }
