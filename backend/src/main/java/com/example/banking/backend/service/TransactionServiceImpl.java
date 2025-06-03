@@ -33,11 +33,11 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
 
 
-    private TransactionRepository  transactionRepository;
-    private AccountRepository accountRepository ;
-    private BankRepository  bankRepository;
-    private UserRepository  userRepository;
-    private RecipientRepository  recipientRepository;
+    private TransactionRepository transactionRepository;
+    private AccountRepository accountRepository;
+    private BankRepository bankRepository;
+    private UserRepository userRepository;
+    private RecipientRepository recipientRepository;
 
     @Override
     public TransferResult externalTransfer(TransferRequestExternal request) {
@@ -69,7 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
         Bank bank = bankRepository.findById(request.getDestinationBankId()).orElseThrow(
                 () -> new IllegalArgumentException("No bank")
-        ) ;
+        );
         Account accountCurrentUser = getAccountCurrentUser();
 
         Transaction transaction = new Transaction();
@@ -83,7 +83,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setToAccount(getAccountFromNumber(request.getAccountNumberReceiver()));
 
         transaction.setAmount(request.getAmount());
-        transaction.setFee(request.getAmount()*0.02);
+        transaction.setFee(request.getAmount() * 0.02);
         transaction.setFeeType(request.getFeeType());
 
         transaction.setMessage(request.getMessage() != null ? request.getMessage() : "");
@@ -119,10 +119,12 @@ public class TransactionServiceImpl implements TransactionService {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("NOT FOUND "));
     }
+
     Account getAccountFromNumber(String accountNumber) {
-        return  accountRepository.findByAccountNumber(accountNumber)
+        return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new RuntimeException("NOT FOUND"));
     }
+
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("NOT FOUND"));
@@ -146,7 +148,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setToAccount(getAccountFromNumber(request.getAccountNumberReceiver()));
 
         transaction.setAmount(request.getAmount());
-        transaction.setFee(request.getAmount()*0.02);
+        transaction.setFee(request.getAmount() * 0.02);
         transaction.setFeeType(request.getFeeType());
         transaction.setStatus(TransactionStatusType.PENDING);
         transaction.setMessage(request.getMessage());
@@ -204,7 +206,7 @@ public class TransactionServiceImpl implements TransactionService {
         Bank bank = bankRepository.findByBankName(request.getBankName())
                 .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
         Recipient recipient = new Recipient();
-        User currentUser = getCurrentUser() ;
+        User currentUser = getCurrentUser();
         recipient.setUser(currentUser);
         recipient.setRecipientAccountNumber(request.getAccountNumber());
         recipient.setRecipientName(account.getUser().getFullName());
@@ -289,7 +291,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public AccountDto getExternalAccountInfo(String accountNumber , UUID bankId) {
+    public AccountDto getExternalAccountInfo(String accountNumber, UUID bankId) {
         if (accountNumber == null || accountNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Account number cannot be null or empty");
         }
@@ -314,8 +316,83 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Override
-    public void externalDeposit(ExternalDepositRequest request) {
+    public DepositResult externalDeposit(ExternalDepositRequest request) {
+        // Validate request
+        if (request == null) {
+            return new DepositResult(false, "Deposit request cannot be null");
+        }
 
+        if (request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
+            return new DepositResult(false, "Account number cannot be null or empty");
+        }
+
+        if (request.getAmount() == null || request.getAmount() <= 0) {
+            return new DepositResult(false, "Amount must be positive");
+        }
+
+        if (request.getSourceBankId() == null) {
+            return new DepositResult(false, "Source bank ID cannot be null");
+        }
+
+        if (request.getSenderName() == null || request.getSenderName().trim().isEmpty()) {
+            return new DepositResult(false, "Sender name cannot be null or empty");
+        }
+
+        if (request.getSenderAccountNumber() == null || request.getSenderAccountNumber().trim().isEmpty()) {
+            return new DepositResult(false, "Sender account number cannot be null or empty");
+        }
+
+        try {
+            // Tìm tài khoản đích
+            Account destinationAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
+                    .orElseThrow(() -> new IllegalArgumentException("Destination account not found: " + request.getAccountNumber()));
+
+            Bank sourceBank = bankRepository.findById(request.getSourceBankId())
+                    .orElseThrow(() -> new IllegalArgumentException("Source bank not found"));
+
+            Transaction transaction = new Transaction();
+            transaction.setTransactionType(TransactionType.DEPOSIT);
+
+            transaction.setFromBank(sourceBank);
+            transaction.setFromAccount(null); // Không có account object cho ngân hàng ngoài
+            transaction.setFromAccountNumber(request.getSenderAccountNumber());
+
+            transaction.setToBank(null); // Ngân hàng hiện tại
+            transaction.setToAccount(destinationAccount);
+            transaction.setToAccountNumber(request.getAccountNumber());
+
+            transaction.setAmount(request.getAmount());
+            transaction.setFee(0.0); // Không tính phí cho deposit từ bên ngoài
+            transaction.setFeeType(null);
+            transaction.setMessage(request.getMessage() != null ? request.getMessage() : "External deposit from " + sourceBank.getBankName());
+            transaction.setStatus(TransactionStatusType.COMPLETED); // Giao dịch nạp tiền thường hoàn thành ngay
+
+
+
+            // Lưu transaction
+            Transaction savedTransaction = transactionRepository.save(transaction);
+
+            double oldBalance = destinationAccount.getBalance();
+            double newBalance = oldBalance + request.getAmount();
+            destinationAccount.setBalance(newBalance);
+            accountRepository.save(destinationAccount);
+
+
+
+            return new DepositResult(
+                    true,
+                    savedTransaction.getId().toString(),
+                    request.getAmount(),
+                    newBalance,
+                    "External deposit completed successfully from " + sourceBank.getBankName(), ""
+                    );
+
+        } catch (IllegalArgumentException e) {
+            return new DepositResult(false, e.getMessage());
+        } catch (Exception e) {
+
+            return new DepositResult(false, "External deposit failed: " + e.getMessage());
+        }
     }
 
     @Override

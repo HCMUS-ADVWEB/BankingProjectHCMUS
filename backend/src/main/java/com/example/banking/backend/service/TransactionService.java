@@ -7,10 +7,12 @@ import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.model.Account;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
+@Service
 public interface TransactionService {
 
     TransferResult internalTransfer(TransferRequest request);
@@ -37,5 +39,5 @@ public interface TransactionService {
 
     public AccountDto getExternalAccountInfo(String accountNumber , UUID bankId);
 
-    void externalDeposit(ExternalDepositRequest request);
+    DepositResult externalDeposit(ExternalDepositRequest request);
 }
