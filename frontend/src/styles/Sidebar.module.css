@@ -1,0 +1,21 @@
+.drawer {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.drawerPaper {
+  width: 240px;
+  background: #f5f5f5;
+}
+
+.toolbar {
+  min-height: 64px;
+}
+
+.listItem {
+  color: #007bff;
+}
+
+.listItem:hover {
+  background: #e3f2fd;
+}

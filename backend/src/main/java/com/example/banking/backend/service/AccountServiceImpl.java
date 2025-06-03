@@ -10,7 +10,6 @@ import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.mapper.account.AccountMapper;
-import com.example.banking.backend.mapper.account.UserMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
