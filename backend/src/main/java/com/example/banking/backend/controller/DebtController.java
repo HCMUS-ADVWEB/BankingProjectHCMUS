@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
+import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
+import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
-import com.example.banking.backend.service.DebtService;
 import com.example.banking.backend.model.type.DebtStatusType;
+import com.example.banking.backend.service.DebtService;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -39,20 +42,55 @@ public class DebtController {
         ApiResponse<List<GetDebtReminderResponse>> response = debtService.getDebtReminders(debtStatusType, limit, page);
         return ResponseEntity.ok(response);
     }
+ 
+    @PostMapping("/reminders")
+    public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(
+            @RequestBody CreateDebtReminderRequest request) {
+        // Use a default UUID for creatorId
+        UUID defaultCreatorId = UUID.fromString("92edbffe-d9da-44e4-873b-43843306aed4");
 
-    @PostMapping
-    // public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(@RequestBody CreateDebtReminderRequest request) {
-    //     ApiResponse<List<GetDebtReminderResponse>> apiResponse = debtService.createDebtReminder(request);
-    //     return ResponseEntity.ok(new ApiResponse<>(response));
-    // }
+        // Call the service to create the debt reminder
+        ApiResponse<CreateDebtReminderResponse> response = debtService.createDebtReminder(defaultCreatorId, request);
+
+        // Return the response
+        return ResponseEntity.ok(response);
+    }
 
     @DeleteMapping("/{reminderId}")
-    public ResponseEntity<ApiResponse<Void>> cancelDebtReminder(@PathVariable UUID reminderId, @RequestBody CancelDebtReminderRequest request) {
-        return null;
+    public ResponseEntity<ApiResponse<Void>> cancelDebtReminder(@PathVariable String reminderId, @RequestBody CancelDebtReminderRequest request) {
+        try {
+            // Trim and validate the UUID string
+            reminderId = reminderId.trim();
+            UUID reminderUUID = UUID.fromString(reminderId); // Convert the string to UUID
+
+            ApiResponse<Void> response = debtService.cancelDebtReminder(reminderUUID, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            // Handle invalid UUID format
+            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message("Invalid UUID format: " + reminderId)
+                    .build();
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     @PostMapping("/{reminderId}/pay")
-    public ResponseEntity<ApiResponse<Void>> payDebtReminder(@PathVariable UUID reminderId, @RequestBody PayDebtRequest request) {
-        return null;
+    public ResponseEntity<ApiResponse<Void>> payDebtReminder(@PathVariable String reminderId, @RequestBody PayDebtRequest request) {
+        try {
+            // Trim and validate the UUID string
+            reminderId = reminderId.trim();
+            UUID reminderUUID = UUID.fromString(reminderId); // Convert the string to UUID
+
+            ApiResponse<Void> response = debtService.payDebtReminder(reminderUUID, request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            // Handle invalid UUID format
+            ApiResponse<Void> errorResponse = ApiResponse.<Void>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message("Invalid UUID format: " + reminderId)
+                    .build();
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 }
