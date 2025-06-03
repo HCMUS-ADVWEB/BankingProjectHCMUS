@@ -184,7 +184,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Pageable pageable = PageRequest.of(pageNumber, limit);
 
-        Page<Transaction> transactionPage = transactionRepository.findByAccountId(accountId, pageable);
+        Page<Transaction> transactionPage = transactionRepository.findByFromAccountId(accountId, pageable);
 
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
@@ -300,13 +300,13 @@ public class TransactionServiceImpl implements TransactionService {
         if (bank.isEmpty()) throw new IllegalArgumentException("Bank ID cannot be null");
 
 
-        Account account = accountRepository.findByAccountNumberAndBankId(accountNumber, bankId)
+        Recipient account = recipientRepository.findByAccountNumberAndBankId(accountNumber, bankId)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found for accountNumber: " + accountNumber + " and bankId: " + bankId));
 
 
         return new AccountDto(
                 account.getId(),
-                account.getAccountNumber(),
+                account.getRecipientAccountNumber(),
                 bank.get().getBankName(),
                 account.getUser().getFullName()
         );
@@ -327,7 +327,7 @@ public class TransactionServiceImpl implements TransactionService {
             throw new IllegalArgumentException("Bank ID cannot be null");
         }
 
-        Account account = accountRepository.findByAccountNumberAndBankId(accountNumber, bankId)
+        Recipient account = recipientRepository.findByAccountNumberAndBankId(accountNumber, bankId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Recipient verification failed: Account not found for accountNumber: " + accountNumber + " and bankId: " + bankId
                 ));

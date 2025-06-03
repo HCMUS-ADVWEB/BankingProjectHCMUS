@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface BankRepository extends JpaRepository<Bank, UUID> {
     Optional<Bank> findByBankName(String bankName);
+
 }
