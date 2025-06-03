@@ -3,7 +3,9 @@ package com.example.banking.backend.model;
 import com.example.banking.backend.model.type.AccountType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -15,12 +17,14 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
     @Id
     @ColumnDefault("gen_random_uuid()")
     @Column(name = "account_id", nullable = false)
-    private UUID id;
+    private UUID accountId;
 
     @NotNull
     @Column(name = "account_number", nullable = false)

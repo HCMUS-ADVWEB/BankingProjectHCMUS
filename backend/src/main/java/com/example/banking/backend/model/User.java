@@ -3,8 +3,7 @@ package com.example.banking.backend.model;
 import com.example.banking.backend.model.type.UserRoleType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
@@ -16,6 +15,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "users")
 public class User {
     @Id
@@ -72,7 +74,7 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Account account;
 
     @OneToMany(mappedBy = "creator")
