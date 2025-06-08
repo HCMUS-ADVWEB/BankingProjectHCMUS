@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class TransactionController {
 
     private final TransactionService transactionService;
+
 
     @PostMapping("/internal")
     public ResponseEntity<ApiResponse<TransferResult>> internalTransfer(
@@ -213,6 +215,7 @@ public class TransactionController {
         }
     }
 
+
     @GetMapping("/verify-recipient")
     public ResponseEntity<ApiResponse<Boolean>> verifyRecipient(
             @RequestParam String accountNumber,
@@ -241,6 +244,7 @@ public class TransactionController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
     public ResponseEntity<ApiResponse<?>> getBankTransactions(
             @RequestParam(required = false) UUID bankId,
@@ -270,7 +274,7 @@ public class TransactionController {
                             .build());
         }
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<?>> getBankTransactionStats(
             @RequestParam(required = false) UUID bankId,
@@ -324,6 +328,7 @@ public class TransactionController {
     }
 
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/external/deposit")
     public ResponseEntity<ApiResponse<String>> externalDeposit(
             @Valid @RequestBody ExternalDepositRequest request) {

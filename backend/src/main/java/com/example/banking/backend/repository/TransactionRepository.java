@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
@@ -21,5 +20,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByBankIdAndDateRange(UUID bankId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
     List<Transaction> findByCreatedAtBetween(Instant startDate, Instant endDate);
-    Page<Transaction> findByFromAccountId(UUID accountId, Pageable pageable);}
+    @Query("SELECT t FROM Transaction t WHERE t.fromAccount.accountId = :fromAccountId")
+    Page<Transaction> findByFromAccountId(UUID fromAccountId, Pageable pageable);
+
+}
+
 

@@ -19,6 +19,6 @@ public enum FeeType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown value: " + value);
+        throw new IllegalArgumentException("Fee Type is not valid " + value);
     }
 }

@@ -12,6 +12,7 @@ import com.example.banking.backend.model.type.FeeType;
 import com.example.banking.backend.model.type.TransactionStatusType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.repository.*;
+import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -117,7 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     Account getAccountCurrentUser() {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("NOT FOUND "));
+                .orElseThrow(() -> new RuntimeException("Please sign in first "));
     }
 
     Account getAccountFromNumber(String accountNumber) {
