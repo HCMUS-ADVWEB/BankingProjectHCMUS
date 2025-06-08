@@ -6,6 +6,7 @@ import com.example.banking.backend.dto.request.transaction.ExternalDepositReques
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
 import com.example.banking.backend.dto.response.transaction.*;
+import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.InvalidUserException;
 import com.example.banking.backend.model.*;
 import com.example.banking.backend.model.type.FeeType;
@@ -14,6 +15,9 @@ import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.repository.*;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
+import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.AllArgsConstructor;
@@ -110,8 +114,8 @@ public class TransactionServiceImpl implements TransactionService {
             return 0.0; // Mặc định không phí nếu không chỉ định
         }
         return switch (feeType) {
-            case FIXED -> 10.0; // Phí cố định 10 đơn vị
-            case PERCENTAGE -> amount * 0.01; // Phí 1% của số tiền
+            case SENDER -> 10.0; // Phí cố định 10 đơn vị
+            case RECEIVER -> amount * 0.01; // Phí 1% của số tiền
             default -> 0.0;
         };
     }
@@ -123,50 +127,69 @@ public class TransactionServiceImpl implements TransactionService {
 
     Account getAccountFromNumber(String accountNumber) {
         return accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("NOT FOUND"));
+                .orElseThrow(() -> new BadRequestException("ACCOUNT RECEIVER NOT FOUND"));
     }
 
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("NOT FOUND"));
+                .orElseThrow(() -> new RuntimeException("NOT FOUND CURRENT USER"));
     }
 
     @Override
+    @Transactional
     public TransferResult internalTransfer(TransferRequest request) {
+        try {
+            Transaction transaction = new Transaction();
 
-        Transaction transaction = new Transaction();
+            Account accountCurrentUser = getAccountCurrentUser();
+            Account toAccount = getAccountFromNumber(request.getAccountNumberReceiver());
 
-        Account accountCurrentUser = getAccountCurrentUser();
+            if (toAccount == null) {
+                throw new BadRequestException("Receiver account not found");
+            }
 
-        transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+            // Kiểm tra số dư
+            double fee = calculateFee(request.getAmount(), request.getFeeType());
+            double totalAmount = request.getAmount() + fee;
 
-        transaction.setFromBank(null);
-        transaction.setFromAccount(accountCurrentUser);
-        transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
+            if (accountCurrentUser.getBalance() < totalAmount) {
+                throw new BadRequestException("Insufficient balance");
+            }
 
-        transaction.setToBank(null);
-        transaction.setToAccountNumber(request.getAccountNumberReceiver());
-        transaction.setToAccount(getAccountFromNumber(request.getAccountNumberReceiver()));
+            transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+            transaction.setFromAccount(accountCurrentUser);
+            transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
+            transaction.setToAccountNumber(request.getAccountNumberReceiver());
+            transaction.setToAccount(toAccount);
+            transaction.setAmount(request.getAmount());
+            transaction.setFee(fee);
+            transaction.setFeeType(request.getFeeType());
+            transaction.setStatus(TransactionStatusType.PENDING);
+            transaction.setMessage(request.getMessage());
 
-        transaction.setAmount(request.getAmount());
-        transaction.setFee(request.getAmount() * 0.02);
-        transaction.setFeeType(request.getFeeType());
-        transaction.setStatus(TransactionStatusType.PENDING);
-        transaction.setMessage(request.getMessage());
+            // Set timestamps manually
+            Instant now = Instant.now();
+            transaction.setCreatedAt(now);
+            transaction.setUpdatedAt(now);
 
-        var savedTransaction = transactionRepository.save(transaction);
-        double fee = calculateFee(request.getAmount(), request.getFeeType());
+            var savedTransaction = transactionRepository.save(transaction);
 
-        return new TransferResult(
-                true,
-                savedTransaction.getId().toString(),
-                request.getAmount(),
-                fee,
-                request.getMessage() != null ? request.getMessage() : "",
-                null
-        );
+            return new TransferResult(
+                    true,
+                    savedTransaction.getId().toString(),
+                    request.getAmount(),
+                    fee,
+                    request.getMessage() != null ? request.getMessage() : "",
+                    null
+            );
 
-
+        } catch (DataIntegrityViolationException e) {
+            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
+        } catch (ConstraintViolationException e) {
+            throw new BadRequestException("Validation error: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -177,10 +200,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<TransactionDto> getTransactionHistory(UUID accountId, int limit, int page) {
         if (accountId == null) {
-            throw new IllegalArgumentException("Account ID cannot be null");
+            throw new BadRequestException("Account ID cannot be null");
         }
         if (limit <= 0 || page <= 0) {
-            throw new IllegalArgumentException("Limit and page must be positive integers");
+            throw new BadRequestException("Limit and page must be positive integers");
         }
 
         int pageNumber = page - 1;
@@ -189,10 +212,11 @@ public class TransactionServiceImpl implements TransactionService {
 
         Page<Transaction> transactionPage = transactionRepository.findByFromAccountId(accountId, pageable);
 
+
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
                         transaction.getId(),
-                        transaction.getToBank().getId(),
+                        transaction.getToBank() != null ? transaction.getToBank().getId() : null,
                         transaction.getAmount(),
                         transaction.getUpdatedAt(),
                         transaction.getMessage()
@@ -201,19 +225,33 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional
     public void addRecipient(AddRecipientRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
-        Bank bank = bankRepository.findByBankName(request.getBankName())
-                .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
-        Recipient recipient = new Recipient();
-        User currentUser = getCurrentUser();
-        recipient.setUser(currentUser);
-        recipient.setRecipientAccountNumber(request.getAccountNumber());
-        recipient.setRecipientName(account.getUser().getFullName());
-        recipient.setBank(bank);
-        currentUser.getRecipients().add(recipient);
-        userRepository.save(currentUser);
+        try {
+            Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                    .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
+
+            // Xử lý bank - có thể null
+            Bank bank = null;
+            if (request.getBankName() != null && !request.getBankName().trim().isEmpty()) {
+                bank = bankRepository.findByBankName(request.getBankName())
+                        .orElseThrow(() -> new BadRequestException("NOT FOUND THIS BANK"));
+            }
+
+            User currentUser = getCurrentUser();
+            Recipient recipient = new Recipient();
+            recipient.setUser(currentUser);
+            recipient.setRecipientAccountNumber(request.getAccountNumber());
+            recipient.setRecipientName(account.getUser().getFullName());
+            recipient.setBank(bank);
+            recipientRepository.save(recipient);
+
+
+        } catch (DataIntegrityViolationException e) {
+            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to add recipient: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -239,8 +277,8 @@ public class TransactionServiceImpl implements TransactionService {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
-            startDateTime = LocalDateTime.parse(startDate + "T00:00:00"); // Bắt đầu ngày
-            endDateTime = LocalDateTime.parse(endDate + "T23:59:59");   // Kết thúc ngày
+            startDateTime = LocalDateTime.parse(startDate + "T00:00:00");
+            endDateTime = LocalDateTime.parse(endDate + "T23:59:59");
             if (endDateTime.isBefore(startDateTime)) {
                 throw new IllegalArgumentException("End date must be after start date");
             }
@@ -369,7 +407,6 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setStatus(TransactionStatusType.COMPLETED); // Giao dịch nạp tiền thường hoàn thành ngay
 
 
-
             // Lưu transaction
             Transaction savedTransaction = transactionRepository.save(transaction);
 
@@ -379,14 +416,13 @@ public class TransactionServiceImpl implements TransactionService {
             accountRepository.save(destinationAccount);
 
 
-
             return new DepositResult(
                     true,
                     savedTransaction.getId().toString(),
                     request.getAmount(),
                     newBalance,
                     "External deposit completed successfully from " + sourceBank.getBankName(), ""
-                    );
+            );
 
         } catch (IllegalArgumentException e) {
             return new DepositResult(false, e.getMessage());
@@ -445,7 +481,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(recipient -> new RecipientDtoResponse(
                         recipient.getId(),
                         recipient.getRecipientAccountNumber(),
-                        recipient.getBank().getBankName(),
+                        recipient.getBank() == null ? null :  recipient.getBank().getBankName(),
                         recipient.getRecipientName()
                 ))
                 .collect(Collectors.toList());

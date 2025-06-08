@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,26 +30,19 @@ public class TransactionController {
     private final TransactionService transactionService;
 
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/internal")
     public ResponseEntity<ApiResponse<TransferResult>> internalTransfer(
             @Valid @RequestBody TransferRequest request) {
-        try {
             TransferResult result = transactionService.internalTransfer(request);
-
             return ResponseEntity.ok(ApiResponse.<TransferResult>builder()
                     .status(HttpStatus.OK.value())
                     .message("Internal transfer initiated successfully")
                     .data(result)
                     .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<TransferResult>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Internal transfer failed: " + e.getMessage())
-                            .build());
-        }
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/external")
     public ResponseEntity<ApiResponse<TransferResult>> externalTransfer(
             @Valid @RequestBody TransferRequestExternal request) {
@@ -76,7 +71,7 @@ public class TransactionController {
         }
     }
 
-
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtp(
             @Valid @RequestBody VerifyOtpRequest request) {
@@ -97,12 +92,13 @@ public class TransactionController {
         }
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/accounts/{accountId}")
     public ResponseEntity<ApiResponse<List<TransactionDto>>> getTransactionHistory(
-            @RequestParam UUID accountId,
+            @PathVariable UUID accountId,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page) {
-        try {
+
             List<TransactionDto> transactions = transactionService.getTransactionHistory(accountId, limit, page);
 
             return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
@@ -110,44 +106,21 @@ public class TransactionController {
                     .message("Transaction history retrieved successfully")
                     .data(transactions)
                     .build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<List<TransactionDto>>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<List<TransactionDto>>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to retrieve transaction history: " + e.getMessage())
-                            .build());
-        }
+
     }
 
     @GetMapping("/recipients")
     public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page) {
-        try {
-            List<RecipientDtoResponse> recipients = transactionService.getRecipients(limit, page);
 
+            List<RecipientDtoResponse> recipients = transactionService.getRecipients(limit, page);
             return ResponseEntity.ok(ApiResponse.<List<RecipientDtoResponse>>builder()
                     .status(HttpStatus.OK.value())
                     .message("Recipients retrieved successfully")
                     .data(recipients)
                     .build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<List<RecipientDtoResponse>>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<List<RecipientDtoResponse>>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to retrieve recipients: " + e.getMessage())
-                            .build());
-        }
+
     }
 
     @PostMapping("/recipients")

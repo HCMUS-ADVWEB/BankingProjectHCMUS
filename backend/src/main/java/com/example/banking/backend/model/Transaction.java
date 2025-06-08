@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,9 +18,11 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "transactions")
+@DynamicInsert
 public class Transaction {
     @Id
     @ColumnDefault("gen_random_uuid()")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "transaction_id", nullable = false)
     private UUID id;
 

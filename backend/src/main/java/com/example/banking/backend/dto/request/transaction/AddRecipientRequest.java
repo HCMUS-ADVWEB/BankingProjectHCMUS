@@ -9,4 +9,5 @@ import lombok.Setter;
 public class AddRecipientRequest {
     private String accountNumber;
     private String bankName;
+    private  String name ;
 }

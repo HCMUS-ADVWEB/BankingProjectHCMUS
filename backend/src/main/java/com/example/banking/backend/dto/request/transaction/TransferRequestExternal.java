@@ -13,5 +13,5 @@ public class TransferRequestExternal {
     UUID destinationBankId; // Ngân hàng đích
     double amount;
     String message;
-    FeeType  feeType;
+    FeeType feeType;
 }
