@@ -16,6 +16,7 @@ import java.util.UUID;
 public class ExternalDepositRequest {
 
     @NotBlank(message = "Account number cannot be blank")
+    @NotNull(message = "Account number cannot be null")
     private String accountNumber;
 
     @NotNull(message = "Source bank ID cannot be null")
@@ -33,8 +34,15 @@ public class ExternalDepositRequest {
     @NotBlank(message = "External transaction reference cannot be blank")
     private String externalTransactionRef;
 
-    @NotBlank(message = "Sender name cannot be blank")
+    @NotBlank(message = "Sender name  cannot be blank")
+    @NotNull(message = "Sender name cannot be null")
     private String senderName;
-
+    @NotBlank(message = "Sender Account Number cannot be blank")
+    @NotNull(message = "Sender Account Number cannot be null")
     private String senderAccountNumber;
+
+    private String signature;
+    private String hmac;
+    private String timestamp;
+
 }
