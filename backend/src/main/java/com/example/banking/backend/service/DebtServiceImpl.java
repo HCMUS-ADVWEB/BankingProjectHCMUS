@@ -1,27 +1,39 @@
 package com.example.banking.backend.service;
 
-import com.example.banking.backend.dto.ApiResponse;
-import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.PayDebtRequest;
-import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
-import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
-import com.example.banking.backend.mapper.debtReminder.DebtReminderMapper;
-import com.example.banking.backend.model.DebtReminder;
-import com.example.banking.backend.model.User;
-import com.example.banking.backend.model.type.DebtStatusType;
-import com.example.banking.backend.repository.DebtReminderRepository;
-import com.example.banking.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
+import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
+import com.example.banking.backend.dto.request.debt.GetDebtPaymentOtpRequest;
+import com.example.banking.backend.dto.request.debt.PayDebtRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequest;
+import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.PayDebtResponse;
+import com.example.banking.backend.dto.response.transaction.TransferResult;
+import com.example.banking.backend.exception.BadRequestException;
+import com.example.banking.backend.exception.InvalidOtpException;
+import com.example.banking.backend.mapper.debtReminder.DebtReminderMapper;
+import com.example.banking.backend.model.DebtReminder;
+import com.example.banking.backend.model.User;
+import com.example.banking.backend.model.type.DebtStatusType;
+import com.example.banking.backend.model.type.FeeType;
+import com.example.banking.backend.model.type.OtpType;
+import com.example.banking.backend.repository.DebtReminderRepository;
+import com.example.banking.backend.repository.UserRepository;
+import com.example.banking.backend.security.jwt.CustomContextHolder;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +42,8 @@ public class DebtServiceImpl implements DebtService {
     private final DebtReminderRepository debtReminderRepository;
     private final UserRepository userRepository;
     private final DebtReminderMapper debtReminderMapper;
-
+    private final TransactionService transactionService;
+    private final OtpService otpService;
     @Override
     public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
         PageRequest pageRequest = PageRequest.of(page - 1, limit); // Pagination starts at page 0
@@ -46,10 +59,11 @@ public class DebtServiceImpl implements DebtService {
     }
 
     @Override
-    public ApiResponse<CreateDebtReminderResponse> createDebtReminder(UUID creatorId, CreateDebtReminderRequest request) {
-        // Fetch the creator and debtor from the database
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new IllegalArgumentException("Creator not found"));
+    public ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request) {
+        // Get the currently authenticated user
+        User creator = getCurrentUser();
+
+        // Fetch the debtor from the database
         User debtor = userRepository.findById(request.getDebtorId())
                 .orElseThrow(() -> new IllegalArgumentException("Debtor not found"));
 
@@ -84,40 +98,102 @@ public class DebtServiceImpl implements DebtService {
                 .build();
     }
 
+    private User getCurrentUser() {
+        return userRepository.findById(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+    }
+
     @Override
-    public ApiResponse<Void> payDebtReminder(UUID reminderId, PayDebtRequest request) {
-        DebtReminder debtReminder = debtReminderRepository.findById(reminderId)
+    public void requestOtpForPayDebt(GetDebtPaymentOtpRequest request) {
+        String email = request.getEmail();
+        User currentUser = getCurrentUser();
+        otpService.generateAndSendOtp(currentUser.getId(), email, OtpType.DEBT_PAYMENT);
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<PayDebtResponse> payDebtReminder(UUID reminderId, PayDebtRequest request) {
+        // Validate the reminder ID
+        DebtReminder reminder = debtReminderRepository.findById(reminderId)
                 .orElseThrow(() -> new IllegalArgumentException("Debt reminder not found"));
+        
+        // Validate OTP
+        boolean isValidOtp = otpService.validateOtp(reminder.getDebtor().getId(), OtpType.DEBT_PAYMENT, request.getOtp());
+        if (!isValidOtp) {
+            throw new InvalidOtpException("Otp is not valid");
+        }
 
-        // Update the debt reminder status to PAID
-        debtReminder.setStatus(DebtStatusType.PAID);
-        debtReminder.setMessage(request.getMessage());
-        debtReminder.setTransactionId(request.getTransactionId());
-        debtReminder.setUpdatedAt(Instant.now());
+        // Retrieve creditor's account number (assuming the creator is the creditor)
+        String creditorAccountNumber = reminder.getCreator().getAccount().getAccountNumber();
 
-        debtReminderRepository.save(debtReminder);
+        // Prepare transfer request
+        TransferRequest transferRequest = new TransferRequest();
+        transferRequest.setAccountNumberReceiver(creditorAccountNumber);
+        transferRequest.setAmount(reminder.getAmount());
+        transferRequest.setFeeType(FeeType.SENDER); // Example fee type
+        transferRequest.setMessage(request.getMessage());
 
-        return ApiResponse.<Void>builder()
+        // Call TransactionService to process the transfer
+        TransferResult transferResult = transactionService.internalTransfer(transferRequest);
+
+        if (!transferResult.isSuccess()) {
+            throw new BadRequestException("Failed to process debt payment: " + transferResult.getErrorMessage());
+        }
+
+        // Update reminder status
+        reminder.setStatus(DebtStatusType.PAID);
+        reminder.setMessage(request.getMessage());
+        reminder.setTransactionId(UUID.fromString(transferResult.getTransactionId()));
+        debtReminderRepository.save(reminder);
+
+        // Create PayDebtResponse
+        PayDebtResponse response = new PayDebtResponse(reminderId, transferResult.getTransactionId(), "Debt paid successfully");
+
+        // Wrap in ApiResponse and return
+        return ApiResponse.<PayDebtResponse>builder()
                 .status(HttpStatus.OK.value())
-                .message("Debt reminder marked as PAID successfully!")
+                .message("Debt reminder paid successfully")
+                .data(response)
                 .build();
     }
 
     @Override
     public ApiResponse<Void> cancelDebtReminder(UUID reminderId, CancelDebtReminderRequest request) {
-        DebtReminder debtReminder = debtReminderRepository.findById(reminderId)
-                .orElseThrow(() -> new IllegalArgumentException("Debt reminder not found"));
+        try {
+            // Validate and parse UUID
+            String trimmedId = reminderId.toString().trim();
+            if (!isValidUUID(trimmedId)) {
+                throw new IllegalArgumentException("Invalid UUID format: " + trimmedId);
+            }
+            UUID reminderUUID = UUID.fromString(trimmedId);
 
-        // Update the debt reminder status to CANCELLED
-        debtReminder.setStatus(DebtStatusType.CANCELLED);
-        debtReminder.setCancelledReason(request.getCancelledReason());
-        debtReminder.setUpdatedAt(Instant.now());
+            // Fetch the debt reminder
+            DebtReminder debtReminder = debtReminderRepository.findById(reminderUUID)
+                    .orElseThrow(() -> new IllegalArgumentException("Debt reminder not found"));
 
-        debtReminderRepository.save(debtReminder);
+            // Check if the current user is the creator of the debt reminder
 
-        return ApiResponse.<Void>builder()
-                .status(HttpStatus.OK.value())
-                .message("Debt reminder marked as CANCELLED successfully!")
-                .build();
+            // Update the debt reminder status to CANCELLED
+            debtReminder.setStatus(DebtStatusType.CANCELLED);
+            debtReminder.setCancelledReason(request.getCancelledReason());
+            debtReminder.setUpdatedAt(Instant.now());
+
+            debtReminderRepository.save(debtReminder);
+
+            return ApiResponse.<Void>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Debt reminder marked as CANCELLED successfully!")
+                    .build();
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.<Void>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message(e.getMessage())
+                    .build();
+        }
     }
+
+    private boolean isValidUUID(String uuid) {
+        return uuid.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    }
+
 }
