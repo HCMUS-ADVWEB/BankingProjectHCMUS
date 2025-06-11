@@ -1,210 +1,389 @@
-import React, { useContext, useState } from 'react';
-import { BankingContext } from '../../context/BankingContext';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { useBanking } from "../../contexts/BankingContext";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import Loading from "../../components/Loading";
 import {
-  Button,
-  TextField,
   Box,
-  Typography,
-  Select,
-  MenuItem,
+  Button,
+  Card,
+  CardContent,
   FormControl,
+  FormControlLabel,
+  FormLabel,
   InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
-import styles from '../../styles/Transfer.module.css';
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
 
-const Transfer = () => {
-  const { state, addRecipient } = useContext(BankingContext);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newRecipient, setNewRecipient] = useState(null);
+function TransferPage() {
+  const { state, fetchAccounts, fetchRecipients, transfer } = useBanking();
+  const [transferType, setTransferType] = useState("internal");
+  const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState("");
+  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm({
+    defaultValues: {
+      fromAccount: "",
+      toAccount: "",
+      recipientName: "",
+      amount: "",
+      message: "",
+      feeType: "SENDER",
+      bankId: "",
+      bankName: "",
+    },
+  });
 
-  const handleSendOtp = async (values) => {
-    // Mock OTP sending
-    alert('OTP sent to your email');
-    setOtpSent(true);
+  useEffect(() => {
+    fetchAccounts();
+    fetchRecipients();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRecipientSelect = (recipient) => {
+    setValue("toAccount", recipient.recipientAccountNumber);
+    setValue("recipientName", recipient.recipientName);
+    setValue("bankId", recipient.bankId || "");
+    setValue("bankName", recipient.bankName || "");
+    setTransferType(recipient.bankId === "same-bank" ? "internal" : "external");
   };
 
-  const handleSaveRecipient = async () => {
-    if (newRecipient) {
-      // Mock API to fetch recipient name if not provided
-      const recipientName = newRecipient.recipientName || 'Auto Fetched Name';
-      await addRecipient({
-        recipientAccountNumber: newRecipient.recipientAccountNumber,
-        recipientName,
-      });
+  const onSubmit = async (data) => {
+    if (step === 1) {
+      setStep(2);
+    } else if (step === 2) {
+      if (!otp) {
+        alert("Please enter OTP");
+        return;
+      }
+      await transfer({ ...data, otp });
+      setStep(3);
     }
-    setOpenDialog(false);
-    setNewRecipient(null);
   };
+
+  const resetForm = () => {
+    reset();
+    setOtp("");
+    setStep(1);
+    setTransferType("internal");
+  };
+
+  if (state.loading) {
+    return <Loading />;
+  }
 
   return (
-    <Box className={styles.transfer}>
-      <Typography variant="h4" className={styles.title}>
-        Transfer Money
-      </Typography>
-      <Formik
-        initialValues={{
-          sourceAccount: '',
-          recipient: '',
-          amount: '',
-          message: '',
-          feeType: 'SENDER',
-          bank: 'internal',
-          newRecipientAccount: '',
-          newRecipientName: '',
-        }}
-        validate={(values) => {
-          const errors = {};
-          if (!values.sourceAccount) errors.sourceAccount = 'Required';
-          if (!values.recipient) errors.recipient = 'Required';
-          if (!values.amount || values.amount <= 0) errors.amount = 'Invalid amount';
-          if (values.recipient === 'new' && !values.newRecipientAccount)
-            errors.newRecipientAccount = 'Required';
-          return errors;
-        }}
-        onSubmit={(values, { resetForm }) => {
-          if (!otpSent) {
-            handleSendOtp(values);
-            return;
-          }
-          if (!otp) {
-            alert('Please enter OTP');
-            return;
-          }
-          // Mock transfer
-          alert(`Transfer successful: ${values.amount} VND to ${values.recipient}`);
-          if (values.recipient === 'new') {
-            setNewRecipient({
-              recipientAccountNumber: values.newRecipientAccount,
-              recipientName: values.newRecipientName,
-            });
-            setOpenDialog(true);
-          }
-          setOtpSent(false);
-          setOtp('');
-          resetForm();
-        }}
-      >
-        {({ values }) => (
-          <Form className={styles.form}>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Source Account</InputLabel>
-              <Field as={Select} name="sourceAccount">
-                {state.accounts.map((account) => (
-                  <MenuItem key={account.id} value={account.number}>
-                    {account.number}
-                  </MenuItem>
-                ))}
-              </Field>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Recipient</InputLabel>
-              <Field as={Select} name="recipient">
-                {state.recipients.map((recipient) => (
-                  <MenuItem key={recipient.id} value={recipient.recipientAccountNumber}>
-                    {recipient.recipientName} ({recipient.recipientAccountNumber})
-                  </MenuItem>
-                ))}
-                <MenuItem value="new">New Recipient</MenuItem>
-              </Field>
-            </FormControl>
-            {values.recipient === 'new' && (
-              <>
-                <Field
-                  as={TextField}
-                  name="newRecipientAccount"
-                  label="Recipient Account Number"
-                  fullWidth
-                  margin="normal"
-                />
-                <ErrorMessage
-                  name="newRecipientAccount"
-                  component="div"
-                  className={styles.error}
-                />
-                <Field
-                  as={TextField}
-                  name="newRecipientName"
-                  label="Recipient Name (Optional)"
-                  fullWidth
-                  margin="normal"
-                />
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Bank</InputLabel>
-                  <Field as={Select} name="bank">
-                    <MenuItem value="internal">Our Bank</MenuItem>
-                    <MenuItem value="external">Other Bank</MenuItem>
-                  </Field>
-                </FormControl>
-              </>
-            )}
-            <Field
-              as={TextField}
-              name="amount"
-              label="Amount"
-              type="number"
-              fullWidth
-              margin="normal"
-            />
-            <ErrorMessage name="amount" component="div" className={styles.error} />
-            <Field
-              as={TextField}
-              name="message"
-              label="Message"
-              fullWidth
-              margin="normal"
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Fee Type</InputLabel>
-              <Field as={Select} name="feeType">
-                <MenuItem value="SENDER">Sender Pays Fee</MenuItem>
-                <MenuItem value="RECEIVER">Receiver Pays Fee</MenuItem>
-              </Field>
-            </FormControl>
-            {otpSent && (
-              <Field
-                as={TextField}
-                name="otp"
-                label="OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                fullWidth
-                margin="normal"
-              />
-            )}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={styles.submitButton}
-            >
-              {otpSent ? 'Confirm Transfer' : 'Send OTP'}
-            </Button>
-          </Form>
-        )}
-      </Formik>
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Save Recipient</DialogTitle>
-        <DialogContent>
-          <Typography>Would you like to save this recipient for future transactions?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleSaveRecipient} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
+    <div>
+      <Navbar />
+      <Sidebar />
+      <main className="main-content">
+        <div className="fade-in">
+          <Typography variant="h4" fontWeight="bold" mb={4}>
+            💸 Money Transfer
+          </Typography>
 
-export default Transfer;
+          {step === 3 ? (
+            <Card sx={{ textAlign: "center", p: 6 }}>
+              <Typography variant="h1" mb={2}>
+                ✅
+              </Typography>
+              <Typography variant="h5" color="success.main" mb={2}>
+                Transfer Successful!
+              </Typography>
+              <Typography color="text.secondary" mb={4}>
+                Your money has been transferred successfully.
+              </Typography>
+              <Card sx={{ bgcolor: "#f8f9fa", p: 2, mb: 4 }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" mb={2}>
+                    Transfer Details:
+                  </Typography>
+                  <Box display="grid" gap={1}>
+                    <Typography>
+                      <strong>To:</strong> {state.formData?.recipientName} ({state.formData?.toAccount})
+                    </Typography>
+                    <Typography>
+                      <strong>Amount:</strong> {new Intl.NumberFormat("vi-VN").format(Number(state.formData?.amount))} VND
+                    </Typography>
+                    <Typography>
+                      <strong>Message:</strong> {state.formData?.message}
+                    </Typography>
+                    <Typography>
+                      <strong>Type:</strong> {transferType === "internal" ? "Internal Transfer" : "External Transfer"}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+              <Box display="flex" gap={2} justifyContent="center">
+                <Button variant="contained" color="primary" onClick={resetForm}>
+                  Make Another Transfer
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  component={Link}
+                  to="/customer/transactions"
+                >
+                  View Transactions
+                </Button>
+              </Box>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" mb={2}>
+                  Transfer Type
+                </Typography>
+                <Box display="flex" gap={2} mb={4}>
+                  <Button
+                    variant={transferType === "internal" ? "contained" : "outlined"}
+                    color="primary"
+                    onClick={() => setTransferType("internal")}
+                  >
+                    🏦 Internal Transfer
+                  </Button>
+                  <Button
+                    variant={transferType === "external" ? "contained" : "outlined"}
+                    color="primary"
+                    onClick={() => setTransferType("external")}
+                  >
+                    🌐 External Transfer
+                  </Button>
+                </Box>
+
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  {step === 1 && (
+                    <>
+                      <FormControl fullWidth margin="normal">
+                        <InputLabel>From Account</InputLabel>
+                        <Select
+                          {...register("fromAccount", { required: "Source account is required" })}
+                          error={!!errors.fromAccount}
+                          onChange={(e) => setValue("fromAccount", e.target.value)}
+                        >
+                          <MenuItem value="">Select source account</MenuItem>
+                          {state.accounts.map((account) => (
+                            <MenuItem key={account.id} value={account.number}>
+                              {account.number} - {new Intl.NumberFormat("vi-VN").format(account.balance)} VND
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.fromAccount && (
+                          <Typography color="error">{errors.fromAccount.message}</Typography>
+                        )}
+                      </FormControl>
+
+                      {state.recipients.length > 0 && (
+                        <Box mb={4}>
+                          <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                            Quick Select Recipient
+                          </Typography>
+                          <Box display="grid" gap={1}>
+                            {state.recipients
+                              .filter((r) =>
+                                transferType === "internal" ? r.bankId === "same-bank" : r.bankId !== "same-bank"
+                              )
+                              .map((recipient) => (
+                                <Button
+                                  key={recipient.id}
+                                  variant="outlined"
+                                  onClick={() => handleRecipientSelect(recipient)}
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    p: 1.5,
+                                    border: "2px solid #e9ecef",
+                                    borderRadius: 2,
+                                    bgcolor: "white",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  <Typography fontSize={20} mr={1.5}>
+                                    👤
+                                  </Typography>
+                                  <Box>
+                                    <Typography fontWeight="bold">{recipient.recipientName}</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                      {recipient.recipientAccountNumber} - {recipient.bankName}
+                                    </Typography>
+                                  </Box>
+                                </Button>
+                              ))}
+                          </Box>
+                        </Box>
+                      )}
+
+                      <TextField
+                        fullWidth
+                        label="To Account Number"
+                        margin="normal"
+                        {...register("toAccount", { required: "Recipient account number is required" })}
+                        error={!!errors.toAccount}
+                        helperText={errors.toAccount?.message}
+                        onChange={(e) => setValue("toAccount", e.target.value)}
+                      />
+
+                      <TextField
+                        fullWidth
+                        label="Recipient Name"
+                        margin="normal"
+                        {...register("recipientName", { required: "Recipient name is required" })}
+                        error={!!errors.recipientName}
+                        helperText={errors.recipientName?.message}
+                        onChange={(e) => setValue("recipientName", e.target.value)}
+                      />
+
+                      {transferType === "external" && (
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>Bank</InputLabel>
+                          <Select
+                            {...register("bankId", { required: "Bank selection is required" })}
+                            error={!!errors.bankId}
+                            onChange={(e) => {
+                              const bankId = e.target.value;
+                              const bankName = bankId === "other-bank" ? "Other Bank" : "";
+                              setValue("bankId", bankId);
+                              setValue("bankName", bankName);
+                            }}
+                          >
+                            <MenuItem value="">Select bank</MenuItem>
+                            <MenuItem value="other-bank">Other Bank</MenuItem>
+                          </Select>
+                          {errors.bankId && (
+                            <Typography color="error">{errors.bankId.message}</Typography>
+                          )}
+                        </FormControl>
+                      )}
+
+                      <TextField
+                        fullWidth
+                        label="Amount (VND)"
+                        type="number"
+                        margin="normal"
+                        {...register("amount", {
+                          required: "Amount is required",
+                          min: { value: 1000, message: "Minimum amount is 1000 VND" },
+                        })}
+                        error={!!errors.amount}
+                        helperText={errors.amount?.message}
+                        onChange={(e) => setValue("amount", e.target.value)}
+                      />
+
+                      <TextField
+                        fullWidth
+                        label="Transfer Message"
+                        multiline
+                        rows={3}
+                        margin="normal"
+                        {...register("message", { required: "Message is required" })}
+                        error={!!errors.message}
+                        helperText={errors.message?.message}
+                        onChange={(e) => setValue("message", e.target.value)}
+                      />
+
+                      <FormControl component="fieldset" margin="normal">
+                        <FormLabel component="legend">Fee Payment</FormLabel>
+                        <RadioGroup
+                          row
+                          {...register("feeType")}
+                          onChange={(e) => setValue("feeType", e.target.value)}
+                        >
+                          <FormControlLabel value="SENDER" control={<Radio />} label="Sender pays fee" />
+                          <FormControlLabel value="RECEIVER" control={<Radio />} label="Receiver pays fee" />
+                        </RadioGroup>
+                      </FormControl>
+
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                      >
+                        Continue to OTP Verification
+                      </Button>
+                    </>
+                  )}
+
+                  {step === 2 && (
+                    <>
+                      <Typography variant="h6" fontWeight="bold" mb={2} textAlign="center">
+                        🔐 OTP Verification
+                      </Typography>
+                      <Typography color="text.secondary" mb={4} textAlign="center">
+                        We've sent a 6-digit OTP to your registered email address.
+                      </Typography>
+
+                      <Card sx={{ bgcolor: "#f8f9fa", p: 2, mb: 4 }}>
+                        <CardContent>
+                          <Typography variant="h6" fontWeight="bold" mb={2}>
+                            Transfer Summary:
+                          </Typography>
+                          <Box display="grid" gap={1}>
+                            <Typography>
+                              <strong>From:</strong> {state.formData?.fromAccount}
+                            </Typography>
+                            <Typography>
+                              <strong>To:</strong> {state.formData?.recipientName} ({state.formData?.toAccount})
+                            </Typography>
+                            <Typography>
+                              <strong>Amount:</strong> {new Intl.NumberFormat("vi-VN").format(Number(state.formData?.amount))} VND
+                            </Typography>
+                            <Typography>
+                              <strong>Message:</strong> {state.formData?.message}
+                            </Typography>
+                            <Typography>
+                              <strong>Fee paid by:</strong> {state.formData?.feeType === "SENDER" ? "Sender" : "Receiver"}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+
+                      <TextField
+                        fullWidth
+                        label="Enter OTP Code"
+                        margin="normal"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="Enter 6-digit OTP"
+                        inputProps={{ maxLength: 6, style: { textAlign: "center", fontSize: 24, letterSpacing: 8 } }}
+                        required
+                      />
+
+                      <Box display="flex" gap={2} mt={2}>
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={() => setStep(1)}
+                          sx={{ flex: 1 }}
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          sx={{ flex: 1 }}
+                        >
+                          Confirm Transfer
+                        </Button>
+                      </Box>
+                    </>
+                  )}
+                </form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default TransferPage;

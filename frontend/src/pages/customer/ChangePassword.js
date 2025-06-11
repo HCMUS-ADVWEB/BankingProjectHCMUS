@@ -1,88 +1,148 @@
-import React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { Button, TextField, Box, Typography } from '@mui/material';
-import styles from '../../styles/ChangePassword.module.css';
+import React, { useState } from "react"
+import { useAuth } from "../../contexts/AuthContext"
+import Navbar from "../../components/Navbar"
+import Sidebar from "../../components/Sidebar"
+import Loading from "../../components/Loading"
 
-const ChangePassword = () => {
+function ChangePasswordPage() {
+  const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [success, setSuccess] = useState(false)
+
+  const { state, changePassword } = useAuth()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert("New passwords do not match")
+      return
+    }
+
+    if (formData.newPassword.length < 6) {
+      alert("Password must be at least 6 characters long")
+      return
+    }
+
+    await changePassword(formData.currentPassword, formData.newPassword)
+
+    if (!state.error) {
+      setSuccess(true)
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+    }
+  }
+
+  if (state.loading) {
+    return <Loading />
+  }
+
   return (
-    <Box className={styles.changePassword}>
-      <Typography variant="h4" className={styles.title}>
-        Change Password
-      </Typography>
-      <Formik
-        initialValues={{
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        }}
-        validate={(values) => {
-          const errors = {};
-          if (!values.currentPassword) errors.currentPassword = 'Required';
-          if (!values.newPassword) errors.newPassword = 'Required';
-          if (values.newPassword.length < 8)
-            errors.newPassword = 'Password must be at least 8 characters';
-          if (!values.confirmPassword) errors.confirmPassword = 'Required';
-          if (values.newPassword !== values.confirmPassword)
-            errors.confirmPassword = 'Passwords do not match';
-          return errors;
-        }}
-        onSubmit={(values, { resetForm }) => {
-          // Mock password change with bcrypt
-          alert('Password changed successfully');
-          resetForm();
-        }}
-      >
-        {({ isSubmitting }) => (
-          <Form className={styles.form}>
-            <Field
-              as={TextField}
-              name="currentPassword"
-              label="Current Password"
-              type="password"
-              fullWidth
-              margin="normal"
-            />
-            <ErrorMessage
-              name="currentPassword"
-              component="div"
-              className={styles.error}
-            />
-            <Field
-              as={TextField}
-              name="newPassword"
-              label="New Password"
-              type="password"
-              fullWidth
-              margin="normal"
-            />
-            <ErrorMessage name="newPassword" component="div" className={styles.error} />
-            <Field
-              as={TextField}
-              name="confirmPassword"
-              label="Confirm New Password"
-              type="password"
-              fullWidth
-              margin="normal"
-            />
-            <ErrorMessage
-              name="confirmPassword"
-              component="div"
-              className={styles.error}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={isSubmitting}
-              className={styles.submitButton}
-            >
-              Change Password
-            </Button>
-          </Form>
-        )}
-      </Formik>
-    </Box>
-  );
-};
+    <div>
+      <Navbar />
+      <Sidebar />
 
-export default ChangePassword;
+      <main className="main-content">
+        <div className="fade-in">
+          <h1 style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "30px" }}>🔒 Change Password</h1>
+
+          <div className="card" style={{ maxWidth: "500px" }}>
+            {success && (
+              <div
+                style={{
+                  background: "#d4edda",
+                  color: "#155724",
+                  padding: "16px",
+                  borderRadius: "8px",
+                  marginBottom: "20px",
+                  textAlign: "center",
+                }}
+              >
+                ✅ Password changed successfully!
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Current Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={formData.currentPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                  placeholder="Enter your current password"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                  placeholder="Enter your new password"
+                  minLength={6}
+                  required
+                />
+                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                  Password must be at least 6 characters long
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  placeholder="Confirm your new password"
+                  required
+                />
+              </div>
+
+              {state.error && (
+                <div className="error" style={{ marginBottom: "20px" }}>
+                  {state.error}
+                </div>
+              )}
+
+              <button type="submit" className="btn btn-primary" style={{ width: "100%" }} disabled={state.loading}>
+                Change Password
+              </button>
+            </form>
+
+            <div
+              style={{
+                marginTop: "30px",
+                padding: "20px",
+                background: "#f8f9fa",
+                borderRadius: "8px",
+                fontSize: "14px",
+              }}
+            >
+              <h4 style={{ marginBottom: "12px", fontWeight: "bold" }}>Password Security Tips:</h4>
+              <ul style={{ paddingLeft: "20px", lineHeight: "1.6" }}>
+                <li>Use a combination of letters, numbers, and special characters</li>
+                <li>Avoid using personal information like birthdate or name</li>
+                <li>Don't reuse passwords from other accounts</li>
+                <li>Change your password regularly</li>
+                <li>Never share your password with anyone</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default ChangePasswordPage;

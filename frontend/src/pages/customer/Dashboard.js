@@ -1,45 +1,39 @@
-import React, { useContext, useEffect } from 'react';
-import { BankingContext } from '../../context/BankingContext';
-import { Typography, Box, Paper, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import Loading from '../../components/Loading';
-import styles from '../../styles/Dashboard.module.css';
+import { useAuth } from "../../contexts/AuthContext";
+import CustomerLayout from "../../layouts/CustomerLayout";
 
-const Dashboard = () => {
-  const { state, fetchAccounts } = useContext(BankingContext);
-
-  useEffect(() => {
-    fetchAccounts();
-  }, [fetchAccounts]);
+export default function CustomerDashboard() {
+  const { user } = useAuth();
 
   return (
-    <Box className={styles.dashboard}>
-      <Typography variant="h4" className={styles.title}>
-        Account Dashboard
-      </Typography>
-      {state.loading ? (
-        <Loading />
-      ) : (
-        <Paper className={styles.paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Account Number</TableCell>
-                <TableCell>Balance</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {state.accounts.map((account) => (
-                <TableRow key={account.id}>
-                  <TableCell>{account.number}</TableCell>
-                  <TableCell>{account.balance.toLocaleString()} VND</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
-      )}
-    </Box>
-  );
-};
+    <CustomerLayout>
+      <div className="max-w-7xl mx-auto space-y-8 animate-fadeIn">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Chào mừng, {user?.fullName}
+          </h1>
+          <p className="text-lg">
+            Quản lý tài khoản và giao dịch của bạn
+          </p>
+        </div>
 
-export default Dashboard;
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">Tài khoản của bạn</h2>
+          {/* Placeholder for account content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Add AccountCard components here when available */}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">Thao tác nhanh</h2>
+          {/* Placeholder for QuickActions component */}
+        </div>
+
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">Giao dịch gần đây</h2>
+          {/* Placeholder for RecentTransactions component */}
+        </div>
+      </div>
+    </CustomerLayout>
+  );
+}
