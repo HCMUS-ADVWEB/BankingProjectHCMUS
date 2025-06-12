@@ -161,4 +161,17 @@ public class AccountServiceImpl implements AccountService {
                 .message("Account recharged successfully!")
                 .build();
     }
+
+    @Override
+    public Double debitAccount(UUID userId, Double amount) {
+        Account account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new RuntimeException("Account not found!")
+        );
+
+        account.setBalance(account.getBalance() - amount);
+
+        accountRepository.save(account);
+
+        return account.getBalance();
+    }
 }

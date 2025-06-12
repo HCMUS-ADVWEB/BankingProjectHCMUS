@@ -20,4 +20,6 @@ public interface AccountService {
     ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request);
 
     ApiResponse rechargeAccount(RechargeAccountRequest request);
+
+    Double debitAccount(UUID accountId, Double amount);
 }
