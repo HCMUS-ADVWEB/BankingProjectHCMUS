@@ -155,7 +155,8 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Double debitAccount(UUID userId, Double amount) {
-        Account account = accountRepository.findByUserId(userId);
+        Account account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new RuntimeException("Account not found!"));
 
         account.setBalance(account.getBalance() - amount);
 
