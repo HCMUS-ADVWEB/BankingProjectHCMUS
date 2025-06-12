@@ -17,7 +17,7 @@ public interface TransactionService {
 
     TransferResult internalTransfer(TransferRequest request);
 
-    TransferResult externalTransfer(TransferRequestExternal request);
+    TransferResult externalTransfer(TransferRequestExternal request) throws Exception;
 
     void verifyTransferOtp(VerifyOtpRequest request);
 
@@ -39,5 +39,5 @@ public interface TransactionService {
 
     public AccountDto getExternalAccountInfo(String accountNumber , UUID bankId);
 
-    DepositResult externalDeposit(ExternalDepositRequest request);
+    DepositResult externalDeposit(ExternalDepositRequest request) throws Exception;
 }

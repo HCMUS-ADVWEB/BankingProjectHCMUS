@@ -9,6 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
+
 public class TransferResult {
     private boolean success;
     private String transactionId; // ID giao dịch (nếu thành công)

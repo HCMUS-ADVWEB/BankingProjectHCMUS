@@ -9,13 +9,10 @@ import com.example.banking.backend.dto.request.transaction.TransferRequestExtern
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,8 +42,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/external")
     public ResponseEntity<ApiResponse<TransferResult>> externalTransfer(
-            @Valid @RequestBody TransferRequestExternal request) {
-        try {
+            @Valid @RequestBody TransferRequestExternal request) throws Exception {
+
             TransferResult result = transactionService.externalTransfer(request);
 
             if (result.isSuccess()) {
@@ -62,13 +59,7 @@ public class TransactionController {
                         .data(result)
                         .build());
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<TransferResult>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("External transfer failed: " + e.getMessage())
-                            .build());
-        }
+
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -276,6 +267,9 @@ public class TransactionController {
         }
     }
 
+    /*For saved Account
+    * With unsaved account, need to access api of other bank
+    * */
     @GetMapping("/external/{bankId}/{accountNumber}")
     public ResponseEntity<ApiResponse<?>> getExternalAccountInfo(@PathVariable String accountNumber, @PathVariable UUID bankId) {
         try {
@@ -304,8 +298,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/external/deposit")
     public ResponseEntity<ApiResponse<String>> externalDeposit(
-            @Valid @RequestBody ExternalDepositRequest request) {
-        try {
+            @Valid @RequestBody ExternalDepositRequest request) throws Exception {
+
             transactionService.externalDeposit(request);
 
             return ResponseEntity.ok(ApiResponse.<String>builder()
@@ -313,12 +307,6 @@ public class TransactionController {
                     .message("External deposit initiated successfully")
                     .data("Deposit processed")
                     .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("External deposit failed: " + e.getMessage())
-                            .build());
-        }
+
     }
 }

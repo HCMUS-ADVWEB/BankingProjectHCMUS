@@ -4,6 +4,7 @@ import com.example.banking.backend.security.exception.CustomAccessDeniedHandler;
 import com.example.banking.backend.security.exception.CustomAuthenticationEntryPoint;
 import com.example.banking.backend.security.jwt.AuthTokenFilter;
 import com.example.banking.backend.security.service.UserDetailsServiceImpl;
+import com.example.banking.backend.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.security.PrivateKey;
 
 @Configuration
 @RequiredArgsConstructor
@@ -35,6 +39,10 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
+    @Bean
+    public PrivateKey bankAPrivateKey() throws Exception {
+        return CryptoUtils.loadPrivateKey("src/main/resources/keys/private_key.pem");
+    }
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
