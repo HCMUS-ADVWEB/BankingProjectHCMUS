@@ -42,14 +42,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
-        Account account = accountRepository.findByUserId(userId);
-
-        if (account == null) {
-            return ApiResponse.<GetAccountResponse>builder()
-                    .status(HttpStatus.NO_CONTENT.value())
-                    .message("Account not found!")
-                    .build();
-        }
+        Account account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new RuntimeException("Account not found!")
+        );
 
         GetAccountResponse accountResponse = AccountMapper.INSTANCE.accountToGetAccountResponse(account);
 
@@ -143,14 +138,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber());
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElseThrow(() -> new RuntimeException(
+                "Account not found!"
+        ));
 
-        if (account == null) {
-            return ApiResponse.builder()
-                    .status(HttpStatus.NO_CONTENT.value())
-                    .message("Account not found!")
-                    .build();
-        }
 
         account.setBalance(account.getBalance() + request.getRechargeAmount());
 

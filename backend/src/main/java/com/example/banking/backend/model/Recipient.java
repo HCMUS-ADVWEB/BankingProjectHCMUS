@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,9 +14,11 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "recipients")
+@DynamicInsert
 public class Recipient {
     @Id
     @ColumnDefault("gen_random_uuid()")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "recipient_id", nullable = false)
     private UUID id;
 
@@ -33,7 +36,7 @@ public class Recipient {
     private String recipientName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id")
+    @JoinColumn(name = "bank_id", nullable = true) // Cho phép null
     private Bank bank;
 
     @NotNull
@@ -46,4 +49,15 @@ public class Recipient {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

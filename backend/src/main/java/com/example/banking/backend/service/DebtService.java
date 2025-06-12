@@ -1,19 +1,26 @@
 package com.example.banking.backend.service;
 
-import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.PayDebtRequest;
-
+import java.util.List;
 import java.util.UUID;
 
+import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
+import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
+import com.example.banking.backend.dto.request.debt.GetDebtPaymentOtpRequest;
+import com.example.banking.backend.dto.request.debt.PayDebtRequest;
+import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.PayDebtResponse;
+import com.example.banking.backend.model.type.DebtStatusType;
+
 public interface DebtService {
+    ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page);
 
-    void getDebtReminders(String type, String status, int limit, int page);
+    ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request);
 
-    void createDebtReminder(CreateDebtReminderRequest request);
+    ApiResponse<PayDebtResponse> payDebtReminder(UUID reminderId, PayDebtRequest request);
 
-    void cancelDebtReminder(UUID reminderId, CancelDebtReminderRequest request);
+    ApiResponse<Void> cancelDebtReminder(UUID reminderId, CancelDebtReminderRequest request);
 
-    void payDebtReminder(UUID reminderId, PayDebtRequest request);
-
+    void requestOtpForPayDebt(GetDebtPaymentOtpRequest request);
 }

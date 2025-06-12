@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID>, AccountCustomRepository {
-    Account findByAccountNumber(String accountNumber);
 
-    @Query("SELECT a FROM Account a WHERE a.user.id = :userId")
-    Account findByUserId(@Param("userId") UUID userId);
+
+    Optional<Account> findByUserId(@Param("userId") UUID userId);
+    Optional<Account> findByAccountNumber(String accountNumber);
 }
