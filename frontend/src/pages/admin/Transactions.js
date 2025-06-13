@@ -1,10 +1,5 @@
-import React from 'react';
-import { Typography, Box } from '@mui/material';
+import AdminLayout from '../../layouts/AdminLayout';
 
-const AdminDashboard = () => (
-  <Box>
-    <Typography variant="h4">Welcome Admin</Typography>
-  </Box>
-);
-
-export default AdminDashboard;
+export default function TransactionsPage() {
+  return <AdminLayout>Transactions Page Content</AdminLayout>;
+}

@@ -1,0 +1,13 @@
+# Khi code hàng ngày
+npm run lint (*)        # Kiểm tra tất cả files: phát hiện lỗi code theo quy tắc lint đã cấu hình trong ESLint.
+npm run lint:fix (*)    # Tự động fix các lỗi có thể sửa được: sửa lỗi code theo quy tắc lint đã cấu hình.
+npm run format (*)      # Format code: tự động format lại toàn bộ mã nguồn theo chuẩn định dạng code (Prettier).
+npm start (*)           # Khởi động ứng dụng ở chế độ dev: chạy React + build Tailwind CSS ở chế độ watch.
+npm run build           # Build project cho production: bao gồm cả build CSS và React.
+npm run test            # Chạy unit test với react-scripts.
+npm run lint:check      # Kiểm tra lint nghiêm ngặt: báo lỗi nếu có bất kỳ warning nào (dùng cho CI).
+npm run format:check    # Kiểm tra định dạng code: báo lỗi nếu code không đúng chuẩn Prettier (dùng cho CI).
+npm run code-quality    # Kiểm tra chất lượng code tổng hợp: chạy cả lint:check và format:check.
+npm run pre-commit      # Dọn dẹp code trước khi commit: tự động fix lỗi lint và format code.
+npm run build-css       # Build file CSS từ Tailwind (input.css → output.css) một lần.
+npm run watch-css       # Theo dõi thay đổi Tailwind CSS và tự động build lại khi có thay đổi.

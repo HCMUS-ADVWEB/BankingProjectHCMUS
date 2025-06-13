@@ -1,119 +1,159 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
-import { BankingProvider } from './context/BankingContext';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
+import { Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import NotFound from './components/NotFound';
+// Home page
+import HomePage from './pages/Home';
+// Auth pages
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
-import ChangePassword from './pages/auth/ChangePassword';
+// Customer pages
 import CustomerDashboard from './pages/customer/Dashboard';
-import Recipients from './pages/customer/Recipients';
-import Transfer from './pages/customer/Transfer';
-import Debt from './pages/customer/Debt';
-import Transactions from './pages/customer/Transactions';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import EmployeeDashboard from './pages/employee/EmployeeDashboard';
-import './index.css';
+import CustomerAccounts from './pages/customer/Accounts';
+import CustomerRecipients from './pages/customer/Recipients';
+import CustomerTransfer from './pages/customer/Transfer';
+import CustomerDebts from './pages/customer/Debts';
+import CustomerTransactions from './pages/customer/Transactions';
+import CustomerChangePassword from './pages/customer/ChangePassword';
+// Employee pages
+import EmployeeDashboard from './pages/employee/Dashboard';
+import EmployeeAccounts from './pages/employee/Accounts';
+import EmployeeDeposit from './pages/employee/Deposit';
+import EmployeeTransactions from './pages/employee/Transactions';
+// Admin pages
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminEmployees from './pages/admin/Employees';
+import AdminTransactions from './pages/admin/Transactions';
 
-// Protected Route Component
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { authState } = React.useContext(AuthContext);
-  if (!authState.isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  if (allowedRoles && !allowedRoles.includes(authState.user.role)) {
-    return <Navigate to="/login" />;
-  }
-  return children;
-};
-
-function App() {
+export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <BankingProvider>
-          <div className="app-container">
-            <Navbar />
-            <div className="main-content">
-              <Sidebar />
-              <div className="content">
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route
-                    path="/change-password"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer', 'admin', 'employee']}>
-                        <ChangePassword />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer']}>
-                        <CustomerDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/recipients"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer']}>
-                        <Recipients />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/transfer"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer']}>
-                        <Transfer />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/debt"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer']}>
-                        <Debt />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/transactions"
-                    element={
-                      <ProtectedRoute allowedRoles={['customer']}>
-                        <Transactions />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute allowedRoles={['admin']}>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/employee"
-                    element={
-                      <ProtectedRoute allowedRoles={['employee']}>
-                        <EmployeeDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<Navigate to="/login" />} />
-                </Routes>
-              </div>
-            </div>
-          </div>
-        </BankingProvider>
-      </AuthProvider>
-    </Router>
+    <div className="App">
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+
+        {/* Customer routes */}
+        <Route
+          path="/customer/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/accounts"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerAccounts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/recipients"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerRecipients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/transfer"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerTransfer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/debts"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerDebts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/transactions"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerTransactions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/change-password"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <CustomerChangePassword />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Employee routes */}
+        <Route
+          path="/employee/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['employee']}>
+              <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/accounts"
+          element={
+            <ProtectedRoute allowedRoles={['employee']}>
+              <EmployeeAccounts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/deposit"
+          element={
+            <ProtectedRoute allowedRoles={['employee']}>
+              <EmployeeDeposit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/transactions"
+          element={
+            <ProtectedRoute allowedRoles={['employee']}>
+              <EmployeeTransactions />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/employees"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminEmployees />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/transactions"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminTransactions />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
   );
 }
-
-export default App;
