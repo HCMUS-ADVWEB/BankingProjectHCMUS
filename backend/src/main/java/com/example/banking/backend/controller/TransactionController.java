@@ -6,16 +6,14 @@ import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
+import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
