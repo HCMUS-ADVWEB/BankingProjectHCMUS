@@ -83,21 +83,6 @@ public class TransactionController {
     }
 
 
-    @GetMapping("/recipients")
-    public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page) {
-
-            List<RecipientDtoResponse> recipients = transactionService.getRecipients(limit, page);
-            return ResponseEntity.ok(ApiResponse.<List<RecipientDtoResponse>>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipients retrieved successfully")
-                    .data(recipients)
-                    .build());
-
-    }
-
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")

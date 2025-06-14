@@ -381,25 +381,5 @@ public class TransactionServiceImpl implements TransactionService {
 
 
 
-    @Override
-    public List<RecipientDtoResponse> getRecipients(int limit, int page) {
-        int pageNumber = page - 1;
 
-        if (limit <= 0 || pageNumber < 0) {
-            throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
-        }
-
-        Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        Page<Recipient> recipientPage = recipientRepository.findAll(pageable);
-
-        return recipientPage.getContent().stream()
-                .map(recipient -> new RecipientDtoResponse(
-                        recipient.getId(),
-                        recipient.getRecipientAccountNumber(),
-                        recipient.getBank() == null ? null :  recipient.getBank().getBankName(),
-                        recipient.getRecipientName()
-                ))
-                .collect(Collectors.toList());
-    }
 }

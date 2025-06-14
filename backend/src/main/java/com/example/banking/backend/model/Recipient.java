@@ -35,6 +35,9 @@ public class Recipient {
     @Column(name = "recipient_name", nullable = false)
     private String recipientName;
 
+    @Column(name = "nick_name")
+    private String nickName;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_id", nullable = true) // Cho phép null
     private Bank bank;
