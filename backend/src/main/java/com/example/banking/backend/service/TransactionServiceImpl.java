@@ -1,6 +1,10 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
+import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
+import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.request.transaction.*;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.exception.BadRequestException;
@@ -39,7 +43,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-
     private TransactionRepository transactionRepository;
     private AccountRepository accountRepository;
     private BankRepository bankRepository;
@@ -48,9 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final PrivateKey bankAPrivateKey;
     private final RestTemplate restTemplate;
 
-
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
-
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
         if (sourceAccount.getBalance() < request.getAmount()) {
@@ -219,7 +220,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("NOT FOUND CURRENT USER"));
+                .orElseThrow(() -> new BadRequestException("NOT FOUND CURRENT USER"));
     }
 
     @Override
@@ -284,74 +285,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     }
 
-    @Override
-    public List<TransactionDto> getTransactionHistory(UUID accountId, int limit, int page) {
-        if (accountId == null) {
-            throw new BadRequestException("Account ID cannot be null");
-        }
-        if (limit <= 0 || page <= 0) {
-            throw new BadRequestException("Limit and page must be positive integers");
-        }
-
-        int pageNumber = page - 1;
-
-        Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        Page<Transaction> transactionPage = transactionRepository.findByFromAccountId(accountId, pageable);
 
 
-        return transactionPage.getContent().stream()
-                .map(transaction -> new TransactionDto(
-                        transaction.getId(),
-                        transaction.getToBank() != null ? transaction.getToBank().getId() : null,
-                        transaction.getAmount(),
-                        transaction.getUpdatedAt(),
-                        transaction.getMessage()
-                ))
-                .collect(Collectors.toList());
-    }
 
-    @Override
-    @Transactional
-    public void addRecipient(AddRecipientRequest request) {
-        try {
-            Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                    .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
-
-            // Xử lý bank - có thể null
-            Bank bank = null;
-            if (request.getBankName() != null && !request.getBankName().trim().isEmpty()) {
-                bank = bankRepository.findByBankName(request.getBankName())
-                        .orElseThrow(() -> new BadRequestException("NOT FOUND THIS BANK"));
-            }
-
-            User currentUser = getCurrentUser();
-            Recipient recipient = new Recipient();
-            recipient.setUser(currentUser);
-            recipient.setRecipientAccountNumber(request.getAccountNumber());
-            recipient.setRecipientName(account.getUser().getFullName());
-            recipient.setBank(bank);
-            recipientRepository.save(recipient);
-
-
-        } catch (DataIntegrityViolationException e) {
-            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to add recipient: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void deleteRecipient(String recipientFullName, String recipientAccountNumber, String bankName) {
-        User currentUser = getCurrentUser();
-        Recipient recipient = currentUser.getRecipients().stream()
-                .filter(r -> r.getRecipientName().equals(recipientFullName) &&
-                        r.getRecipientAccountNumber().equals(recipientAccountNumber) &&
-                        r.getBank().getBankName().equals(bankName))
-                .findFirst()
-                .orElseThrow(() -> new InvalidUserException("Recipient not found"));
-
-    }
 
     @Override
     public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page) {
@@ -440,59 +376,4 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
-
-    @Override
-    public boolean verifyRecipient(String accountNumber, UUID bankId) {
-        if (accountNumber == null || accountNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Account number cannot be null or empty");
-        }
-        if (bankId == null) {
-            throw new IllegalArgumentException("Bank ID cannot be null");
-        }
-
-        Recipient account = recipientRepository.findByAccountNumberAndBankId(accountNumber, bankId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Recipient verification failed: Account not found for accountNumber: " + accountNumber + " and bankId: " + bankId
-                ));
-
-        return true;
-
-    }
-
-
-    @Override
-    public void updateRecipient(UUID recipientId, AddRecipientRequest request) {
-        Recipient recipient = recipientRepository.findById(recipientId)
-                .orElseThrow(() -> new InvalidUserException("Recipient not found"));
-
-        Bank bank = bankRepository.findByBankName(request.getBankName())
-                .orElseThrow(() -> new InvalidUserException("Bank not found"));
-
-        recipient.setBank(bank);
-        recipient.setRecipientAccountNumber(request.getAccountNumber());
-
-        recipientRepository.save(recipient);
-    }
-
-    @Override
-    public List<RecipientDtoResponse> getRecipients(int limit, int page) {
-        int pageNumber = page - 1;
-
-        if (limit <= 0 || pageNumber < 0) {
-            throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
-        }
-
-        Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        Page<Recipient> recipientPage = recipientRepository.findAll(pageable);
-
-        return recipientPage.getContent().stream()
-                .map(recipient -> new RecipientDtoResponse(
-                        recipient.getId(),
-                        recipient.getRecipientAccountNumber(),
-                        recipient.getBank() == null ? null :  recipient.getBank().getBankName(),
-                        recipient.getRecipientName()
-                ))
-                .collect(Collectors.toList());
-    }
 }

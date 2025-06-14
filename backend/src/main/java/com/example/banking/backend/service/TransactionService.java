@@ -1,12 +1,12 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
+import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
+import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
-import com.example.banking.backend.model.Account;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,17 +21,6 @@ public interface TransactionService {
 
     void verifyTransferOtp(VerifyOtpRequest request);
 
-    List<TransactionDto> getTransactionHistory(UUID accountId, int limit, int page);
-
-    List<RecipientDtoResponse> getRecipients(int limit, int page);
-
-    void addRecipient(AddRecipientRequest request);
-
-    void updateRecipient(UUID recipientId, AddRecipientRequest request);
-
-    void deleteRecipient(String recipientFullName, String recipientAccountNumber, String bankName);
-
-    boolean verifyRecipient(String accountNumber, UUID bankId);
 
     List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page);
 

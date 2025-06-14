@@ -40,12 +40,12 @@ public class NotificationController {
     }
 
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable UUID notificationId) {
+    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable String notificationId) {
         return null;
     }
 
     @DeleteMapping("/{notificationId}")
-    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable UUID notificationId) {
+    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable String notificationId) {
         return null;
     }
 

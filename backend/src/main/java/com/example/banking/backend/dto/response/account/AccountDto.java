@@ -1,4 +1,4 @@
-package com.example.banking.backend.dto.response.transaction;
+package com.example.banking.backend.dto.response.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

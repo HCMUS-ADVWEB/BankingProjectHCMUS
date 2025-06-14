@@ -19,8 +19,9 @@ public class CryptoUtils {
     public static PrivateKey loadPrivateKey(String filePath) throws Exception {
         String privateKeyPEM = Files.readString(Path.of(filePath))
                 .replaceAll("\\s+", "")
-                .replace("-----BEGIN RSA PRIVATE KEY-----", "")
-                .replace("-----END RSA PRIVATE KEY-----", "");
+                .replace("-----BEGINRSAPRIVATEKEY-----", "")
+                .replace("-----ENDRSAPRIVATEKEY-----", "")
+                .replaceAll("-" , "");
         byte[] decodedKey = Base64.getDecoder().decode(privateKeyPEM);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
@@ -28,8 +29,8 @@ public class CryptoUtils {
 
     public static PublicKey loadPublicKey(String publicKeyPEM) throws Exception {
         String publicKeyContent = publicKeyPEM.replaceAll("\\n", "")
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "");
+                .replace("-----BEGINRSAPRIVATEKEY-----", "")
+                .replace("-----ENDRSAPRIVATEKEY-----", "");
         byte[] decodedKey = Base64.getDecoder().decode(publicKeyContent);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));

@@ -10,7 +10,6 @@ import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.mapper.account.AccountMapper;
-import com.example.banking.backend.mapper.account.UserMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,9 +39,15 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
-        Account account = accountRepository.findByUserId(userId).orElseThrow(
-                () -> new RuntimeException("Account not found!")
-        );
+        Account account = accountRepository.findByUserId(userId).orElse(null);
+
+        if (account == null) {
+            return ApiResponse.<GetAccountResponse>builder()
+                    .data(null)
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message("Account found successfully!")
+                    .build();
+        }
 
         GetAccountResponse accountResponse = AccountMapper.INSTANCE.accountToGetAccountResponse(account);
 
@@ -56,8 +59,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(UUID accountId, Integer size, Integer pagination, TransactionType type) {
-        Account account = accountRepository.getPaginatedTransactions(accountId, size, pagination, type);
+    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountId, Integer size, Integer pagination, TransactionType type) {
+        Account account = accountRepository.getPaginatedTransactions(UUID.fromString(accountId), size, pagination, type);
+
 
         if (account == null) {
             return ApiResponse.<GetAccountTransactionsResponse>builder()
@@ -77,6 +81,18 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request) {
+
+        if (accountRepository.findByUserEmail(request.getUsername()).isPresent()
+        || accountRepository.findByUserPhone(request.getPhone()).isPresent()
+        || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
+
+            return ApiResponse.<CreateCustomerAccountResponse>builder()
+                    .data(null)
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message("Account already exists!")
+                    .build();
+        }
+
         CreateUserRequest userRequest = CreateUserRequest.builder()
                 .username(request.getUsername())
                 .password(request.getPassword())
@@ -138,9 +154,14 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElseThrow(() -> new RuntimeException(
-                "Account not found!"
-        ));
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElse(null);
+
+        if (account == null) {
+            return ApiResponse.builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message("Account not found!")
+                    .build();
+        }
 
 
         account.setBalance(account.getBalance() + request.getRechargeAmount());
@@ -151,5 +172,17 @@ public class AccountServiceImpl implements AccountService {
                 .status(HttpStatus.OK.value())
                 .message("Account recharged successfully!")
                 .build();
+    }
+
+    @Override
+    public Double debitAccount(UUID userId, Double amount) {
+        Account account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new RuntimeException("Account not found!"));
+
+        account.setBalance(account.getBalance() - amount);
+
+        accountRepository.save(account);
+
+        return account.getBalance();
     }
 }
