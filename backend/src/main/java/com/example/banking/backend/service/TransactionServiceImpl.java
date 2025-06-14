@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-
     private TransactionRepository transactionRepository;
     private AccountRepository accountRepository;
     private BankRepository bankRepository;
@@ -52,9 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final PrivateKey bankAPrivateKey;
     private final RestTemplate restTemplate;
 
-
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
-
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
         if (sourceAccount.getBalance() < request.getAmount()) {
@@ -378,12 +375,5 @@ public class TransactionServiceImpl implements TransactionService {
                 account.getUser().getFullName()
         );
     }
-
-
-
-
-
-
-
 
 }
