@@ -83,6 +83,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto createUser(CreateUserRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ExistenceException("Username already exists!");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ExistenceException("Email already exists!");
+        }
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .username(request.getUsername())
