@@ -16,6 +16,4 @@ public class TransactionDto {
     private double amount;
     private Instant transactionDate;
     private String message;
-
-
 }

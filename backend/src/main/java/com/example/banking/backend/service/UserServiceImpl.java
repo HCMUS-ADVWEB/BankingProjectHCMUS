@@ -4,7 +4,7 @@ import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.exception.ExistenceException;
-import com.example.banking.backend.mapper.account.UserMapper;
+import com.example.banking.backend.mapper.user.UserMapper;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.UserRepository;

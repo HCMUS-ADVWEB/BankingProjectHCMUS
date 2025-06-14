@@ -1,6 +1,11 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
+import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
+import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
+import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.request.transaction.*;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.exception.BadRequestException;
