@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -48,14 +47,23 @@ public class DebtServiceImpl implements DebtService {
     @Override
     public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
         PageRequest pageRequest = PageRequest.of(page - 1, limit); // Pagination starts at page 0
-        Page<DebtReminder> debtReminders = debtReminderRepository.findByStatus(status, pageRequest);
+        Page<DebtReminder> debtReminders;
+
+        // Check if status is null
+        if (status == null) {
+            debtReminders = debtReminderRepository.findAll(pageRequest); // Fetch all debt reminders
+        } else {
+            debtReminders = debtReminderRepository.findByStatus(status, pageRequest); // Fetch by status
+        }
+
         List<GetDebtReminderResponse> responses = debtReminders.getContent().stream()
                 .map(debtReminderMapper::toResponse)
                 .collect(Collectors.toList());
+
         return ApiResponse.<List<GetDebtReminderResponse>>builder()
                 .data(responses)
                 .status(HttpStatus.OK.value())
-                .message("Debt reminders found successfully!")
+                .message("Debt reminders retrieved successfully!")
                 .build();
     }
 

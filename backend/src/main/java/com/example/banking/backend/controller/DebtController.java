@@ -46,6 +46,7 @@ public class DebtController {
         ApiResponse<List<GetDebtReminderResponse>> response = debtService.getDebtReminders(debtStatusType, limit, page);
         return ResponseEntity.ok(response);
     }
+
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/reminders")
     public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(

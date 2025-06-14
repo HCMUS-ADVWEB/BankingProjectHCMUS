@@ -1,15 +1,26 @@
 package com.example.banking.backend.model;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import org.hibernate.annotations.ColumnDefault;
+
 import com.example.banking.backend.model.type.DebtStatusType;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -40,7 +51,6 @@ public class DebtReminder {
     @Column(name = "message", length = Integer.MAX_VALUE)
     private String message;
 
-    @NotNull
     @ColumnDefault("'PENDING'")
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
