@@ -41,6 +41,7 @@ async function fetchContentExample() {
       } else if (status === 500) {
         alert('Internal server error');
       } else if (status === 401) {
+        // logout
         alert('Unauthorized: Please log in again.');
         window.location.href = '/auth/login';
       }

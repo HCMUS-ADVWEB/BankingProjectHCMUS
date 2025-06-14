@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import CustomerLayout from '../../layouts/CustomerLayout';
+import AdminLayout from '../../layouts/AdminLayout';
 import {
   Container,
   Grid,
@@ -147,7 +147,7 @@ export default function Template() {
   };
 
   return (
-    <CustomerLayout>
+    <AdminLayout>
       <Container maxWidth="xl" sx={{ py: 4, bgcolor: 'background.default' }}>
         {/* SECTION 0: Dashboard Overview */}
         <Box sx={{ mb: 4 }}>
@@ -162,7 +162,7 @@ export default function Template() {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ p: 2 }}>
+              <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
                 <Typography variant="h6" color="text.primary">
                   Total Users
                 </Typography>
@@ -262,6 +262,8 @@ export default function Template() {
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 4,
+            borderRadius: 'shape.borderRadius',
+            bgcolor: 'background.paper',
           }}
         >
           <Typography
@@ -1829,6 +1831,6 @@ export default function Template() {
           </Grid>
         </Paper>
       </Container>
-    </CustomerLayout>
+    </AdminLayout>
   );
 }
