@@ -7,6 +7,7 @@ import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,8 +53,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserDto>> getUserDetails(@PathVariable UUID userId) {
-        UserDto userDto = userService.getUserDetails(userId);
+    public ResponseEntity<ApiResponse<UserDto>> getUserDetails(@PathVariable String userId) {
+        UserDto userDto = userService.getUserDetails(UUID.fromString(userId));
         ApiResponse<UserDto> apiResponse = ApiResponse.<UserDto>builder()
                 .message("Get user details successfully!")
                 .data(userDto)
@@ -64,7 +65,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> createUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<ApiResponse<?>> createUser(@RequestBody @Valid CreateUserRequest request) {
         UserDto userDto = userService.createUser(request);
         ApiResponse<UserDto> apiResponse = ApiResponse.<UserDto>builder()
                 .message("Create user successfully!")
@@ -76,8 +77,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<?>> updateUser(@PathVariable UUID userId, @RequestBody UpdateUserRequest request) {
-        UserDto userDto = userService.updateUser(userId, request);
+    public ResponseEntity<ApiResponse<?>> updateUser(@PathVariable String userId, @RequestBody @Valid UpdateUserRequest request) {
+        UserDto userDto = userService.updateUser(UUID.fromString(userId), request);
         ApiResponse<UserDto> apiResponse = ApiResponse.<UserDto>builder()
                 .message("Update user successfully!")
                 .data(userDto)
@@ -88,8 +89,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable UUID userId) {
-        userService.deleteUser(userId);
+    public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(UUID.fromString(userId));
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .message("Delete user successfully!")
                 .status(200)

@@ -84,32 +84,16 @@ public class TransactionController {
     }
 
 
-    @GetMapping("/recipients")
-    public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page) {
-
-            List<RecipientDtoResponse> recipients = transactionService.getRecipients(limit, page);
-            return ResponseEntity.ok(ApiResponse.<List<RecipientDtoResponse>>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipients retrieved successfully")
-                    .data(recipients)
-                    .build());
-
-    }
-
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
     public ResponseEntity<ApiResponse<?>> getBankTransactions(
-            @RequestParam(required = false) UUID bankId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page
     ) {
-        try {
+
             List<TransactionDto> transactions = transactionService.getBankTransactions(startDate, endDate, limit, page);
 
             return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
@@ -117,55 +101,31 @@ public class TransactionController {
                     .message("Bank transactions retrieved successfully")
                     .data(transactions)
                     .build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<List<TransactionDto>>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<List<TransactionDto>>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to retrieve bank transactions: " + e.getMessage())
-                            .build());
-        }
+
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<?>> getBankTransactionStats(
-            @RequestParam(required = false) UUID bankId,
+            @RequestParam(required = false) String bankId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ) {
-        try {
-            BankTransactionStatsDto stats = transactionService.getBankTransactionStats(bankId, startDate, endDate);
 
+            BankTransactionStatsDto stats = transactionService.getBankTransactionStats(UUID.fromString(bankId), startDate, endDate);
             return ResponseEntity.ok(ApiResponse.<BankTransactionStatsDto>builder()
                     .status(HttpStatus.OK.value())
                     .message("Bank transaction statistics retrieved successfully")
                     .data(stats)
                     .build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<BankTransactionStatsDto>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<BankTransactionStatsDto>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to retrieve bank statistics: " + e.getMessage())
-                            .build());
-        }
     }
 
     /*For saved Account
     * With unsaved account, need to access api of other bank
     * */
     @GetMapping("/external/{bankId}/{accountNumber}")
-    public ResponseEntity<ApiResponse<?>> getExternalAccountInfo(@PathVariable String accountNumber, @PathVariable UUID bankId) {
+    public ResponseEntity<ApiResponse<?>> getExternalAccountInfo(@PathVariable String accountNumber, @PathVariable String bankId) {
         try {
-            AccountDto accountInfo = transactionService.getExternalAccountInfo(accountNumber, bankId);
+            AccountDto accountInfo = transactionService.getExternalAccountInfo(accountNumber, UUID.fromString(bankId));
 
             return ResponseEntity.ok(ApiResponse.<AccountDto>builder()
                     .status(HttpStatus.OK.value())

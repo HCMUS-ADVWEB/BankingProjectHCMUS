@@ -15,5 +15,6 @@ public class RecipientDtoResponse {
     private String accountNumber;
     private String bankName;
     private String recipientName;
+    private String recipientNickname;
 
 }

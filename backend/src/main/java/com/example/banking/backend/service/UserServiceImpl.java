@@ -106,7 +106,6 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(UUID userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ExistenceException("User not found!"));
 
-        user.setUsername(request.getUsername() != null ? request.getUsername() : user.getUsername());
         user.setPassword(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : user.getPassword());
         user.setEmail(request.getEmail() != null ? request.getEmail() : user.getEmail());
         user.setPhone(request.getPhone() != null ? request.getPhone() : user.getPhone());
@@ -136,6 +135,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteUser(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ExistenceException("User not found!");
+        }
         userRepository.deleteById(userId);
     }
 }

@@ -51,7 +51,7 @@ public class AccountController {
             @RequestParam(required = false, defaultValue = "0") Integer pn,
             @RequestParam(required = false) TransactionType type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(UUID.fromString(accountId), limit, pn, type);
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions( accountId, limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
