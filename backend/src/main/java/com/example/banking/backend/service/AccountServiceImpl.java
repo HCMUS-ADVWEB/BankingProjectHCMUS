@@ -39,12 +39,13 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
-        Account account = accountRepository.findByUserId(userId);
+        Account account = accountRepository.findByUserId(userId).orElse(null);
 
         if (account == null) {
             return ApiResponse.<GetAccountResponse>builder()
-                    .status(HttpStatus.NO_CONTENT.value())
-                    .message("Account not found!")
+                    .data(null)
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message("Account found successfully!")
                     .build();
         }
 
@@ -58,8 +59,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(UUID accountId, Integer size, Integer pagination, TransactionType type) {
-        Account account = accountRepository.getPaginatedTransactions(accountId, size, pagination, type);
+    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountId, Integer size, Integer pagination, TransactionType type) {
+        Account account = accountRepository.getPaginatedTransactions(UUID.fromString(accountId), size, pagination, type);
+
 
         if (account == null) {
             return ApiResponse.<GetAccountTransactionsResponse>builder()
@@ -79,6 +81,18 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request) {
+
+        if (accountRepository.findByUserEmail(request.getUsername()).isPresent()
+        || accountRepository.findByUserPhone(request.getPhone()).isPresent()
+        || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
+
+            return ApiResponse.<CreateCustomerAccountResponse>builder()
+                    .data(null)
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message("Account already exists!")
+                    .build();
+        }
+
         CreateUserRequest userRequest = CreateUserRequest.builder()
                 .username(request.getUsername())
                 .password(request.getPassword())
@@ -140,14 +154,15 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber());
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElse(null);
 
         if (account == null) {
             return ApiResponse.builder()
-                    .status(HttpStatus.NO_CONTENT.value())
+                    .status(HttpStatus.NOT_FOUND.value())
                     .message("Account not found!")
                     .build();
         }
+
 
         account.setBalance(account.getBalance() + request.getRechargeAmount());
 
@@ -157,5 +172,17 @@ public class AccountServiceImpl implements AccountService {
                 .status(HttpStatus.OK.value())
                 .message("Account recharged successfully!")
                 .build();
+    }
+
+    @Override
+    public Double debitAccount(UUID userId, Double amount) {
+        Account account = accountRepository.findByUserId(userId).orElseThrow(
+                () -> new RuntimeException("Account not found!"));
+
+        account.setBalance(account.getBalance() - amount);
+
+        accountRepository.save(account);
+
+        return account.getBalance();
     }
 }

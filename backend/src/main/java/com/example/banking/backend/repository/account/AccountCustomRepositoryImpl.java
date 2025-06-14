@@ -26,6 +26,8 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository{
                 .setParameter("accountId", accountId)
                 .getSingleResult();
 
+        page--;
+
         List<Transaction> senderList = account.getTransactionsAsSender().stream()
                 .filter(tx -> type == null || tx.getTransactionType() == type)
                 .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())

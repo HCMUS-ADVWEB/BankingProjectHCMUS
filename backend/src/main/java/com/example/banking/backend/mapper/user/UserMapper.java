@@ -1,4 +1,4 @@
-package com.example.banking.backend.mapper.account;
+package com.example.banking.backend.mapper.user;
 
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.model.User;

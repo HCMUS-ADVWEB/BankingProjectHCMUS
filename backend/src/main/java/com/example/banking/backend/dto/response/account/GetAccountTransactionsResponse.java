@@ -1,5 +1,6 @@
 package com.example.banking.backend.dto.response.account;
 
+import com.example.banking.backend.dto.response.transaction.TransactionInfoDto;
 import com.example.banking.backend.model.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,6 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 public class GetAccountTransactionsResponse {
-    private Set<Transaction> transactionsAsSender;
-    private Set<Transaction> transactionsAsReceiver;
+    private Set<TransactionInfoDto> transactionsAsSender;
+    private Set<TransactionInfoDto> transactionsAsReceiver;
 }
