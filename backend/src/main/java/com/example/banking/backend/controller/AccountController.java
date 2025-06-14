@@ -46,7 +46,7 @@ public class AccountController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping("/{accountId}")
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getAccountTransactions(
-            @PathVariable UUID accountId,
+            @PathVariable String accountId,
             @RequestParam(required = false, defaultValue = "10") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer pn,
             @RequestParam(required = false) TransactionType type

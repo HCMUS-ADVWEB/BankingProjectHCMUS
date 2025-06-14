@@ -30,10 +30,10 @@ public class RecipientController {
 
     @PutMapping("/recipients/{recipientId}")
     public ResponseEntity<ApiResponse<Recipient>> updateRecipient(
-            @PathVariable UUID recipientId,
+            @PathVariable String recipientId,
             @Valid @RequestBody AddRecipientRequest request) {
 
-        Recipient recipient = recipientService.updateRecipient(recipientId, request);
+        Recipient recipient = recipientService.updateRecipient(UUID.fromString(recipientId), request);
 
         return ResponseEntity.ok(ApiResponse.<Recipient>builder()
                 .status(HttpStatus.OK.value())
@@ -67,9 +67,9 @@ public class RecipientController {
     @GetMapping("/verify-recipient")
     public ResponseEntity<ApiResponse<Boolean>> verifyRecipient(
             @RequestParam String accountNumber,
-            @RequestParam UUID bankId) {
+            @RequestParam String bankId) {
         try {
-            boolean isValid = recipientService.verifyRecipient(accountNumber, bankId);
+            boolean isValid = recipientService.verifyRecipient(accountNumber, UUID.fromString(bankId));
 
             return ResponseEntity.ok(ApiResponse.<Boolean>builder()
                     .status(HttpStatus.OK.value())

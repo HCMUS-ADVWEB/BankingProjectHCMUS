@@ -52,8 +52,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserDto>> getUserDetails(@PathVariable UUID userId) {
-        UserDto userDto = userService.getUserDetails(userId);
+    public ResponseEntity<ApiResponse<UserDto>> getUserDetails(@PathVariable String userId) {
+        UserDto userDto = userService.getUserDetails(UUID.fromString(userId));
         ApiResponse<UserDto> apiResponse = ApiResponse.<UserDto>builder()
                 .message("Get user details successfully!")
                 .data(userDto)
@@ -76,8 +76,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<?>> updateUser(@PathVariable UUID userId, @RequestBody UpdateUserRequest request) {
-        UserDto userDto = userService.updateUser(userId, request);
+    public ResponseEntity<ApiResponse<?>> updateUser(@PathVariable String userId, @RequestBody UpdateUserRequest request) {
+        UserDto userDto = userService.updateUser(UUID.fromString(userId), request);
         ApiResponse<UserDto> apiResponse = ApiResponse.<UserDto>builder()
                 .message("Update user successfully!")
                 .data(userDto)
@@ -88,8 +88,8 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable UUID userId) {
-        userService.deleteUser(userId);
+    public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(UUID.fromString(userId));
         ApiResponse<?> apiResponse = ApiResponse.builder()
                 .message("Delete user successfully!")
                 .status(200)
