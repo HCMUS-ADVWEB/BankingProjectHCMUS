@@ -1,7 +1,6 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
