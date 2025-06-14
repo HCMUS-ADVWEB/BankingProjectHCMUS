@@ -1,4 +1,4 @@
-package com.example.banking.backend.dto.request.transaction;
+package com.example.banking.backend.dto.request.recipient;
 
 
 import lombok.Getter;

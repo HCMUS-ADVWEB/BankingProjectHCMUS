@@ -2,7 +2,6 @@ package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
@@ -43,8 +42,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/external")
     public ResponseEntity<ApiResponse<TransferResult>> externalTransfer(
-            @Valid @RequestBody TransferRequestExternal request) {
-        try {
+            @Valid @RequestBody TransferRequestExternal request) throws Exception {
+
             TransferResult result = transactionService.externalTransfer(request);
 
             if (result.isSuccess()) {
@@ -60,13 +59,7 @@ public class TransactionController {
                         .data(result)
                         .build());
             }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<TransferResult>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("External transfer failed: " + e.getMessage())
-                            .build());
-        }
+
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -90,22 +83,6 @@ public class TransactionController {
         }
     }
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/accounts/{accountId}")
-    public ResponseEntity<ApiResponse<List<TransactionDto>>> getTransactionHistory(
-            @PathVariable UUID accountId,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page) {
-
-            List<TransactionDto> transactions = transactionService.getTransactionHistory(accountId, limit, page);
-
-            return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Transaction history retrieved successfully")
-                    .data(transactions)
-                    .build());
-
-    }
 
     @GetMapping("/recipients")
     public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
@@ -121,99 +98,7 @@ public class TransactionController {
 
     }
 
-    @PostMapping("/recipients")
-    public ResponseEntity<ApiResponse<String>> addRecipient(
-            @Valid @RequestBody AddRecipientRequest request) {
-        try {
-            transactionService.addRecipient(request);
 
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.CREATED.value())
-                            .message("Recipient added successfully")
-                            .data("Recipient created")
-                            .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to add recipient: " + e.getMessage())
-                            .build());
-        }
-    }
-
-    @PutMapping("/recipients/{recipientId}")
-    public ResponseEntity<ApiResponse<String>> updateRecipient(
-            @PathVariable UUID recipientId,
-            @Valid @RequestBody AddRecipientRequest request) {
-        try {
-            transactionService.updateRecipient(recipientId, request);
-
-            return ResponseEntity.ok(ApiResponse.<String>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipient updated successfully")
-                    .data("Recipient information updated")
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to update recipient: " + e.getMessage())
-                            .build());
-        }
-    }
-
-
-    @DeleteMapping("/recipients")
-    public ResponseEntity<ApiResponse<String>> deleteRecipient(
-            @RequestParam String recipientFullName,
-            @RequestParam String recipientAccountNumber,
-            @RequestParam String bankName) {
-        try {
-            transactionService.deleteRecipient(recipientFullName, recipientAccountNumber, bankName);
-
-            return ResponseEntity.ok(ApiResponse.<String>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipient deleted successfully")
-                    .data("Recipient removed")
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Failed to delete recipient: " + e.getMessage())
-                            .build());
-        }
-    }
-
-
-    @GetMapping("/verify-recipient")
-    public ResponseEntity<ApiResponse<Boolean>> verifyRecipient(
-            @RequestParam String accountNumber,
-            @RequestParam UUID bankId) {
-        try {
-            boolean isValid = transactionService.verifyRecipient(accountNumber, bankId);
-
-            return ResponseEntity.ok(ApiResponse.<Boolean>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipient verification completed")
-                    .data(isValid)
-                    .build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.<Boolean>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .data(false)
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<Boolean>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("Recipient verification failed: " + e.getMessage())
-                            .data(false)
-                            .build());
-        }
-    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
@@ -274,6 +159,9 @@ public class TransactionController {
         }
     }
 
+    /*For saved Account
+    * With unsaved account, need to access api of other bank
+    * */
     @GetMapping("/external/{bankId}/{accountNumber}")
     public ResponseEntity<ApiResponse<?>> getExternalAccountInfo(@PathVariable String accountNumber, @PathVariable UUID bankId) {
         try {
@@ -302,8 +190,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/external/deposit")
     public ResponseEntity<ApiResponse<String>> externalDeposit(
-            @Valid @RequestBody ExternalDepositRequest request) {
-        try {
+            @Valid @RequestBody ExternalDepositRequest request) throws Exception {
+
             transactionService.externalDeposit(request);
 
             return ResponseEntity.ok(ApiResponse.<String>builder()
@@ -311,12 +199,6 @@ public class TransactionController {
                     .message("External deposit initiated successfully")
                     .data("Deposit processed")
                     .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("External deposit failed: " + e.getMessage())
-                            .build());
-        }
+
     }
 }
