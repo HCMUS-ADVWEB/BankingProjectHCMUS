@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Shield,
@@ -105,8 +104,8 @@ export default function HomePage() {
 
           {/* Login Button */}
           <div className="hidden md:block">
-            <Link
-              to={
+            <a
+              href={
                 state.isAuthenticated
                   ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
                   : '/auth/login'
@@ -117,7 +116,7 @@ export default function HomePage() {
             >
               <ShieldUser className="h-4 w-4" />
               {state.isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -135,8 +134,8 @@ export default function HomePage() {
                   {item.label}
                 </a>
               ))}
-              <Link
-                to={
+              <a
+                href={
                   state.isAuthenticated
                     ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
                     : '/auth/login'
@@ -147,7 +146,7 @@ export default function HomePage() {
               >
                 <ShieldUser className="h-4 w-4" />
                 {state.isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
-              </Link>
+              </a>
             </div>
           </div>
         )}
@@ -202,8 +201,8 @@ export default function HomePage() {
 
           {/* CTA Button */}
           <div className="pt-8">
-            <Link
-              to={
+            <a
+              href={
                 state.isAuthenticated
                   ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
                   : '/auth/login'
@@ -214,7 +213,7 @@ export default function HomePage() {
             >
               <UserCircle2 className="h-5 w-5" />
               Access Banking Portal
-            </Link>
+            </a>
           </div>
 
           {/* Stats */}
@@ -506,8 +505,8 @@ export default function HomePage() {
                   Join customers who have switched to smarter, secure banking.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link
-                    to={
+                  <a
+                    href={
                       state.isAuthenticated
                         ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
                         : '/auth/login'
@@ -518,7 +517,7 @@ export default function HomePage() {
                   >
                     <UserCircle2 className="h-5 w-5" />
                     Get Started
-                  </Link>
+                  </a>
                   <a
                     href="#solutions"
                     className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold

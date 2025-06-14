@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Simulate API call
       console.log('Logging in with:', { username, password, recaptcha });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (username === 'customer') {
         const user = {

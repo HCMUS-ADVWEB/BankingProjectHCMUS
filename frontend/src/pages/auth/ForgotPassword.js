@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
         setTimeout(() => {
           console.log(`OTP sent to ${email}`);
           resolve();
-        }, 1000);
+        }, 500);
       });
       return true;
     } catch (error) {
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
             `Password reset for ${email} with OTP ${otp} and new password`,
           );
           resolve();
-        }, 2000);
+        }, 500);
       });
       if (otp !== '000000') {
         console.log('Invalid OTP');
@@ -421,10 +421,10 @@ export default function ForgotPasswordPage() {
                 </div>
                 {formik.touched.confirmPassword &&
                   formik.errors.confirmPassword && (
-                    <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
+                  <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
                       *<span>{formik.errors.confirmPassword}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}

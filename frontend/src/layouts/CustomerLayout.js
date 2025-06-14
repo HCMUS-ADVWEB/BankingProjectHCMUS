@@ -1,10 +1,23 @@
 import Navigation from '../components/Navigation';
-import { Home, Send, Users, FileText, History, Settings } from 'lucide-react';
+import MainHeader from '../components/MainHeader';
+import {
+  Component,
+  Home,
+  Send,
+  Users,
+  FileText,
+  History,
+  Settings,
+  CreditCard,
+} from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { ThemeProvider } from '@mui/material/styles';
 
 export default function CustomerLayout({ children }) {
   const navigationItems = [
+    { label: 'Template', href: '/customer/template', icon: Component },
     { label: 'Dashboard', href: '/customer/dashboard', icon: Home },
-    { label: 'Accounts', href: '/customer/accounts', icon: 'CreditCard' },
+    { label: 'Accounts', href: '/customer/accounts', icon: CreditCard },
     { label: 'Transfer', href: '/customer/transfer', icon: Send },
     { label: 'Recipients', href: '/customer/recipients', icon: Users },
     { label: 'Debts', href: '/customer/debts', icon: FileText },
@@ -15,13 +28,17 @@ export default function CustomerLayout({ children }) {
       icon: Settings,
     },
   ];
+  const { theme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex">
-      <Navigation items={navigationItems} title="Customer Dashboard" />
-      <main className="ml-[17.5rem] flex-1 p-6 lg:p-8 overflow-auto">
-        {children}
-      </main>
-    </div>
+    <ThemeProvider theme={theme}>
+      <div className="min-h-screen bg-neutral-100 flex">
+        <Navigation items={navigationItems} title="Customer Dashboard" />
+        <div className="ml-[17.5rem] flex-1 flex flex-col">
+          <MainHeader navigationItems={navigationItems} />
+          <main className="flex-1 overflow-auto">{children}</main>
+        </div>
+      </div>
+    </ThemeProvider>
   );
 }
