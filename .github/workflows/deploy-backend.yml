@@ -1,0 +1,86 @@
+name: CI/CD Pipeline - Backend
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'deploy'
+    paths: 
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  pull_request:
+    branches: 
+      - 'main'
+      - 'deploy'
+    paths: 
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    environment: Dev
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+    steps:
+    - name: ✅ Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: ⭕ Set up JDK 19
+      uses: actions/setup-java@v4
+      with:
+        java-version: '19'
+        distribution: 'zulu'
+        cache: maven
+              
+    - name: 🔎 Build the Spring Boot application
+      run: |
+        cd backend
+        mvn clean package -DskipTests
+
+    - name: 🔑 Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with: 
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+  
+    - name: 🚩 Build and Push Docker image to ACR
+      run: |
+        cd backend
+        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/my-backend-app:${{ github.sha }} .
+        docker push ${{ secrets.ACR_LOGIN_SERVER }}/my-backend-app:${{ github.sha }}
+      
+    - name: 🧹 Clean up Docker images
+      if: always()
+      run: |
+        docker image prune -f
+      
+  deploy-backend:
+    needs: build-backend
+    runs-on: ubuntu-latest
+    environment: Dev
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+    steps:
+    - name: ✅ Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🔑 Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: 🚩 Deploy to Azure Container Apps
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
+        containerAppName: banking-backend-aca
+        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/my-backend-app:${{ github.sha }}
+        targetPort: 8080
+        ingress: external
+        location: ${{ secrets.AZURE_LOCATION }}
+
+    - name: 🔎 Verify Deployment
+      run: |
+        az containerapp show --name banking-backend-aca --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.latestRevisionName" -o tsv
+        az containerapp revision list --name banking-backend-aca --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "[0].properties.runningStatus"
+      continue-on-error: true

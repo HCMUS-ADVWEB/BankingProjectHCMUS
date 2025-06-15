@@ -41,7 +41,7 @@ public class SecurityConfig {
 
     @Bean
     public PrivateKey bankAPrivateKey() throws Exception {
-        return CryptoUtils.loadPrivateKey("src/main/resources/keys/private_key.pem");
+        return CryptoUtils.loadPrivateKey("keys/private_key.pem");
     }
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
