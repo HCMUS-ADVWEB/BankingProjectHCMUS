@@ -4,14 +4,12 @@ on:
   push:
     branches:
       - 'main'
-      - 'deploy'
     paths: 
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
   pull_request:
     branches: 
       - 'main'
-      - 'deploy'
     paths: 
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
@@ -20,7 +18,7 @@ jobs:
   build-backend:
     runs-on: ubuntu-latest
     environment: Dev
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: ✅ Checkout Code
       uses: actions/checkout@v4
@@ -59,7 +57,7 @@ jobs:
     needs: build-backend
     runs-on: ubuntu-latest
     environment: Dev
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deploy'
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: ✅ Checkout Code
       uses: actions/checkout@v4
