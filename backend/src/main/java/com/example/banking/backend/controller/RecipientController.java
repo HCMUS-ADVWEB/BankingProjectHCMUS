@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+@RequestMapping("/api/recipients")
 public class RecipientController {
     RecipientService recipientService;
 
