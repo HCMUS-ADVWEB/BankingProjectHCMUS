@@ -6,5 +6,5 @@ import com.example.banking.backend.model.type.TransactionType;
 import java.util.UUID;
 
 public interface AccountCustomRepository {
-    Account getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type);
+    Account getPaginatedTransactions(String accountNumber, int page, int size, TransactionType type);
 }

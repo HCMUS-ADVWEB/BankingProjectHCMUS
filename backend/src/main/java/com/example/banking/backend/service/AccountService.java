@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface AccountService {
     ApiResponse<GetAccountResponse> getAccount(UUID userId);
 
-    ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(UUID accountId, Integer size, Integer pagination, TransactionType type);
+    ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type);
 
     //void deposit(UUID accountId, DepositRequest request);
 

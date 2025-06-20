@@ -3,6 +3,7 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.account.DepositRequest;
+import com.example.banking.backend.dto.request.account.GetAccountTransactionsRequest;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
 import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountResponse;
@@ -44,14 +45,14 @@ public class AccountController {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    @GetMapping("/{accountId}")
+    @GetMapping("/")
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getAccountTransactions(
-            @PathVariable String accountId,
+            @RequestBody GetAccountTransactionsRequest request,
             @RequestParam(required = false, defaultValue = "10") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer pn,
             @RequestParam(required = false) TransactionType type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(UUID.fromString(accountId), limit, pn, type);
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(request.getAccountNumber(), limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

@@ -59,8 +59,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(UUID accountId, Integer size, Integer pagination, TransactionType type) {
-        Account account = accountRepository.getPaginatedTransactions(accountId, pagination, size, type);
+    public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type) {
+        Account account = accountRepository.getPaginatedTransactions(accountNumber, size, pagination, type);
+
 
         if (account == null) {
             return ApiResponse.<GetAccountTransactionsResponse>builder()
