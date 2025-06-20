@@ -184,3 +184,14 @@ export const CONTACT_INFO = {
 };
 
 export const CURRENT_YEAR = new Date().getFullYear();
+
+export const formatVND = (amount) => {
+  if (typeof amount !== 'number') return amount;
+  return amount.toLocaleString('vi-VN');
+};
+
+export const TRANSACTION_TYPES = [
+  { value: 'RECEIPT', label: 'Receipt' },
+  { value: 'TRANSFER', label: 'Transfer' },
+  { value: 'DEBT_PAYMENT', label: 'Debt Payment' },
+];
