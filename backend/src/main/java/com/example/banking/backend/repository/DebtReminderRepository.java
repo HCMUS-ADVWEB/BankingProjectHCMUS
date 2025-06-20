@@ -10,6 +10,9 @@ import com.example.banking.backend.model.DebtReminder;
 import com.example.banking.backend.model.type.DebtStatusType;
 
 public interface DebtReminderRepository extends JpaRepository<DebtReminder, UUID> {
-    Page<DebtReminder> findAll(Pageable pageable);
-    Page<DebtReminder> findByStatus(DebtStatusType status, Pageable pageable); // Use DebtStatusType instead of String
+
+    Page<DebtReminder> findByCreator_IdOrDebtor_Id(UUID creatorId, UUID debtorId, Pageable pageable);
+    Page<DebtReminder> findByStatusAndCreator_IdOrStatusAndDebtor_Id(
+            DebtStatusType status1, UUID creatorId, DebtStatusType status2, UUID debtorId, Pageable pageable);
+
 }
