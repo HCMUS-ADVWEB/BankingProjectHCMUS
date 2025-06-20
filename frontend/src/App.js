@@ -26,6 +26,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminEmployees from './pages/admin/Employees';
 import AdminTransactions from './pages/admin/Transactions';
 import AdminTemplate from './pages/admin/Template';
+import EmployeeDetail from "./pages/admin/EmployeeDetail";
 
 export default function App() {
   return (
@@ -171,6 +172,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminEmployees />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/employees/:id"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <EmployeeDetail />
               </ProtectedRoute>
             }
           />
