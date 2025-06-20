@@ -21,8 +21,6 @@ public interface TransactionService {
 
     void verifyTransferOtp(VerifyOtpRequest request);
 
-    List<RecipientDtoResponse> getRecipients(int limit, int page);
-
 
     List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page);
 

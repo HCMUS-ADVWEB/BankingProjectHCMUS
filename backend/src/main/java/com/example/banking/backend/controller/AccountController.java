@@ -53,6 +53,7 @@ public class AccountController {
             @RequestParam(required = false) TransactionType type
     ) {
         ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(request.getAccountNumber(), limit, pn, type);
+
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

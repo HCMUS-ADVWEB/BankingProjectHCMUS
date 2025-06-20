@@ -14,7 +14,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class UpdateUserRequest implements Serializable {
-    private String username;
     private String password;
     private String email;
     private String phone;

@@ -46,6 +46,7 @@ public class DebtController {
         ApiResponse<List<GetDebtReminderResponse>> response = debtService.getDebtReminders(debtStatusType, limit, page);
         return ResponseEntity.ok(response);
     }
+
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/reminders")
     public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(
@@ -91,10 +92,10 @@ public class DebtController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/{reminderId}/pay")
     public ResponseEntity<ApiResponse<String>> payDebtReminder(
-            @PathVariable UUID reminderId,
+            @PathVariable String reminderId,
             @Valid @RequestBody PayDebtRequest request) {
         try {
-            debtService.payDebtReminder(reminderId, request);
+            debtService.payDebtReminder(UUID.fromString(reminderId), request);
 
             return ResponseEntity.ok(ApiResponse.<String>builder()
                     .status(HttpStatus.OK.value())

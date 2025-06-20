@@ -1,7 +1,6 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.AddRecipientRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
@@ -44,7 +43,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
-
     private TransactionRepository transactionRepository;
     private AccountRepository accountRepository;
     private BankRepository bankRepository;
@@ -53,9 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final PrivateKey bankAPrivateKey;
     private final RestTemplate restTemplate;
 
-
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
-
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
         if (sourceAccount.getBalance() < request.getAmount()) {
@@ -380,31 +376,4 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
-
-
-
-
-
-
-    @Override
-    public List<RecipientDtoResponse> getRecipients(int limit, int page) {
-        int pageNumber = page - 1;
-
-        if (limit <= 0 || pageNumber < 0) {
-            throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
-        }
-
-        Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        Page<Recipient> recipientPage = recipientRepository.findAll(pageable);
-
-        return recipientPage.getContent().stream()
-                .map(recipient -> new RecipientDtoResponse(
-                        recipient.getId(),
-                        recipient.getRecipientAccountNumber(),
-                        recipient.getBank() == null ? null :  recipient.getBank().getBankName(),
-                        recipient.getRecipientName()
-                ))
-                .collect(Collectors.toList());
-    }
 }

@@ -1,52 +1,69 @@
 package com.example.banking.backend.controller;
 
-import com.example.banking.backend.dto.ApiResponse;
-import com.example.banking.backend.dto.request.notification.DebtReminderNotificationRequest;
-import com.example.banking.backend.dto.request.notification.SendOtpRequest;
-import com.example.banking.backend.dto.request.notification.TransactionReceiptRequest;
-import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
+import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
+import com.example.banking.backend.dto.response.notification.NotificationResponse;
+import com.example.banking.backend.model.Notification;
+import com.example.banking.backend.service.NotificationService;
+
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
-    // private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getNotifications(
+    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page
     ) {
-        return null;
-    }
+        Page<NotificationResponse> notifications = notificationService.getAllNotifications(limit, page);
 
-    @PutMapping("/{notificationId}/read")
-    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable UUID notificationId) {
-        return null;
+        return ResponseEntity.ok(ApiResponse.<Page<NotificationResponse>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Notifications retrieved successfully")
+                .data(notifications)
+                .build());
     }
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PutMapping("/read-all")
+    public ResponseEntity<ApiResponse<Void>> markAllNotificationsAsRead() {
+        notificationService.markAllNotificationsAsRead();
 
-    @DeleteMapping("/{notificationId}")
-    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable UUID notificationId) {
-        return null;
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("All notifications marked as read")
+                .build());
     }
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/add")
+    public ResponseEntity<ApiResponse<Notification>> addNotification(
+        @Validated @RequestBody AddNotificationRequest request) {
+    Notification notification = notificationService.addNotification(request);
 
-    @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<Void>> sendOtp(@RequestBody SendOtpRequest request) {
-        return null;
-    }
-
-    @PostMapping("/send-transaction-receipt")
-    public ResponseEntity<ApiResponse<Void>> sendTransactionReceipt(@RequestBody TransactionReceiptRequest request) {
-        return null;
-    }
-
-    @PostMapping("/debt-reminder-notification")
-    public ResponseEntity<ApiResponse<Void>> sendDebtReminderNotification(@RequestBody DebtReminderNotificationRequest request) {
-        return null;
+    return ResponseEntity.status(HttpStatus.CREATED).body(
+            ApiResponse.<Notification>builder()
+                    .status(HttpStatus.CREATED.value())
+                    .message("Notification created successfully")
+                    .data(notification)
+                    .build()
+    );
     }
 }
