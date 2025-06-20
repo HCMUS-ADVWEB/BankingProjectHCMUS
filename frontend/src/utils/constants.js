@@ -191,7 +191,8 @@ export const formatVND = (amount) => {
 };
 
 export const TRANSACTION_TYPES = [
-  { value: 'RECEIPT', label: 'Receipt' },
-  { value: 'TRANSFER', label: 'Transfer' },
+  { value: 'INTERNAL_TRANSFER', label: 'Internal Transfer' },
+  { value: 'INTERBANK_TRANSFER', label: 'Interbank Transfer' },
   { value: 'DEBT_PAYMENT', label: 'Debt Payment' },
+  { value: 'DEPOSIT', label: 'Deposit' },
 ];

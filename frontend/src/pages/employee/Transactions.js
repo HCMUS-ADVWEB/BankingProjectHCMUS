@@ -132,25 +132,6 @@ export default function TransactionsPage() {
   const handleSnackbarOpen = () => setSnackbarOpen(true);
   const handleSnackbarClose = () => setSnackbarOpen(false);
   const handleChangePage = (event, newPage) => setPage(newPage);
-  const filteredTableData = transactions
-    .filter((row) => {
-      const fullName =
-        row.category === 'RECEIPT' ? row.remitter?.fullName :
-          row.category === 'TRANSFER' ? row.recipient?.fullName :
-            row.category === 'DEBT_PAYMENT' ? row.debtor?.fullName : '';
-      return fullName.toLowerCase().includes(filterName.toLowerCase());
-    })
-    .sort((a, b) => {
-      const nameA =
-        a.category === 'RECEIPT' ? a.remitter?.fullName :
-          a.category === 'TRANSFER' ? a.recipient?.fullName :
-            a.category === 'DEBT_PAYMENT' ? a.debtor?.fullName : '';
-      const nameB =
-        b.category === 'RECEIPT' ? b.remitter?.fullName :
-          b.category === 'TRANSFER' ? b.recipient?.fullName :
-            b.category === 'DEBT_PAYMENT' ? b.debtor?.fullName : '';
-      return nameA.localeCompare(nameB);
-    });
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -166,7 +147,7 @@ export default function TransactionsPage() {
   // Filter transactions by type
   const filteredTransactions = transactionAccountHistory.type === 'ALL'
     ? transactions
-    : transactions.filter(tx => tx.category === transactionAccountHistory.type);
+    : transactions.filter(tx => tx.transactionType === transactionAccountHistory.type);
   return (
     <EmployeeLayout>
       <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default' }}>
@@ -214,11 +195,13 @@ export default function TransactionsPage() {
               }}
               color="primary"
             >
-
+              <ToggleButton value="ALL">All</ToggleButton>
               {TRANSACTION_TYPES.map(type => (
                 <ToggleButton key={type.value} value={type.value}>{type.label}</ToggleButton>
               ))}
             </ToggleButtonGroup>
+          </Grid>
+          <Grid container spacing={2} sx={{ mt: 2 }}>
             <TableContainer
               component={Paper}
               sx={{ mt: 2, borderRadius: 'shape.borderRadius' }}
@@ -227,30 +210,30 @@ export default function TransactionsPage() {
                 <TableHead>
                   <TableRow>
                     <TableCell>ID</TableCell>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Remitter</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>From Account</TableCell>
+                    <TableCell>To Account</TableCell>
                     <TableCell>Amount</TableCell>
-                    <TableCell>Payer</TableCell>
-                    <TableCell>Note</TableCell>
-                    <TableCell>Time</TableCell>
+                    <TableCell>Fee</TableCell>
+
+                    <TableCell>Message</TableCell>
+                    <TableCell>Created At</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredTransactions
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((row) => (
-                      <TableRow key={row.ordinalNumber}>
-                        <TableCell>{row.ordinalNumber}</TableCell>
-                        <TableCell>{row.category}</TableCell>
-                        <TableCell>
-                          {row.category === 'RECEIPT' && row.remitter?.fullName}
-                          {row.category === 'TRANSFER' && row.recipient?.fullName}
-                          {row.category === 'DEBT_PAYMENT' && row.debtor?.fullName}
-                        </TableCell>
-                        <TableCell>{row.transactionAmount}</TableCell>
-                        <TableCell>{row.transactionPayer}</TableCell>
-                        <TableCell>{row.transactionNote}</TableCell>
-                        <TableCell>{row.transactionTime}</TableCell>
+                      <TableRow key={row.id}>
+                        <TableCell>{row.id}</TableCell>
+                        <TableCell>{row.transactionType}</TableCell>
+                        <TableCell>{row.fromAccountNumber}</TableCell>
+                        <TableCell>{row.toAccountNumber}</TableCell>
+                        <TableCell>{row.amount}</TableCell>
+                        <TableCell>{row.fee}</TableCell>
+
+                        <TableCell>{row.message}</TableCell>
+                        <TableCell>{row.createdAt}</TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
