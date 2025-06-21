@@ -5,30 +5,10 @@ import {
   Grid,
   Paper,
   Typography,
-  Box,
   Button,
-  IconButton,
-  Fab,
-  Tooltip,
   ToggleButton,
   ToggleButtonGroup,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
-  Switch,
-  Slider,
-  Radio,
-  RadioGroup,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Snackbar,
   Alert,
   Table,
   TableBody,
@@ -36,48 +16,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Chip,
-  Avatar,
-  Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab,
-  LinearProgress,
-  CircularProgress,
-  Skeleton,
-  List,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton,
-  Divider,
-  Breadcrumbs,
-  Link,
-  Menu,
-  Rating,
-  Stepper,
-  Step,
-  StepLabel,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  CardMedia,
+
 } from '@mui/material';
-import { BarChart, LineChart, PieChart, ScatterChart } from '@mui/x-charts';
-import {
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  TimelineSeparator,
-  TimelineItem,
-  Timeline,
-} from '@mui/lab';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -107,7 +47,11 @@ export default function TransactionsPage() {
   const {
     transactionAccountHistory,
     setTransactionAccountHistory,
-    transactions,
+    fetchTransactions,
+    loading,
+    error,
+    success,
+    transactions
   } = useEmployee();
   // State for interactive components
   const [toggleValue, setToggleValue] = useState('left');
@@ -144,6 +88,11 @@ export default function TransactionsPage() {
       console.log('Form submitted:', formData);
     }
   };
+  const handleSearch = async () => {
+    try {
+      await fetchTransactions(transactionAccountHistory.accountId, { limit: 3, pn: 1 });
+    } catch (e) { }
+  };
   // Filter transactions by type
   const filteredTransactions = transactionAccountHistory.type === 'ALL'
     ? transactions
@@ -178,13 +127,16 @@ export default function TransactionsPage() {
               />
             </Grid>
             <Button
-              onClick={handleDialogClose}
+              onClick={handleSearch}
               color="primary"
               variant="contained"
               startIcon={<SearchIcon />}
+              disabled={loading}
             >
-              Search
+              {loading ? 'Searching...' : 'Search'}
             </Button>
+            {error && <Alert severity="error">{error}</Alert>}
+            {success && <Alert severity="success">{success}</Alert>}
           </Grid>
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <ToggleButtonGroup

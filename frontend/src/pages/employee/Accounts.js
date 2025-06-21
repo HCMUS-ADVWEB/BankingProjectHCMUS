@@ -109,7 +109,7 @@ const timelineData = [
 
 export default function AccountsPage() {
   const { state } = useAuth();
-  const { createAccount, setCreateAccount } = useEmployee();
+  const { createAccount, setCreateAccount, handleCreateAccount, loading, error, success } = useEmployee();
   // State for interactive components
   const [toggleValue, setToggleValue] = useState('left');
   const [sliderValue, setSliderValue] = useState(30);
@@ -147,6 +147,12 @@ export default function AccountsPage() {
       setFormErrors({ ...formErrors, name: false });
       console.log('Form submitted:', formData);
     }
+  };
+  const handleConfirm = async () => {
+    try {
+      await handleCreateAccount();
+      // Optionally show success or reset form
+    } catch (e) { }
   };
 
   return (
@@ -251,15 +257,18 @@ export default function AccountsPage() {
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <DialogActions>
-                  <Button onClick={handleFormSubmit}>Cancel</Button>
+                  <Button onClick={handleDialogClose}>Cancel</Button>
                   <Button
-                    onClick={handleFormSubmit}
+                    onClick={handleConfirm}
                     color="primary"
                     variant="contained"
+                    disabled={loading}
                   >
-                    Confirm
+                    {loading ? 'Creating...' : 'Confirm'}
                   </Button>
                 </DialogActions>
+                {error && <Alert severity="error">{error}</Alert>}
+                {success && <Alert severity="success">{success}</Alert>}
               </Box>
             </Grid>
           </Grid>

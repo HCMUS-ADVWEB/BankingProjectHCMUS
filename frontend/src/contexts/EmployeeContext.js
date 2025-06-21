@@ -1,5 +1,6 @@
 import { Password } from '@mui/icons-material';
 import React, { createContext, useContext, useState } from 'react';
+import { EmployeeService } from '../services/EmployeeService';
 
 // Utility function to format VND
 export const formatVND = (amount) => {
@@ -108,6 +109,83 @@ export const EmployeeProvider = ({ children }) => {
     ];
     // Transactions list state for transaction page
     const [transactions, setTransactions] = useState(mockTransactions);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+
+    // API: Create Account
+    const handleCreateAccount = async () => {
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const data = { ...createAccount };
+            // Remove passwordConfirmation before sending
+            delete data.passwordConfirmation;
+            const res = await EmployeeService.createAccount(data);
+            setSuccess('Account created successfully!');
+            setTimeout(() => setSuccess(null), 3000);
+            return res;
+        } catch (err) {
+            setError(err.message || 'Create account failed');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // API: Deposit Account
+    const handleDepositAccount = async () => {
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const data = {
+                username: depositAccount.accountId,
+                accountNumber: depositAccount.accountId,
+                rechargeAmount: depositAccount.amount,
+            };
+            const res = await EmployeeService.depositAccount(data);
+            setSuccess('Deposit successful!');
+            setTimeout(() => setSuccess(null), 3000);
+            return res;
+        } catch (err) {
+            setError(err.message || 'Deposit failed');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // API: Fetch Transactions
+    const fetchTransactions = async (customerId, params = {}) => {
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const res = await EmployeeService.fetchTransactions({ customerId, ...params });
+            // Handle API response structure
+            let txs = [];
+            if (res && res.data) {
+                const sender = Array.isArray(res.data.transactionsAsSender) ? res.data.transactionsAsSender : [];
+                const receiver = Array.isArray(res.data.transactionsAsReceiver) ? res.data.transactionsAsReceiver : [];
+                txs = [...sender, ...receiver];
+            } else if (Array.isArray(res.transactions)) {
+                txs = res.transactions;
+            } else if (Array.isArray(res)) {
+                txs = res;
+            }
+            setTransactions(txs);
+            setSuccess('Transactions loaded successfully!');
+            setTimeout(() => setSuccess(null), 3000);
+            return txs;
+        } catch (err) {
+            setError(err.message || 'Fetch transactions failed');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <EmployeeContext.Provider
@@ -115,8 +193,6 @@ export const EmployeeProvider = ({ children }) => {
                 // Create account
                 createAccount,
                 setCreateAccount,
-
-
                 // Deposit account
                 depositAccount,
                 setDepositAccount,
@@ -132,6 +208,12 @@ export const EmployeeProvider = ({ children }) => {
                 setTransactions,
                 // Utility
                 formatVND,
+                loading,
+                error,
+                success,
+                handleCreateAccount,
+                handleDepositAccount,
+                fetchTransactions,
             }}
         >
             {children}

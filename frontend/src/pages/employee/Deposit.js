@@ -7,28 +7,9 @@ import {
   Typography,
   Box,
   Button,
-  IconButton,
-  Fab,
-  Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
-  Switch,
-  Slider,
-  Radio,
-  RadioGroup,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  Snackbar,
+
   Alert,
   Table,
   TableBody,
@@ -37,61 +18,9 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Chip,
-  Avatar,
-  Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab,
-  LinearProgress,
-  CircularProgress,
-  Skeleton,
-  List,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton,
-  Divider,
-  Breadcrumbs,
-  Link,
-  Menu,
-  Rating,
-  Stepper,
-  Step,
-  StepLabel,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  CardMedia,
+
 } from '@mui/material';
-import { BarChart, LineChart, PieChart, ScatterChart } from '@mui/x-charts';
-import {
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  TimelineSeparator,
-  TimelineItem,
-  Timeline,
-} from '@mui/lab';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  Search as SearchIcon,
-  ExpandMore as ExpandMoreIcon,
-  Home as HomeIcon,
-  Person as PersonIcon,
-  Settings as SettingsIcon,
-  ChevronRight as ChevronRightIcon,
-  UploadFile as UploadFileIcon,
-  Favorite as FavoriteIcon,
-} from '@mui/icons-material';
+
 import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
@@ -108,13 +37,7 @@ const timelineData = [
 
 export default function DepositPage() {
   const { state } = useAuth();
-  const {
-    depositAccount,
-    setDepositAccount,
-    handleDepositAmountChange,
-    getFormattedDepositAmount,
-    formatVND,
-  } = useEmployee();
+  const { depositAccount, setDepositAccount, handleDepositAccount, loading, error, formatVND, handleDepositAmountChange, success } = useEmployee();
 
   // State for interactive components
   const [toggleValue, setToggleValue] = useState('left');
@@ -153,6 +76,12 @@ export default function DepositPage() {
       setFormErrors({ ...formErrors, name: false });
       console.log('Form submitted:', formData);
     }
+  };
+  const handleConfirm = async () => {
+    try {
+      await handleDepositAccount();
+      // Optionally show success or reset form
+    } catch (e) { }
   };
 
   return (
@@ -203,12 +132,15 @@ export default function DepositPage() {
                 <DialogActions>
                   <Button onClick={handleDialogClose}>Cancel</Button>
                   <Button
-                    onClick={handleDialogClose}
+                    onClick={handleConfirm}
                     color="primary"
                     variant="contained"
+                    disabled={loading}
                   >
-                    Confirm
+                    {loading ? 'Depositing...' : 'Confirm'}
                   </Button>
+                  {error && <Alert severity="error">{error}</Alert>}
+                  {success && <Alert severity="success">{success}</Alert>}
                 </DialogActions>
               </Box>
             </Grid>
