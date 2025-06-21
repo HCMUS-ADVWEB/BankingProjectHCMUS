@@ -37,7 +37,7 @@ public class AccountController {
 //    }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/")
+    @GetMapping("/my-account")
     public ResponseEntity<ApiResponse<GetAccountResponse>> getAccount() {
         UUID userId = CustomContextHolder.getCurrentUserId();
         ApiResponse<GetAccountResponse> apiResponse = accountService.getAccount(userId);
