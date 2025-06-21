@@ -14,6 +14,6 @@ public class ChangePasswordRequest {
 
     @NotBlank
     @NotNull
-    private String newPassword;
+        private String newPassword;
     private String otp;
 }
