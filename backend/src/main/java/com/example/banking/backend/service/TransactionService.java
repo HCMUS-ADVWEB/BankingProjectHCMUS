@@ -23,6 +23,7 @@ public interface TransactionService {
 
 
     List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page);
+    List<TransactionDto> getCustomerTransactions(String startDate, String endDate, int limit, int page);
 
     BankTransactionStatsDto getBankTransactionStats(UUID bankId, String startDate, String endDate);
 

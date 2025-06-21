@@ -9,6 +9,7 @@ import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -161,4 +162,24 @@ public class TransactionController {
                     .build());
 
     }
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/user-transactions")
+    public ResponseEntity<ApiResponse<?>> getUserTransactions(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "1") int page
+    ) {
+
+        List<TransactionDto> transactions = transactionService.getCustomerTransactions(startDate, endDate, limit, page);
+
+        return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
+                .status(HttpStatus.OK.value())
+                .message("Bank transactions retrieved successfully")
+                .data(transactions)
+                .build());
+
+    }
+
+
 }

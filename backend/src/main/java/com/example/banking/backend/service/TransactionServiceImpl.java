@@ -50,6 +50,7 @@ public class TransactionServiceImpl implements TransactionService {
     private RecipientRepository recipientRepository;
     private final PrivateKey bankAPrivateKey;
     private final RestTemplate restTemplate;
+    private  OtpService otpService;
 
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
@@ -226,17 +227,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public TransferResult internalTransfer(TransferRequest request) {
-        try {
-            Transaction transaction = new Transaction();
 
+            Transaction transaction = new Transaction();
             Account accountCurrentUser = getAccountCurrentUser();
             Account toAccount = getAccountFromNumber(request.getAccountNumberReceiver());
 
             if (toAccount == null) {
                 throw new BadRequestException("Receiver account not found");
             }
-
-            // Kiểm tra số dư
             double fee = calculateFee(request.getAmount(), request.getFeeType());
             double totalAmount = request.getAmount() + fee;
 
@@ -259,7 +257,6 @@ public class TransactionServiceImpl implements TransactionService {
             Instant now = Instant.now();
             transaction.setCreatedAt(now);
             transaction.setUpdatedAt(now);
-
             var savedTransaction = transactionRepository.save(transaction);
 
             return new TransferResult(
@@ -270,14 +267,6 @@ public class TransactionServiceImpl implements TransactionService {
                     request.getMessage() != null ? request.getMessage() : "",
                     null
             );
-
-        } catch (DataIntegrityViolationException e) {
-            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
-        } catch (ConstraintViolationException e) {
-            throw new BadRequestException("Validation error: " + e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
-        }
     }
 
     @Override
@@ -314,6 +303,43 @@ public class TransactionServiceImpl implements TransactionService {
         Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findAll(pageable)
                 .filter(t -> !t.getUpdatedAt().isBefore(Instant.from(startDateTime)) && !t.getUpdatedAt().isAfter(Instant.from(endDateTime)));
 
+        return transactionPage.getContent().stream()
+                .map(transaction -> new TransactionDto(
+                        transaction.getId(),
+                        transaction.getToBank().getId(),
+                        transaction.getAmount(),
+                        transaction.getUpdatedAt(),
+                        transaction.getMessage()
+                ))
+                .collect(Collectors.toList());
+    }
+    @Override
+    public List<TransactionDto> getCustomerTransactions(String startDate, String endDate, int limit, int page) {
+        // Kiểm tra tham số đầu vào
+        if (limit <= 0 || page <= 0) {
+            throw new IllegalArgumentException("Limit and page must be positive integers");
+        }
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime;
+        try {
+            startDateTime = LocalDateTime.parse(startDate + "T00:00:00");
+            endDateTime = LocalDateTime.parse(endDate + "T23:59:59");
+            if (endDateTime.isBefore(startDateTime)) {
+                throw new IllegalArgumentException("End date must be after start date");
+            }
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD, e.g., 2025-06-03");
+        }
+        Pageable pageable = PageRequest.of(page - 1, limit);
+
+        Account currentAccount = getAccountCurrentUser();
+
+        Page<Transaction> transactionPage = transactionRepository.findByFromOrToAccountId(
+                currentAccount.getAccountId(),
+                pageable
+        );
+
+        // Chuyển đổi sang TransactionDto
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
                         transaction.getId(),
