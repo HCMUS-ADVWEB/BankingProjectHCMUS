@@ -2,6 +2,7 @@ package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
@@ -22,4 +23,6 @@ public interface AccountService {
     ApiResponse rechargeAccount(RechargeAccountRequest request);
 
     Double debitAccount(UUID accountId, Double amount);
+
+    Boolean changePassword(ChangePasswordRequest request);
 }

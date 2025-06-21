@@ -4,12 +4,14 @@ import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.account.DepositRequest;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.AccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +26,6 @@ import java.util.UUID;
 public class AccountController {
 
     private final AccountService accountService;
-
-//    @GetMapping("/{accountId}")
-//    public ResponseEntity<ApiResponse<?>> getAccountDetails(@PathVariable UUID accountId) {
-//        return null;
-//    }
-
-//    @PostMapping("/{accountId}/deposit")
-//    public ResponseEntity<ApiResponse<Void>> deposit(@PathVariable UUID accountId, @RequestBody DepositRequest request) {
-//        return null;
-//    }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/")
@@ -68,4 +60,18 @@ public class AccountController {
         ApiResponse apiResponse = accountService.rechargeAccount(request);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
+        Boolean success  = accountService.changePassword(request);
+        return new ResponseEntity<>(ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Change password successfully!")
+                .build() ,
+                HttpStatus.OK);
+    }
+
+
 }
