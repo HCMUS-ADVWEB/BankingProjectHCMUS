@@ -46,20 +46,18 @@ public class DebtServiceImpl implements DebtService {
     private final OtpService otpService;
     @Override
     public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
-        PageRequest pageRequest = PageRequest.of(page - 1, limit); // Pagination starts at page 0
+        User currentUser = getCurrentUser();
+        PageRequest pageRequest = PageRequest.of(page - 1, limit);
         Page<DebtReminder> debtReminders;
-
-        // Check if status is null
         if (status == null) {
-            debtReminders = debtReminderRepository.findAll(pageRequest); // Fetch all debt reminders
+            debtReminders = debtReminderRepository.findByCreator_IdOrDebtor_Id(currentUser.getId(), currentUser.getId(), pageRequest);
         } else {
-            debtReminders = debtReminderRepository.findByStatus(status, pageRequest); // Fetch by status
+            debtReminders = debtReminderRepository.findByStatusAndCreator_IdOrStatusAndDebtor_Id(
+                status, currentUser.getId(), status, currentUser.getId(), pageRequest);
         }
-
         List<GetDebtReminderResponse> responses = debtReminders.getContent().stream()
                 .map(debtReminderMapper::toResponse)
                 .collect(Collectors.toList());
-
         return ApiResponse.<List<GetDebtReminderResponse>>builder()
                 .data(responses)
                 .status(HttpStatus.OK.value())
@@ -204,5 +202,4 @@ public class DebtServiceImpl implements DebtService {
     private boolean isValidUUID(String uuid) {
         return uuid.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     }
-
 }
