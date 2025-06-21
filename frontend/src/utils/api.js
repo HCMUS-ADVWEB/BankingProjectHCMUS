@@ -83,4 +83,33 @@ api.interceptors.response.use(
   },
 );
 
+export const getAccount = async () => {
+  try {
+    const response = await api.get('/api/accounts/');
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getRecipients = async (limit = 10, page = 1) => {
+  const response = await api.get('/api/recipients', {
+    params: { limit, page },
+  });
+  return response.data;
+};
+
+export const getUserTransactions = async ({ startDate, endDate, limit = 10, page = 1 } = {}) => {
+  const response = await api.get('/api/user-transactions', {
+    params: { startDate, endDate, limit, page },
+  });
+  return response.data;
+};
+
+export const resetPassword = async (payload) => {
+  const response = await api.post('/api/reset-password/confirm', payload);
+  return response.data;
+};
+
 export default api;

@@ -319,14 +319,7 @@ export default function LoginPage() {
           {/* reCAPTCHA */}
           <div className="mb-7">
             <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={process.env.REACT_APP_GG_SITE_KEY}
-                onChange={(token) => formik.setFieldValue('recaptcha', token)}
-                onExpired={() => formik.setFieldValue('recaptcha', '')}
-                onError={() => formik.setFieldValue('recaptcha', '')}
-                theme="white"
-              />
+          
             </div>
           </div>
 

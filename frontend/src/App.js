@@ -41,65 +41,68 @@ export default function App() {
           <Route
             path="/customer/template"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerTemplate />
-              </ProtectedRoute>
+              <CustomerTemplate />
             }
           />
           <Route
             path="/customer/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerDashboard />
-              </ProtectedRoute>
+              <CustomerDashboard />
+              /*<ProtectedRoute allowedRoles={['customer']}>
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/accounts"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerAccounts />
-              </ProtectedRoute>
+              <CustomerAccounts />
+             /* <ProtectedRoute allowedRoles={['customer']}>
+               
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/recipients"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerRecipients />
-              </ProtectedRoute>
+              <CustomerRecipients />
+              /*<ProtectedRoute allowedRoles={['customer']}>
+             
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/transfer"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerTransfer />
-              </ProtectedRoute>
+              <CustomerTransfer />
+        /*      <ProtectedRoute allowedRoles={['customer']}>
+               
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/debts"
-            element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerDebts />
-              </ProtectedRoute>
+            element={  <CustomerDebts />
+              /*<ProtectedRoute allowedRoles={['customer']}>
+              
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/transactions"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerTransactions />
-              </ProtectedRoute>
+              <CustomerTransactions />
+              /*<ProtectedRoute allowedRoles={['customer']}>
+            
+              </ProtectedRoute>*/
             }
           />
           <Route
             path="/customer/change-password"
             element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerChangePassword />
-              </ProtectedRoute>
+              <CustomerChangePassword />
+              /*<ProtectedRoute allowedRoles={['customer']}>
+           
+              </ProtectedRoute>*/
             }
           />
         </>
