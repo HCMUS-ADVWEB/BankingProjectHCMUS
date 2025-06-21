@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @RestController("api/opt")
 @AllArgsConstructor
-public class OptController {
+public class OtpController {
 
     OtpService optService;
 

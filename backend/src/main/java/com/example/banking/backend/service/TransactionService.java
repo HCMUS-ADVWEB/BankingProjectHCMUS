@@ -19,9 +19,6 @@ public interface TransactionService {
 
     TransferResult externalTransfer(TransferRequestExternal request) throws Exception;
 
-    void verifyTransferOtp(VerifyOtpRequest request);
-
-
     List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page);
 
     BankTransactionStatsDto getBankTransactionStats(UUID bankId, String startDate, String endDate);

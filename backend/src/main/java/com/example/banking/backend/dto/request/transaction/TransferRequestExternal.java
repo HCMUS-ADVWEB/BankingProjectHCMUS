@@ -28,4 +28,5 @@ public class TransferRequestExternal {
     private String feeType;
 
     private String message; // optional
+    private String otp; // optional, for OTP verification
 }

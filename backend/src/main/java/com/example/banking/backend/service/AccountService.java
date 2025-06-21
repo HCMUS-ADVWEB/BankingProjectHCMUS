@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface AccountService {
     ApiResponse<GetAccountResponse> getAccount(UUID userId);
 
-    ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountId, Integer size, Integer pagination, TransactionType type);
+    ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountId, Integer size, Integer pagination, TransactionType   type);
 
     //void deposit(UUID accountId, DepositRequest request);
 

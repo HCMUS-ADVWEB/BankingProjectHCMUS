@@ -11,6 +11,7 @@ import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.InvalidUserException;
 import com.example.banking.backend.model.*;
 import com.example.banking.backend.model.type.FeeType;
+import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionStatusType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.repository.*;
@@ -50,6 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
     private RecipientRepository recipientRepository;
     private final PrivateKey bankAPrivateKey;
     private final RestTemplate restTemplate;
+    OtpService otpService;
 
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
@@ -64,7 +66,10 @@ public class TransactionServiceImpl implements TransactionService {
         if (sourceAccount.getBalance() < totalAmount) {
             return new TransferResult(false, null, request.getAmount(), fee, null, "Insufficient balance after fee");
         }
-
+        otpService.validateOtp(
+                getCurrentUser().getId(),
+                OtpType.TRANSFER,
+                request.getOtp()) ;
         Bank destinationBank = bankRepository.findById(request.getDestinationBankId())
                 .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
 
@@ -259,7 +264,10 @@ public class TransactionServiceImpl implements TransactionService {
             Instant now = Instant.now();
             transaction.setCreatedAt(now);
             transaction.setUpdatedAt(now);
-
+            otpService.validateOtp(
+                    getCurrentUser().getId(),
+                    OtpType.TRANSFER,
+                    request.getOtp()) ;
             var savedTransaction = transactionRepository.save(transaction);
 
             return new TransferResult(
@@ -271,18 +279,10 @@ public class TransactionServiceImpl implements TransactionService {
                     null
             );
 
-        } catch (DataIntegrityViolationException e) {
-            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
-        } catch (ConstraintViolationException e) {
-            throw new BadRequestException("Validation error: " + e.getMessage());
+
         } catch (Exception e) {
-            throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+            throw new RuntimeException("Server is busy, please try again later", e);
         }
-    }
-
-    @Override
-    public void verifyTransferOtp(VerifyOtpRequest request) {
-
     }
 
 

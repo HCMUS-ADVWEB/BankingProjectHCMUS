@@ -40,12 +40,16 @@ public class AccountController {
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getAccountTransactions(
             @PathVariable String accountId,
             @RequestParam(required = false, defaultValue = "10") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer pn,
-            @RequestParam(required = false) TransactionType type
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false) String type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions( accountId, limit, pn, type);
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(accountId, limit, page, TransactionType.fromValue(type));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+
+
+
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/create")
@@ -65,11 +69,11 @@ public class AccountController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-        Boolean success  = accountService.changePassword(request);
+        Boolean success = accountService.changePassword(request);
         return new ResponseEntity<>(ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Change password successfully!")
-                .build() ,
+                .build(),
                 HttpStatus.OK);
     }
 

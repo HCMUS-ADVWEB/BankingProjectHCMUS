@@ -15,6 +15,7 @@ import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
+import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.UserRepository;
@@ -42,6 +43,7 @@ public class AccountServiceImpl implements AccountService {
     private final BankCodeConfig bankCodeConfig;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
         Account account = accountRepository.findByUserId(userId).orElse(null);
@@ -201,8 +203,11 @@ public class AccountServiceImpl implements AccountService {
         if (!user.getPassword().equals(passwordEncoder.encode(request.getOldPassword()))) {
             throw new BadRequestException("Old password is incorrect");
         }
-        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
 
+        if(otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
+            throw new BadRequestException("OTP is not true , please try again");
+        }
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedPassword);
         userRepository.save(user);
         return true;
