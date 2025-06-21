@@ -1,4 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
+import axios from 'axios';
+import api from '../utils/api';
+import { BASE_URL } from '../utils/constants';
 
 const authReducer = (state, action) => {
   switch (action.type) {
@@ -77,60 +80,87 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      // Simulate API call
-      console.log('Logging in with:', { username, password, recaptcha });
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      if (username === 'customer') {
-        const user = {
-          id: '1111111-11111111-1111-111111111111',
-          username: 'customer',
-          email: 'customer@bank.com',
-          fullName: 'John Doe',
-          role: 'customer',
-          phone: '0123456789',
-        };
-        const accessToken = 'mock-jwt-token';
-        const refreshToken = 'mock-refresh-token';
-
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else if (username === 'employee') {
-        const user = {
-          id: '2222222-22222222-2222-222222222222',
-          username: 'employee',
-          email: 'employee@bank.com',
-          fullName: 'Jane Smith',
-          role: 'employee',
-        };
-        localStorage.setItem('accessToken', 'mock-jwt-token');
-        localStorage.setItem('refreshToken', 'mock-refresh-token');
-        localStorage.setItem('user', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else if (username === 'admin') {
-        const user = {
-          id: '33333333-33333333-3333-333333333333',
-          username: 'admin',
-          email: 'admin@bank.com',
-          fullName: 'Admin User',
-          role: 'admin',
-        };
-        localStorage.setItem('accessToken', 'mock-jwt-token');
-        localStorage.setItem('refreshToken', 'mock-refresh-token');
-        localStorage.setItem('user', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else {
-        throw new Error('Invalid credentials');
-      }
-      clearError();
-    } catch (error) {
-      dispatch({
-        type: 'LOGIN_FAILURE',
-        payload: error.message || 'Login failed',
+      const response = await axios.post(`${BASE_URL}/api/auth/login`, {
+        username,
+        password,
+        token: recaptcha,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      const { status, message, data, timestamp } = response.data;
+      const accessToken = data?.accessToken || '';
+      const refreshToken = data?.refreshToken || '';
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      console.log(`Success: ${message} at ${timestamp} (Status: ${status})`);
+    } catch (error) {
+      if (error.response) {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        console.error(`Error ${status}: ${msg} at ${timestamp}`);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: msg || 'Login failed',
+        });
+      } else if (error.request) {
+        console.error('Network error or no response from server:', error.request);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: 'Network error or no response from server',
+        });
+      } else {
+        console.error('Unexpected error:', error.message);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: 'Unexpected error occurred',
+        });
+      }
+      return;
     }
+
+    try {
+      const response = await api.get('/api/users/me');
+      const { status, message, data, timestamp } = response.data;
+      const user = {
+        ...data,
+        role: data?.role?.toLowerCase(),
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      console.log(`Success: ${message} at ${timestamp} (Status: ${status})`);
+    } catch (error) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      if (error.response) {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        console.error(`Error ${status}: ${msg} at ${timestamp}`);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: msg || 'Login failed',
+        });
+      } else if (error.request) {
+        console.error('Network error or no response from server:', error.request);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: 'Network error or no response from server',
+        });
+      } else {
+        console.error('Unexpected error:', error.message);
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: 'Unexpected error occurred',
+        });
+      }
+      return;
+    }
+    clearError();
   };
 
   const logout = async () => {
