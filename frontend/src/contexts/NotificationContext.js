@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import webSocketService from '../utils/webSocketService';
-import NotificationAPI from '../utils/notificationApi';
+import NotificationAPI from '../services/notificationApi';
 
 const NotificationContext = createContext({
   notifications: [],

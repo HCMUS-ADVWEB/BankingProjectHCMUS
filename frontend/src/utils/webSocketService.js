@@ -1,6 +1,6 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { BASE_URL, WS_URL } from './constants';
+import { BASE_URL } from './constants';
 
 class WebSocketService {  constructor() {
     this.client = null;
@@ -44,7 +44,7 @@ class WebSocketService {  constructor() {
 
       try {
         console.log('Creating new connection...');
-        const wsUrl = `${WS_URL}/ws`;
+        const wsUrl = `${BASE_URL}/ws`;
         console.log('WebSocket URL:', wsUrl);
 
         // Create SockJS instance

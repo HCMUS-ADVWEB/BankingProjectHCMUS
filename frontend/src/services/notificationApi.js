@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../utils/api';
 
 export const NotificationAPI = {  
   getNotifications: async (limit = 10, page = 1) => {
@@ -6,15 +6,14 @@ export const NotificationAPI = {
       console.log(`Calling GET /api/notifications?limit=${limit}&page=${page}`);
       const response = await api.get(`/api/notifications?limit=${limit}&page=${page}`);
       console.log('Raw API response:', response);
-      
-      // Ensure we always return a consistent data structure
+
       if (response.data && response.data.data) {
-        return response.data.data; // API returns data inside a data field
+        return response.data.data; 
       } else if (response.data) {
-        return response.data; // API returns data directly
+        return response.data; 
       } else {
         console.warn('Unexpected API response format:', response);
-        return { content: [] }; // Default empty response
+        return { content: [] }; 
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
