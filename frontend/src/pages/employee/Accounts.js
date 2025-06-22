@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import {
   Container,
@@ -7,157 +7,155 @@ import {
   Typography,
   Box,
   Button,
-  IconButton,
-  Fab,
-  Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
-  Switch,
-  Slider,
-  Radio,
-  RadioGroup,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  InputAdornment,
   Snackbar,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
-  Chip,
-  Avatar,
-  Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab,
-  LinearProgress,
-  CircularProgress,
-  Skeleton,
-  List,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton,
   Divider,
-  Breadcrumbs,
-  Link,
-  Menu,
-  Rating,
-  Stepper,
-  Step,
-  StepLabel,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  CardMedia,
+  CircularProgress,
+  Backdrop
 } from '@mui/material';
-import { BarChart, LineChart, PieChart, ScatterChart } from '@mui/x-charts';
 import {
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  TimelineSeparator,
-  TimelineItem,
-  Timeline,
-} from '@mui/lab';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  Search as SearchIcon,
-  ExpandMore as ExpandMoreIcon,
-  Home as HomeIcon,
   Person as PersonIcon,
-  Settings as SettingsIcon,
-  ChevronRight as ChevronRightIcon,
-  UploadFile as UploadFileIcon,
-  Favorite as FavoriteIcon,
-
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  Home as HomeIcon,
+  CalendarMonth as CalendarIcon,
+  AccountCircle as UserIcon,
+  Lock as LockIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
-// Sample data for sections
-const tableData = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'User' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin' },
-  { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'User' },
-];
-const timelineData = [
-  { id: 1, time: '2025-06-14', event: 'Transaction #001 completed' },
-  { id: 2, time: '2025-06-13', event: 'Account verified' },
-];
-
 export default function AccountsPage() {
   const { state } = useAuth();
-  const { createAccount, setCreateAccount, handleCreateAccount, loading, error, success } = useEmployee();
-  // State for interactive components
-  const [toggleValue, setToggleValue] = useState('left');
-  const [sliderValue, setSliderValue] = useState(30);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { 
+    createAccount, 
+    setCreateAccount, 
+    handleCreateAccount, 
+    loading, 
+    error, 
+    success
+  } = useEmployee();
+  
+  // Form validation state
+  const [formErrors, setFormErrors] = useState({});
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [localSuccess, setLocalSuccess] = useState('');
+  const [localError, setLocalError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [tabValue, setTabValue] = useState(0);
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const [filterName, setFilterName] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [formData, setFormData] = useState({ name: '', dob: null, file: null });
-  const [formErrors, setFormErrors] = useState({ name: false });
 
-  // Handlers for components
-  const handleToggleChange = (event, newValue) =>
-    newValue && setToggleValue(newValue);
-  const handleSliderChange = (event, newValue) => setSliderValue(newValue);
-  const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
-  const handleSnackbarOpen = () => setSnackbarOpen(true);
-  const handleSnackbarClose = () => setSnackbarOpen(false);
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const filteredTableData = tableData
-    .filter((row) => row.name.toLowerCase().includes(filterName.toLowerCase()))
-    .sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-  const handleFormSubmit = () => {
-    if (!formData.name) {
-      setFormErrors({ ...formErrors, name: true });
-    } else {
-      setFormErrors({ ...formErrors, name: false });
-      console.log('Form submitted:', formData);
+  // Handle success and error messages
+  useEffect(() => {
+    if (success) {
+      setLocalSuccess(success);
+      setSnackbarOpen(true);
+      
+      // Reset form after successful account creation
+      if (formSubmitted) {
+        resetForm();
+        setFormSubmitted(false);
+      }
     }
+  }, [success]);
+
+  useEffect(() => {
+    if (error) {
+      setLocalError(error);
+      setSnackbarOpen(true);
+    }
+  }, [error]);
+
+  const validateForm = () => {
+    const errors = {};
+    // Basic validation
+    if (!createAccount.fullName?.trim()) errors.fullName = "Full name is required";
+    if (!createAccount.email?.trim()) errors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(createAccount.email)) errors.email = "Email is invalid";
+    
+    if (!createAccount.phone?.trim()) errors.phone = "Phone is required";
+    else if (!/^\d{10,11}$/.test(createAccount.phone.replace(/\D/g, ''))) errors.phone = "Phone must be 10-11 digits";
+    
+    if (!createAccount.address?.trim()) errors.address = "Address is required";
+    if (!createAccount.dob) errors.dob = "Date of birth is required";
+    
+    if (!createAccount.username?.trim()) errors.username = "Username is required";
+    else if (createAccount.username.length < 5) errors.username = "Username must be at least 5 characters";
+
+    if (!createAccount.password?.trim()) errors.password = "Password is required";
+    else if (createAccount.password.length < 8) errors.password = "Password must be at least 8 characters";
+    
+    if (createAccount.password !== createAccount.passwordConfirmation) 
+      errors.passwordConfirmation = "Passwords do not match";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
+
   const handleConfirm = async () => {
+    if (!validateForm()) return;
+    
+    setFormSubmitted(true);
     try {
       await handleCreateAccount();
-      // Optionally show success or reset form
-    } catch (e) { }
+      // Success is handled by the effect above
+    } catch (err) {
+      // Error is handled by the effect above
+    }
+  };
+
+  const resetForm = () => {
+    setCreateAccount({
+      fullName: '',
+      email: '',
+      phone: '',
+      address: '',
+      dob: '',
+      username: '',
+      password: '',
+      passwordConfirmation: '',
+    });
+    setFormErrors({});
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setLocalSuccess('');
+    setLocalError('');
   };
 
   return (
     <EmployeeLayout>
-      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default' }}>
+      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        <Snackbar 
+          open={snackbarOpen} 
+          autoHideDuration={6000} 
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={localError ? "error" : "success"} 
+            sx={{ width: '100%' }}
+          >
+            {localError || localSuccess}
+          </Alert>
+        </Snackbar>
+
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+            Create User Account
+          </Typography>
+        </Box>
+
         <Paper
           elevation={3}
           sx={{
@@ -167,170 +165,221 @@ export default function AccountsPage() {
             bgcolor: 'background.paper',
           }}
         >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
-          >
-            📝 Create new user account
-          </Typography>
-          <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Divider sx={{ mb: 3 }} />
+          
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <Box
                 sx={{
-                  p: 2,
-                  borderRadius: 'shape.borderRadius',
+                  p: 3,
+                  borderRadius: 2,
                   bgcolor: 'background.paper',
-                  border: 1,
-                  borderColor: 'divider',
                 }}
               >
                 <Typography
-                  variant="h5"
+                  variant="subtitle1"
                   color="primary.main"
                   fontWeight={600}
                   gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center' }}
                 >
-                  User Information
+                  <PersonIcon sx={{ mr: 1 }} /> Personal Information
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField label="Full Name" variant="outlined" fullWidth required
+                    <TextField 
+                      label="Full Name" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.fullName || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, fullName: e.target.value }))}
+                      error={!!formErrors.fullName}
+                      helperText={formErrors.fullName}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField label="Email" type="email" variant="outlined" fullWidth required
+                    <TextField 
+                      label="Email" 
+                      type="email" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.email || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, email: e.target.value }))}
+                      error={!!formErrors.email}
+                      helperText={formErrors.email}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField label="Phone" variant="outlined" fullWidth required
+                    <TextField 
+                      label="Phone" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.phone || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, phone: e.target.value }))}
+                      error={!!formErrors.phone}
+                      helperText={formErrors.phone}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField label="Address" variant="outlined" fullWidth required
+                  <Grid item xs={12} sm={6} md={6}>
+                    <TextField 
+                      label="Address" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.address || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, address: e.target.value }))}
+                      error={!!formErrors.address}
+                      helperText={formErrors.address}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <HomeIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={4}>
-                    <TextField label="Date of Birth" type="date" variant="outlined" fullWidth required InputLabelProps={{ shrink: true }}
+                  <Grid item xs={12} sm={6} md={6}>
+                    <TextField 
+                      label="Date of Birth" 
+                      type="date" 
+                      variant="outlined" 
+                      fullWidth 
+                      required 
+                      InputLabelProps={{ shrink: true }}
                       value={createAccount.dob || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, dob: e.target.value }))}
+                      error={!!formErrors.dob}
+                      helperText={formErrors.dob}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
                 </Grid>
+                
                 <Typography
-                  sx={{ mt: 4 }}
-                  variant="h5"
+                  variant="subtitle1"
                   color="primary.main"
                   fontWeight={600}
                   gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', mt: 4 }}
                 >
-                  User credentials
+                  <LockIcon sx={{ mr: 1 }} /> Account Credentials
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={12} md={6}>
-                    <TextField label="Username" variant="outlined" fullWidth required
+                  <Grid item xs={12} sm={12} md={4}>
+                    <TextField 
+                      label="Username" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.username || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, username: e.target.value }))}
+                      error={!!formErrors.username}
+                      helperText={formErrors.username}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <UserIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={12} md={6}>
-                    <TextField label="Password" type="password" variant="outlined" fullWidth required
+                  <Grid item xs={12} sm={6} md={4}>
+                    <TextField 
+                      label="Password" 
+                      type="password" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.password || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, password: e.target.value }))}
+                      error={!!formErrors.password}
+                      helperText={formErrors.password}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={12} md={6}>
-                    <TextField label="Confirm password" type="password" variant="outlined" fullWidth required
+                  <Grid item xs={12} sm={6} md={4}>
+                    <TextField 
+                      label="Confirm Password" 
+                      type="password" 
+                      variant="outlined" 
+                      fullWidth 
+                      required
                       value={createAccount.passwordConfirmation || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, passwordConfirmation: e.target.value }))}
+                      error={!!formErrors.passwordConfirmation}
+                      helperText={formErrors.passwordConfirmation}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockIcon />
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Grid>
                 </Grid>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <DialogActions>
-                  <Button onClick={handleDialogClose}>Cancel</Button>
-                  <Button
-                    onClick={handleConfirm}
-                    color="primary"
-                    variant="contained"
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating...' : 'Confirm'}
-                  </Button>
-                </DialogActions>
-                {error && <Alert severity="error">{error}</Alert>}
-                {success && <Alert severity="success">{success}</Alert>}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                <Button 
+                  variant="outlined" 
+                  color="secondary" 
+                  onClick={resetForm} 
+                  sx={{ mr: 2 }}
+                  startIcon={<ClearIcon />}
+                >
+                  Clear Form
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  color="primary"
+                  variant="contained"
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Create Account'}
+                </Button>
               </Box>
             </Grid>
           </Grid>
-
-        </Paper>
-        <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            mb: 4,
-            borderRadius: 'shape.borderRadius',
-            bgcolor: 'background.paper',
-          }}
-        >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
-          >
-            📋 Accounts
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Display data in a tabular format with pagination.
-          </Typography>
-          <TableContainer
-            component={Paper}
-            sx={{ mt: 2, borderRadius: 'shape.borderRadius' }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tableData
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.name}</TableCell>
-                      <TableCell>{row.email}</TableCell>
-                      <TableCell>{row.role}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={tableData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </Paper>
       </Container>
-    </EmployeeLayout >
+    </EmployeeLayout>
   );
 }

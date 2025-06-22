@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import {
   Container,
@@ -8,8 +8,7 @@ import {
   Box,
   Button,
   TextField,
-  DialogActions,
-
+  InputAdornment,
   Alert,
   Table,
   TableBody,
@@ -18,192 +17,418 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-
+  Divider,
+  Snackbar,
+  Chip,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
+  Backdrop,
+  Card,
+  CardContent,
+  Tooltip
 } from '@mui/material';
+
+import {
+  AttachMoney as MoneyIcon,
+  CreditCard as CardIcon,
+  ContactMail as UsernameIcon,
+  History as HistoryIcon,
+  Receipt as ReceiptIcon,
+  Info as InfoIcon,
+  DoneAll as SuccessIcon,
+  Clear as ClearIcon,
+  Check as CheckIcon
+} from '@mui/icons-material';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
-// Sample data for sections
-const tableData = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'User' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin' },
-  { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'User' },
-];
-const timelineData = [
-  { id: 1, time: '2025-06-14', event: 'Transaction #001 completed' },
-  { id: 2, time: '2025-06-13', event: 'Account verified' },
+// Sample history data
+const depositHistoryData = [
+  { 
+    id: 'DEP001',
+    accountId: '0901234567',
+    accountType: 'username',
+    amount: 1000000,
+    status: 'Success',
+    date: '2025-06-21T10:30:00Z',
+    note: 'Initial deposit'
+  },
+  { 
+    id: 'DEP002',
+    accountId: '9704390632656',
+    accountType: 'account_number',
+    amount: 500000,
+    status: 'Success',
+    date: '2025-06-20T14:15:00Z',
+    note: 'Savings account'
+  },
+  { 
+    id: 'DEP003',
+    accountId: 'alice123',
+    accountType: 'username',
+    amount: 2000000,
+    status: 'Success',
+    date: '2025-06-19T09:45:00Z',
+    note: 'Monthly deposit'
+  },
 ];
 
 export default function DepositPage() {
   const { state } = useAuth();
-  const { depositAccount, setDepositAccount, handleDepositAccount, loading, error, formatVND, handleDepositAmountChange, success } = useEmployee();
+  const { 
+    depositAccount, 
+    setDepositAccount, 
+    handleDepositAccount, 
+    loading, 
+    error, 
+    success,
+    formatVND, 
+    handleDepositAmountChange
+  } = useEmployee();
 
-  // State for interactive components
-  const [toggleValue, setToggleValue] = useState('left');
-  const [sliderValue, setSliderValue] = useState(30);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // State
+  const [isUsingUsername, setIsUsingUsername] = useState(true);
+  const [localSuccess, setLocalSuccess] = useState('');
+  const [localError, setLocalError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [depositHistory, setDepositHistory] = useState(depositHistoryData);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [tabValue, setTabValue] = useState(0);
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const [filterName, setFilterName] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [formData, setFormData] = useState({ name: '', dob: null, file: null });
-  const [formErrors, setFormErrors] = useState({ name: false });
 
-  // Handlers for components
-  const handleToggleChange = (event, newValue) =>
-    newValue && setToggleValue(newValue);
-  const handleSliderChange = (event, newValue) => setSliderValue(newValue);
-  const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
-  const handleSnackbarOpen = () => setSnackbarOpen(true);
-  const handleSnackbarClose = () => setSnackbarOpen(false);
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const filteredTableData = tableData
-    .filter((row) => row.name.toLowerCase().includes(filterName.toLowerCase()))
-    .sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
+  // Handle success and error messages
+  useEffect(() => {
+    if (success) {
+      setLocalSuccess(success);
+      setSnackbarOpen(true);
+      // Reset form after successful deposit
+      resetForm();
+    }
+  }, [success]);
+
+  useEffect(() => {
+    if (error) {
+      setLocalError(error);
+      setSnackbarOpen(true);
+    }
+  }, [error]);
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!depositAccount.accountId?.trim()) {
+      errors.accountId = isUsingUsername ? "Username is required" : "Account number is required";
+    }
+    
+    if (!depositAccount.amount || parseInt(depositAccount.amount) <= 0) {
+      errors.amount = "Amount must be greater than 0";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleConfirm = async () => {
+    if (!validateForm()) return;
+    
+    try {
+      await handleDepositAccount();
+      // Add to history
+      const newDeposit = {
+        id: `DEP${Math.floor(Math.random() * 10000)}`,
+        accountId: depositAccount.accountId,
+        accountType: isUsingUsername ? 'username' : 'account_number',
+        amount: parseInt(depositAccount.amount),
+        status: 'Success',
+        date: new Date().toISOString(),
+        note: depositAccount.note || 'Deposit'
+      };
+      setDepositHistory([newDeposit, ...depositHistory]);
+      
+    } catch (err) {
+      // Error handled by useEffect
+    }
+  };
+
+  const resetForm = () => {
+    setDepositAccount({
+      accountId: '',
+      amount: '',
+      note: ''
+    });
+    setFormErrors({});
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setLocalSuccess('');
+    setLocalError('');
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  const handleFormSubmit = () => {
-    if (!formData.name) {
-      setFormErrors({ ...formErrors, name: true });
-    } else {
-      setFormErrors({ ...formErrors, name: false });
-      console.log('Form submitted:', formData);
-    }
-  };
-  const handleConfirm = async () => {
-    try {
-      await handleDepositAccount();
-      // Optionally show success or reset form
-    } catch (e) { }
-  };
 
   return (
     <EmployeeLayout>
-      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default' }}>
-        <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            mb: 4,
-            borderRadius: 'shape.borderRadius',
-            bgcolor: 'background.paper',
-          }}
+      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading}
         >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        <Snackbar 
+          open={snackbarOpen} 
+          autoHideDuration={6000} 
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={localError ? "error" : "success"} 
+            sx={{ width: '100%' }}
+            icon={localError ? <ClearIcon /> : <SuccessIcon />}
           >
-            📝 Deposit money to account
-          </Typography>
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={12}>
-              <Grid container spacing={2} sx={{ mt: 2 }}>
-                <Grid item xs={12} sm={12} md={6}>
+            {localError || localSuccess}
+          </Alert>
+        </Snackbar>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: { xs: 2, sm: 3 },
+                borderRadius: 'shape.borderRadius',
+                bgcolor: 'background.paper',
+                height: '100%',
+              }}
+            >
+              <Typography
+                variant="h5"
+                gutterBottom
+                sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center' }}
+              >
+                <MoneyIcon sx={{ mr: 1 }} /> Deposit Funds
+              </Typography>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Card variant="outlined" sx={{ mb: 3, bgcolor: 'background.default' }}>
+                <CardContent>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Deposit Method
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isUsingUsername}
+                        onChange={() => setIsUsingUsername(!isUsingUsername)}
+                        color="primary"
+                      />
+                    }
+                    label={isUsingUsername ? "Using Username" : "Using Account Number"}
+                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    <InfoIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                    {isUsingUsername 
+                      ? "Deposit using customer username for easier identification"
+                      : "Deposit using account number for direct account access"}
+                  </Typography>
+                </CardContent>
+              </Card>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
                   <TextField
-                    label="Account id"
+                    label={isUsingUsername ? "Username" : "Account Number"}
                     variant="outlined"
                     required
                     fullWidth
                     value={depositAccount.accountId || ''}
                     onChange={e => setDepositAccount(prev => ({ ...prev, accountId: e.target.value }))}
+                    error={!!formErrors.accountId}
+                    helperText={formErrors.accountId}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {isUsingUsername ? <UsernameIcon /> : <CardIcon />}
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
-                    label="Amount"
+                    label="Amount (VND)"
                     variant="outlined"
                     required
                     fullWidth
                     value={depositAccount.amount ? formatVND(Number(depositAccount.amount)) : ''}
                     onChange={handleDepositAmountChange}
+                    error={!!formErrors.amount}
+                    helperText={formErrors.amount}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MoneyIcon />
+                        </InputAdornment>
+                      ),
+                      endAdornment: depositAccount.amount ? (
+                        <InputAdornment position="end">
+                          <Chip 
+                            label="VND" 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        </InputAdornment>
+                      ) : null,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Note (Optional)"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={2}
+                    value={depositAccount.note || ''}
+                    onChange={e => setDepositAccount(prev => ({ ...prev, note: e.target.value }))}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                          <ReceiptIcon />
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
               </Grid>
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <DialogActions>
-                  <Button onClick={handleDialogClose}>Cancel</Button>
-                  <Button
-                    onClick={handleConfirm}
-                    color="primary"
-                    variant="contained"
-                    disabled={loading}
-                  >
-                    {loading ? 'Depositing...' : 'Confirm'}
-                  </Button>
-                  {error && <Alert severity="error">{error}</Alert>}
-                  {success && <Alert severity="success">{success}</Alert>}
-                </DialogActions>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                <Button 
+                  variant="outlined" 
+                  color="secondary" 
+                  onClick={resetForm} 
+                  sx={{ mr: 2 }}
+                  startIcon={<ClearIcon />}
+                >
+                  Clear
+                </Button>
+                <Button
+                  onClick={handleConfirm}
+                  color="primary"
+                  variant="contained"
+                  disabled={loading}
+                  startIcon={<CheckIcon />}
+                >
+                  {loading ? 'Processing...' : 'Deposit Funds'}
+                </Button>
               </Box>
-            </Grid>
+            </Paper>
           </Grid>
-
-        </Paper>
-        <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            mb: 4,
-            borderRadius: 'shape.borderRadius',
-            bgcolor: 'background.paper',
-          }}
-        >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
-          >
-            📋 Accounts
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Display data in a tabular format with pagination.
-          </Typography>
-          <TableContainer
-            component={Paper}
-            sx={{ mt: 2, borderRadius: 'shape.borderRadius' }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tableData
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.name}</TableCell>
-                      <TableCell>{row.email}</TableCell>
-                      <TableCell>{row.role}</TableCell>
+          
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: { xs: 2, sm: 3 },
+                borderRadius: 'shape.borderRadius',
+                bgcolor: 'background.paper',
+                height: '100%',
+              }}
+            >
+              <Typography
+                variant="h5"
+                gutterBottom
+                sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center' }}
+              >
+                <HistoryIcon sx={{ mr: 1 }} /> Recent Deposits
+              </Typography>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <TableContainer component={Paper} elevation={0} sx={{ mt: 2, borderRadius: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: 'primary.light' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Account</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                     </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={tableData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
+                  </TableHead>
+                  <TableBody>
+                    {depositHistory.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          No deposit history found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      depositHistory
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((deposit) => (
+                          <TableRow key={deposit.id} hover>
+                            <TableCell>{deposit.id}</TableCell>
+                            <TableCell>
+                              <Tooltip title={deposit.accountType === 'username' ? 'Username' : 'Account Number'}>
+                                <span>{deposit.accountId}</span>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell>
+                              <Chip 
+                                size="small" 
+                                label={deposit.accountType === 'username' ? 'Username' : 'Account #'} 
+                                color={deposit.accountType === 'username' ? 'info' : 'secondary'}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              {formatVND(deposit.amount)} ₫
+                            </TableCell>
+                            <TableCell>
+                              {new Date(deposit.date).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Chip 
+                                size="small" 
+                                label={deposit.status} 
+                                color={deposit.status === 'Success' ? 'success' : 'error'}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={depositHistory.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
-    </EmployeeLayout >
+    </EmployeeLayout>
   );
 }

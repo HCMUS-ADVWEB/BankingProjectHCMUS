@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8080';
-//const BASE_URL = 'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
+//const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
