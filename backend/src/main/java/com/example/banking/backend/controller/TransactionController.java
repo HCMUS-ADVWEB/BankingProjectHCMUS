@@ -62,27 +62,6 @@ public class TransactionController {
 
     }
 
-    @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<String>> verifyOtp(
-            @Valid @RequestBody VerifyOtpRequest request) {
-        try {
-            transactionService.verifyTransferOtp(request);
-
-            return ResponseEntity.ok(ApiResponse.<String>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("OTP verified successfully")
-                    .data("Transfer completed")
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.<String>builder()
-                            .status(HttpStatus.BAD_REQUEST.value())
-                            .message("OTP verification failed: " + e.getMessage())
-                            .build());
-        }
-    }
-
 
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -103,6 +82,7 @@ public class TransactionController {
                     .build());
 
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<?>> getBankTransactionStats(
@@ -145,7 +125,6 @@ public class TransactionController {
                             .build());
         }
     }
-
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/external/deposit")

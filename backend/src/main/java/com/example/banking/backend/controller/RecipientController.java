@@ -6,7 +6,9 @@ import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
 import com.example.banking.backend.service.RecipientService;
+import com.example.banking.backend.service.RecipientServiceImpl;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +18,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/recipients")
+@AllArgsConstructor
 public class RecipientController {
     RecipientService recipientService;
 
-    @PostMapping("/recipients")
+    @PostMapping()
     public ResponseEntity<ApiResponse<Recipient>> addRecipient(
             @Valid @RequestBody AddRecipientRequest request) {
         Recipient recipient = recipientService.addRecipient(request);
@@ -31,7 +34,7 @@ public class RecipientController {
                         .build());
     }
 
-    @PutMapping("/recipients/{recipientId}")
+    @PutMapping("/{recipientId}")
     public ResponseEntity<ApiResponse<Recipient>> updateRecipient(
             @PathVariable String recipientId,
             @Valid @RequestBody AddRecipientRequest request) {
@@ -47,7 +50,7 @@ public class RecipientController {
     }
 
 
-    @DeleteMapping("/recipients")
+    @DeleteMapping("")
     public ResponseEntity<ApiResponse<String>> deleteRecipient(@Valid @RequestBody DeleteRecipientRequest request) {
 
             recipientService.deleteRecipient(request);
@@ -75,7 +78,7 @@ public class RecipientController {
                     .build());
 
     }
-    @GetMapping("/recipients")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "1") int page) {

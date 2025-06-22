@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RecipientServiceImpl implements RecipientService{
 
-
     RecipientRepository recipientRepository;
     BankRepository bankRepository;
     AccountRepository accountRepository;

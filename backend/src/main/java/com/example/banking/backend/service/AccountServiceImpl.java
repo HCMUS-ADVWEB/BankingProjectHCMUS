@@ -4,28 +4,44 @@ import com.example.banking.backend.config.BankCodeConfig;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
+import com.example.banking.backend.dto.response.transaction.TransactionDto;
 import com.example.banking.backend.dto.response.user.UserDto;
+import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.model.Account;
+import com.example.banking.backend.model.Transaction;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
+import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.model.type.UserRoleType;
+import com.example.banking.backend.repository.TransactionRepository;
+import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
+import com.example.banking.backend.security.jwt.CustomContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.sound.midi.Track;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,10 +49,12 @@ import java.util.UUID;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
-
     private final UserService userService;
     private final BankCodeConfig bankCodeConfig;
-
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
+    private  final TransactionRepository transactionRepository;
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
         Account account = accountRepository.findByUserId(userId).orElse(null);
@@ -79,6 +97,33 @@ public class AccountServiceImpl implements AccountService {
                 .message("Account's transaction history found successfully!")
                 .build();
     }
+    Account getAccountCurrentUser() {
+        return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new RuntimeException("Please sign in first "));
+    }
+    @Override
+    public ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size, Integer pagination) {
+        if (size <= 0 || pagination <= 0) {
+            throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
+        }
+
+        Pageable pageable = PageRequest.of(pagination -  1 , size);
+        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findByFromAccountId(getAccountCurrentUser().getAccountId() ,  pageable);
+        List<TransactionDto> transactions = transactionPage.getContent().stream()
+                .map(transaction -> new TransactionDto(
+                        transaction.getId(),
+                        transaction.getToBank() != null ?  transaction.getToBank().getId() : null,
+                        transaction.getAmount(),
+                        transaction.getUpdatedAt(),
+                        transaction.getMessage()
+                ))
+                .collect(Collectors.toList());
+
+        return ApiResponse.<  List<TransactionDto>>builder()
+                .data(transactions)
+                .status(HttpStatus.OK.value())
+                .message("Account's transaction history found successfully!")
+                .build();    }
 
     @Override
     public ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request) {
@@ -185,5 +230,26 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
 
         return account.getBalance();
+    }
+    User getCurrentUser() {
+        return userRepository.findById(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new BadRequestException("NOT FOUND CURRENT USER"));
+    }
+
+    @Override
+    public Boolean changePassword(ChangePasswordRequest request) {
+        User user = getCurrentUser();
+        System.out.println("Old Password: " + request.getOldPassword());
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password is incorrect");
+        }
+
+        if(!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
+            throw new BadRequestException("OTP is not true , please try again");
+        }
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+        return true;
     }
 }
