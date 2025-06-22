@@ -1,6 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-import { EmployeeProvider } from './contexts/EmployeeContext';
-import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './components/NotFound';
 // Home page

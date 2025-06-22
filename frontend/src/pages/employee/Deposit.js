@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import {
   Container,
@@ -41,7 +41,6 @@ import {
   Check as CheckIcon
 } from '@mui/icons-material';
 
-import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
 // Sample history data
@@ -76,7 +75,6 @@ const depositHistoryData = [
 ];
 
 export default function DepositPage() {
-  const { state } = useAuth();
   const { 
     depositAccount, 
     setDepositAccount, 
@@ -98,6 +96,15 @@ export default function DepositPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const resetForm = useCallback(() => {
+    setDepositAccount({
+      accountId: '',
+      amount: '',
+      note: ''
+    });
+    setFormErrors({});
+  }, [setDepositAccount]);
+
   // Handle success and error messages
   useEffect(() => {
     if (success) {
@@ -106,7 +113,7 @@ export default function DepositPage() {
       // Reset form after successful deposit
       resetForm();
     }
-  }, [success]);
+  }, [success, resetForm]);
 
   useEffect(() => {
     if (error) {
@@ -152,15 +159,6 @@ export default function DepositPage() {
     }
   };
 
-  const resetForm = () => {
-    setDepositAccount({
-      accountId: '',
-      amount: '',
-      note: ''
-    });
-    setFormErrors({});
-  };
-
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
     setLocalSuccess('');
@@ -203,7 +201,7 @@ export default function DepositPage() {
         </Snackbar>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item size={{ xs: 12, md: 12 }}>
             <Paper
               elevation={3}
               sx={{
@@ -339,7 +337,7 @@ export default function DepositPage() {
             </Paper>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid item  size={{ xs: 12, md: 12 }}>
             <Paper
               elevation={3}
               sx={{

@@ -351,7 +351,7 @@ class WebSocketService {  constructor() {
     ];
 
     let subscription = null;
-    let error = null;    const destination = destinations[0];
+    const destination = destinations[0];
     try {
         console.log(`Subscribing to: ${destination}`);
         subscription = await this.subscribe(destination, (notification) => {

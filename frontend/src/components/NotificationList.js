@@ -1,5 +1,4 @@
 import { Bell } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 
 export default function NotificationList({ 
   notifications = [], 

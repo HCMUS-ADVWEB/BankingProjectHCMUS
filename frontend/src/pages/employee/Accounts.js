@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import {
   Container,
@@ -25,11 +25,10 @@ import {
   Lock as LockIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+
 import { useEmployee } from '../../contexts/EmployeeContext';
 
 export default function AccountsPage() {
-  const { state } = useAuth();
   const { 
     createAccount, 
     setCreateAccount, 
@@ -46,6 +45,20 @@ export default function AccountsPage() {
   const [localError, setLocalError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
+  const resetForm = useCallback(() => {
+    setCreateAccount({
+      username: '',
+      email: '',
+      phoneNumber: '',
+      fullName: '',
+      address: '',
+      dateOfBirth: '',
+      password: '',
+      confirmPassword: ''
+    });
+    setFormErrors({});
+  }, [setCreateAccount]);
+
   // Handle success and error messages
   useEffect(() => {
     if (success) {
@@ -58,7 +71,7 @@ export default function AccountsPage() {
         setFormSubmitted(false);
       }
     }
-  }, [success]);
+  }, [success, formSubmitted, resetForm]);
 
   useEffect(() => {
     if (error) {
@@ -103,20 +116,6 @@ export default function AccountsPage() {
     } catch (err) {
       // Error is handled by the effect above
     }
-  };
-
-  const resetForm = () => {
-    setCreateAccount({
-      fullName: '',
-      email: '',
-      phone: '',
-      address: '',
-      dob: '',
-      username: '',
-      password: '',
-      passwordConfirmation: '',
-    });
-    setFormErrors({});
   };
 
   const handleCloseSnackbar = () => {

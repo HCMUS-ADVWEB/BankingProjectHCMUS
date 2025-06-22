@@ -27,38 +27,28 @@ import {
   CardContent,
   IconButton,
   Tooltip,
-  Stack,
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   TablePagination,
   TableSortLabel,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
+
 } from '@mui/material';
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon,
   AccountCircle as AccountIcon,
-  ExpandMore as ExpandMoreIcon,
-  CreditCard as CardIcon,
   CalendarToday as CalendarIcon,
   ReceiptLong as ReceiptIcon,
   SyncAlt as TransferIcon,
   Payment as PaymentIcon,
   Send as SendIcon,
-  CallReceived as ReceiveIcon,
-  Clear as ClearIcon,
   CloudDownload as DownloadIcon,
   FilterAlt as FilterAltIcon,
-  Done as DoneIcon,
   AttachMoney as MoneyIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 import { TRANSACTION_TYPES } from '../../utils/constants';
 
@@ -79,7 +69,6 @@ const statusColors = {
 };
 
 export default function TransactionsPage() {
-  const { state } = useAuth();
   const {
     transactionAccountHistory,
     setTransactionAccountHistory,

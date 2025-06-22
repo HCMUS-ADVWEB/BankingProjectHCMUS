@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import webSocketService from '../utils/webSocketService';
 import NotificationAPI from '../services/notificationApi';
@@ -37,98 +37,14 @@ export const NotificationProvider = ({ children }) => {
   const [subscription, setSubscription] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Fetch notifications and setup WebSocket
-  useEffect(() => {
-    let cleanupFunc = () => {};
-    let reconnectInterval = null;
-    let monitorInterval = null;
+  const handleNewNotification = useCallback((notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    if (!notification.read) {
+      setUnreadCount(count => count + 1);
+    }
+  }, []);
 
-    const setupNotifications = async () => {
-      if (!authState.isAuthenticated) {
-        return;
-      }
-
-      try {
-        setIsConnecting(true);
-
-        await fetchNotifications();
-
-        const ws = webSocketService;
-        
-        if (ws.connected) {
-          ws.disconnect();
-        }
-
-        const cleanup = await setupWebSocket();
-        
-        if (cleanup) {
-          cleanupFunc = cleanup;
-        }
-
-        // Monitor WebSocket connection
-        monitorInterval = setInterval(() => {
-          if (!ws.connected) {
-            setupWebSocket().catch(console.error);
-          }
-        }, 5000);
-
-        // Refresh token periodically
-        reconnectInterval = setInterval(async () => {
-          if (ws.connected && refreshToken) {
-            try {
-              const newToken = await refreshToken();
-              if (newToken) {
-                await ws.updateToken(newToken);
-                console.log('Token refreshed successfully');
-              }
-            } catch (error) {
-              console.error('Token refresh failed:', error);
-            }
-          }
-        }, 14 * 60 * 1000); 
-
-      } catch (error) {
-        console.error('Error in notification setup:', error);
-      } finally {
-        setIsConnecting(false);
-      }
-    };
-
-    // Run initial setup
-    setupNotifications();
-
-    return () => {
-      console.log('Cleaning up notification system...');
-      if (cleanupFunc) cleanupFunc();
-      if (reconnectInterval) clearInterval(reconnectInterval);
-      if (monitorInterval) clearInterval(monitorInterval);
-      
-      const ws = webSocketService;
-      if (ws.connected) {
-        ws.disconnect();
-      }
-      
-      setNotifications([]);
-      setUnreadCount(0);
-      console.groupEnd();
-    };
-  }, [authState.isAuthenticated, authState.user?.id]);
-
-  useEffect(() => {
-    const checkConnection = () => {
-      const ws = webSocketService;
-      if (!isConnecting && authState.isAuthenticated && !ws.connected) {
-        console.log('Connection lost, attempting to reconnect...');
-        setupWebSocket().catch(console.error);
-      }
-    };
-
-    window.addEventListener('focus', checkConnection);
-    
-    return () => {
-      window.removeEventListener('focus', checkConnection);
-    };
-  }, [authState.isAuthenticated, isConnecting]);  const setupWebSocket = async () => {
+  const setupWebSocket = useCallback(async () => {
     console.group('Setting up WebSocket');
     const ws = webSocketService;
     
@@ -207,116 +123,102 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.error('Error in WebSocket setup:', error);
       console.groupEnd();
-      return undefined;
+      throw error;
     }
-  };  const handleNewNotification = (notification) => {
-    console.group('Handling New Notification');
-    console.log('Raw notification received:', notification);
-    
-    try {    
-      let parsedNotification = notification;
-      if (typeof notification === 'string') {
-        try {
-          parsedNotification = JSON.parse(notification);
-          console.log('Successfully parsed notification string:', parsedNotification);
-            
-          if (parsedNotification.payload) {
-              parsedNotification = parsedNotification.payload;
-              console.log('Extracted payload:', parsedNotification);
-          }
-            
-          if (parsedNotification.body) {
-              try {
-                  parsedNotification = JSON.parse(parsedNotification.body);
-                  console.log('Parsed message body:', parsedNotification);
-              } catch (e) {
-                  console.log('Body is not JSON:', parsedNotification.body);
-                  parsedNotification = parsedNotification.body;
-              }
-          }
-            
-          console.log('Final parsed notification:', parsedNotification);
-        } catch (e) {
-          console.log('Notification is not JSON:', notification);
-        }
-      }
+  }, [subscription, handleNewNotification]);
 
-      if (!parsedNotification) {
-        console.warn('Invalid notification (null or undefined)');
-        console.groupEnd();
+  // Fetch notifications and setup WebSocket
+  useEffect(() => {
+    let cleanupFunc = () => {};
+    let reconnectInterval = null;
+    let monitorInterval = null;
+
+    const setupNotifications = async () => {
+      if (!authState.isAuthenticated) {
         return;
       }
 
-      const normalizedNotification = {
-        id: parsedNotification.id || parsedNotification.notificationId || new Date().getTime().toString(),
-        title: parsedNotification.title || 'New Notification',
-        content: typeof parsedNotification === 'string' ? parsedNotification :
-                parsedNotification.content || parsedNotification.message || 
-                JSON.stringify(parsedNotification),
-        read: Boolean(parsedNotification.read),
-        createdAt: parsedNotification.createdAt || new Date().toISOString()
-      };
+      try {
+        setIsConnecting(true);
 
-      console.log('Normalized notification:', normalizedNotification);
-      
+        await fetchNotifications();
 
-      const exists = notifications.some(n => n.id === normalizedNotification.id);
-      console.log('Current state:', {
-        currentNotifications: notifications.length,
-        exists,
-        unreadCount
-      });
-      
-      if (!exists) {
-        console.log('Adding new notification to state...');
-        Promise.resolve().then(() => {
-          setNotifications(prev => {
-            const newNotifications = [normalizedNotification, ...prev];
-            console.log('Updated notifications:', {
-              previousCount: prev.length,
-              newCount: newNotifications.length
-            });
-            return newNotifications;
-          });
-          
-          if (!normalizedNotification.read) {
-            setUnreadCount(prev => {
-              const newCount = prev + 1;
-              console.log('Updated unread count:', {
-                previous: prev,
-                new: newCount
-              });
-              return newCount;
-            });
+        const ws = webSocketService;
+        
+        if (ws.connected) {
+          ws.disconnect();
+        }
 
-            // Show browser notification
-            if (Notification.permission === 'granted') {
-              try {
-                new Notification(normalizedNotification.title, {
-                  body: normalizedNotification.content,
-                  icon: '/favicon.ico',
-                  tag: normalizedNotification.id,
-                  renotify: true
-                });
-                console.log('Browser notification shown');
-              } catch (e) {
-                console.error('Error showing browser notification:', e);
+        const cleanup = await setupWebSocket();
+        
+        if (cleanup) {
+          cleanupFunc = cleanup;
+        }
+
+        // Monitor WebSocket connection
+        monitorInterval = setInterval(() => {
+          if (!ws.connected) {
+            setupWebSocket().catch(console.error);
+          }
+        }, 5000);
+
+        // Refresh token periodically
+        reconnectInterval = setInterval(async () => {
+          if (ws.connected && refreshToken) {
+            try {
+              const newToken = await refreshToken();
+              if (newToken) {
+                await ws.updateToken(newToken);
+                console.log('Token refreshed successfully');
               }
+            } catch (error) {
+              console.error('Token refresh failed:', error);
             }
           }
-        }).catch(error => {
-          console.error('Error updating notification state:', error);
-        });
-      } else {
-        console.log('Duplicate notification ignored');
+        }, 14 * 60 * 1000); 
+
+      } catch (error) {
+        console.error('Error in notification setup:', error);
+      } finally {
+        setIsConnecting(false);
       }
-    } catch (error) {
-      console.error('Error processing notification:', error);
-      console.error('Stack:', error.stack);
-    } finally {
+    };
+
+    // Run initial setup
+    setupNotifications();
+
+    return () => {
+      console.log('Cleaning up notification system...');
+      if (cleanupFunc) cleanupFunc();
+      if (reconnectInterval) clearInterval(reconnectInterval);
+      if (monitorInterval) clearInterval(monitorInterval);
+      
+      const ws = webSocketService;
+      if (ws.connected) {
+        ws.disconnect();
+      }
+      
+      setNotifications([]);
+      setUnreadCount(0);
       console.groupEnd();
-    }
-  };const fetchNotifications = async () => {
+    };
+  }, [authState.isAuthenticated, authState.user?.id, refreshToken, setupWebSocket]);
+
+  useEffect(() => {
+    const checkConnection = () => {
+      const ws = webSocketService;
+      if (!isConnecting && authState.isAuthenticated && !ws.connected) {
+        console.log('Connection lost, attempting to reconnect...');
+        setupWebSocket().catch(console.error);
+      }
+    };
+
+    window.addEventListener('focus', checkConnection);
+    
+    return () => {
+      window.removeEventListener('focus', checkConnection);
+    };
+  }, [authState.isAuthenticated, isConnecting, setupWebSocket]);  const fetchNotifications = async () => {
     try {
       console.log('Fetching notifications from API...');
       setLoading(true);
