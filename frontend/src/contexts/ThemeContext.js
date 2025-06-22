@@ -110,31 +110,40 @@ const darkTheme = createTheme({
           '&:hover': {
             transform: 'scale(1.05)',
             boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+            background: 'linear-gradient(to right, #059669, #0891b2)', // Gradient từ yêu cầu
+            color: '#ffffff', // Đảm bảo chữ trắng
           },
         },
         contained: {
-          background: 'linear-gradient(to right, #10b981, #06b6d4)',
+          background: 'linear-gradient(135deg, #475569, #64748b)',
           color: '#ffffff',
           '&:hover': {
-            background: 'linear-gradient(to right, #059669, #0891b2)',
+            background: 'linear-gradient(135deg, #334155, #475569)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)', // Kế thừa từ root
           },
         },
         outlined: {
-          borderColor: 'rgba(16, 185, 129, 0.5)',
-          color: '#10b981',
+          borderColor: 'rgba(71, 85, 105, 0.5)',
+          color: '#64748b',
           '&:hover': {
-            borderColor: '#10b981',
-            background: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#475569',
+            background: 'rgba(71, 85, 105, 0.1)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)', // Kế thừa từ root
           },
         },
         text: {
-          color: '#10b981',
+          color: '#64748b',
           '&:hover': {
-            background: 'rgba(16, 185, 129, 0.1)',
+            background: 'rgba(71, 85, 105, 0.1)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)', // Kế thừa từ root
           },
         },
       },
     },
+
     // Card component styling
     MuiCard: {
       styleOverrides: {
@@ -867,28 +876,36 @@ const lightTheme = createTheme({
           transition: 'all 0.3s ease',
           '&:hover': {
             transform: 'scale(1.05)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 4px 12px rgba(71, 85, 105, 0.12)',
+            background: 'linear-gradient(to right, #64748b, #475569)', // Gradient xám để đồng bộ
+            color: '#ffffff', // Đảm bảo chữ trắng cho gradient nền
           },
         },
         contained: {
-          background: 'linear-gradient(to right, #10b981, #06b6d4)',
+          background: 'linear-gradient(135deg, #64748b, #475569)',
           color: '#ffffff',
           '&:hover': {
-            background: 'linear-gradient(to right, #059669, #0891b2)',
+            background: 'linear-gradient(135deg, #475569, #334155)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 4px 12px rgba(71, 85, 105, 0.12)', // Kế thừa từ root
           },
         },
         outlined: {
-          borderColor: '#10b981',
-          color: '#10b981',
+          borderColor: '#64748b',
+          color: '#475569',
           '&:hover': {
-            borderColor: '#059669',
-            background: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#475569',
+            background: 'rgba(71, 85, 105, 0.08)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 4px 12px rgba(71, 85, 105, 0.12)', // Kế thừa từ root
           },
         },
         text: {
-          color: '#10b981',
+          color: '#475569',
           '&:hover': {
-            background: 'rgba(16, 185, 129, 0.1)',
+            background: 'rgba(71, 85, 105, 0.08)',
+            transform: 'scale(1.05)', // Kế thừa từ root
+            boxShadow: '0 4px 12px rgba(71, 85, 105, 0.12)', // Kế thừa từ root
           },
         },
       },

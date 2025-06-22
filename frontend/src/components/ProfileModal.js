@@ -95,7 +95,7 @@ export default function ProfileModal({ isOpen = true, onClose = () => {} }) {
         <div className="px-6 pb-6">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 text-gray-700 font-semibold rounded-xl bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white hover:opacity-80 border border-gray-200 hover:border-gray-300 transition-all duration-200"
+            className="w-full px-6 py-3 text-white font-semibold rounded-xl bg-gradient-to-r from-gray-800 via-gray-900 to-black hover:opacity-80 border border-gray-200 hover:border-gray-300 transition-all duration-200"
           >
             Close
           </button>
