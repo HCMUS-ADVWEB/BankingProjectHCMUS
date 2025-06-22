@@ -4,6 +4,8 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { EmployeeProvider } from './contexts/EmployeeContext';
 import './styles/output.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -12,9 +14,13 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <App />
+          <NotificationProvider>
+            <EmployeeProvider>
+              <App />
+            </EmployeeProvider>
+          </NotificationProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

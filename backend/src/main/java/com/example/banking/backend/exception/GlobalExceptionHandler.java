@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
 
@@ -25,17 +26,26 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ApiResponse<?>> handleMissingHeader(MissingRequestHeaderException ex) {
-        ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleMissingHeader(MissingRequestHeaderException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Missing header: " + ex.getHeaderName())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message("Resource not found: " + ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse<?>> handleBadCredentialsException(BadCredentialsException ex) {
-        ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentialsException(BadCredentialsException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message("Username or password is not valid: " + ex.getMessage())
                 .build();
@@ -43,12 +53,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleValidationErrors(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .map(FieldError::getDefaultMessage)
                 .toList();
-        final ApiResponse<?> response = ApiResponse.builder()
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Validation errors: " + String.join(",", errors))
                 .build();
@@ -56,8 +66,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiResponse<?>> handleInvalidToken(InvalidTokenException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleInvalidToken(InvalidTokenException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message("Invalid token: " + ex.getMessage())
                 .build();
@@ -65,8 +75,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ApiResponse<?>> handleDisabledUser(DisabledException ex) {
-        ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleDisabledUser(DisabledException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message("Disabled user: " + ex.getMessage())
                 .build();
@@ -74,8 +84,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidOtpException.class)
-    public ResponseEntity<ApiResponse<?>> handleOtpException(InvalidOtpException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleOtpException(InvalidOtpException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Invalid otp: " + ex.getMessage())
                 .build();
@@ -83,8 +93,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiResponse<?>> handleBadRequestException(BadRequestException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleBadRequestException(BadRequestException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Bad request: " + ex.getMessage())
                 .build();
@@ -92,8 +102,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ExistenceException.class)
-    public ResponseEntity<ApiResponse<?>> handleUsernameExistedException(ExistenceException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleUsernameExistedException(ExistenceException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Bad request: " + ex.getMessage())
                 .build();
@@ -101,8 +111,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidUserException.class)
-    public ResponseEntity<ApiResponse<?>> handleInvalidUserException(InvalidUserException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleInvalidUserException(InvalidUserException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("User not valid: " + ex.getMessage())
                 .build();
@@ -110,8 +120,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ReCaptchaException.class)
-    public ResponseEntity<ApiResponse<?>> handleReCaptchaException(ReCaptchaException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleReCaptchaException(ReCaptchaException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("reCAPTCHA token is invalid: " + ex.getMessage())
                 .build();
@@ -119,8 +129,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<?>> handleInvalidBody(HttpMessageNotReadableException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleInvalidBody(HttpMessageNotReadableException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Request body is missing or malformed: " + ex.getMessage())
                 .build();
@@ -128,8 +138,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({ConfigDataResourceNotFoundException.class, NoResourceFoundException.class})
-    public ResponseEntity<ApiResponse<?>> handleSpringResourceNotFound(Exception ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleSpringResourceNotFound(Exception ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Resource not found: " + ex.getMessage())
                 .build();
@@ -137,8 +147,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<?>> handleIllegalArgument(IllegalArgumentException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Invalid input parameters: " + ex.getMessage())
                 .build();
@@ -146,8 +156,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<?>> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Invalid argument type: " + ex.getMessage())
                 .build();
@@ -155,8 +165,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<?>> handleUnsupportedMethod(HttpRequestMethodNotSupportedException ex) {
-        final ApiResponse<?> response = ApiResponse.builder()
+    public ResponseEntity<ApiResponse<Void>> handleUnsupportedMethod(HttpRequestMethodNotSupportedException ex) {
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .message("HTTP method " + ex.getMethod() + " is not supported for this endpoint: " + ex.getMessage())
                 .build();
@@ -164,19 +174,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ApiResponse<?>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
         log.error("Access denied:", ex);
-        final ApiResponse<?> response = ApiResponse.builder()
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.FORBIDDEN.value())
-                .message("You do not have permission to access this resource.: " + ex.getMessage())
+                .message("You do not have permission to access this resource: " + ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<?>> handleGenericRuntimeException(RuntimeException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleGenericRuntimeException(RuntimeException ex) {
         log.error("Unhandled runtime exception", ex);
-        final ApiResponse<?> response = ApiResponse.builder()
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("An unexpected error occurred, please try again later: " + ex.getMessage())
                 .build();

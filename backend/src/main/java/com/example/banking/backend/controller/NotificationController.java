@@ -1,11 +1,14 @@
 package com.example.banking.backend.controller;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +45,7 @@ public class NotificationController {
                 .data(notifications)
                 .build());
     }
+    
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/read-all")
     public ResponseEntity<ApiResponse<Void>> markAllNotificationsAsRead() {
@@ -52,7 +56,18 @@ public class NotificationController {
                 .message("All notifications marked as read")
                 .build());
     }
+    
     @PreAuthorize("hasRole('CUSTOMER')")
+    @PutMapping("/read/{id}")
+    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable("id") UUID notificationId) {
+        notificationService.markNotificationAsRead(notificationId);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(HttpStatus.OK.value())
+                .message("Notification marked as read")
+                .build());
+    }
+    
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<Notification>> addNotification(
         @Validated @RequestBody AddNotificationRequest request) {

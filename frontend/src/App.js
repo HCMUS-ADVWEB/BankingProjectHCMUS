@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { EmployeeProvider } from './contexts/EmployeeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './components/NotFound';
 // Home page
@@ -28,11 +29,10 @@ import AdminEmployees from './pages/admin/Employees';
 import AdminTransactions from './pages/admin/Transactions';
 import AdminTemplate from './pages/admin/Template';
 
-export default function App() {
-  return (
-    <EmployeeProvider>
-      <div className="App">
-        <Routes>
+export default function App() {  return (
+
+        <div className="App">
+          <Routes>
           {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/auth/login" element={<Login />} />
@@ -187,9 +187,8 @@ export default function App() {
           </>
 
           {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+          <Route path="*" element={<NotFound />} />        </Routes>
       </div>
-    </EmployeeProvider>
+
   );
 }
