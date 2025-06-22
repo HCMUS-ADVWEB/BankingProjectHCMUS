@@ -60,7 +60,6 @@ export default function RecipientsPage() {
         ? {
           accountNumber: recipient.accountNumber || '',
           bankName: recipient.bankName || '',
-          recipientName: recipient.recipientName || '',
           recipientNickname: recipient.recipientNickname || '',
         }
         : initialForm,
