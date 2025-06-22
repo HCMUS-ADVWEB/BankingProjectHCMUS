@@ -54,34 +54,34 @@ export default function TransferPage() {
 
   return (
     <CustomerLayout>
-      <Box sx={{ p: 3, maxWidth: 500, mx: 'auto' }}>
+      <Box p={3} maxWidth={500} mx="auto">
         <Typography variant="h4" gutterBottom>Transfer</Typography>
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">{success}</Alert>}
         <form onSubmit={e => { e.preventDefault(); handleRequestOtp(); }}>
           {/* TODO: Add recipient selection */}
-          <TextField label="Account Number Receiver" name="accountNumberReceiver" fullWidth sx={{ mb: 2 }} value={form.accountNumberReceiver} onChange={handleChange} required disabled={loading || step === 2} />
-          <TextField label="Amount" name="amount" type="number" fullWidth sx={{ mb: 2 }} value={form.amount} onChange={handleChange} required disabled={loading || step === 2} />
-          <TextField label="Message" name="message" fullWidth sx={{ mb: 2 }} value={form.message} onChange={handleChange} disabled={loading || step === 2} />
-          <TextField select label="Fee Type" name="feeType" fullWidth sx={{ mb: 2 }} value={form.feeType} onChange={handleChange} disabled={loading || step === 2}>
+          <TextField label="Account Number Receiver" name="accountNumberReceiver" fullWidth style={{ marginBottom: 16 }} value={form.accountNumberReceiver} onChange={handleChange} required disabled={loading || step === 2} />
+          <TextField label="Amount" name="amount" type="number" fullWidth style={{ marginBottom: 16 }} value={form.amount} onChange={handleChange} required disabled={loading || step === 2} />
+          <TextField label="Message" name="message" fullWidth style={{ marginBottom: 16 }} value={form.message} onChange={handleChange} disabled={loading || step === 2} />
+          <TextField select label="Fee Type" name="feeType" fullWidth style={{ marginBottom: 16 }} value={form.feeType} onChange={handleChange} disabled={loading || step === 2}>
             <MenuItem value="SENDER">Sender</MenuItem>
             <MenuItem value="RECEIVER">Receiver</MenuItem>
           </TextField>
-          <Button type="submit" variant="contained" color="primary" fullWidth disabled={loading || step === 2}>Send OTP</Button>
+          <Button type="submit" variant="contained" fullWidth disabled={loading || step === 2}>Send OTP</Button>
         </form>
         <Dialog open={step === 2} onClose={() => setStep(1)}>
           <DialogTitle>Enter OTP</DialogTitle>
           <DialogContent>
-            <TextField label="OTP" fullWidth value={otp} onChange={e => setOtp(e.target.value)} autoFocus sx={{ mt: 1 }} />
+            <TextField label="OTP" fullWidth value={otp} onChange={e => setOtp(e.target.value)} autoFocus style={{ marginTop: 8 }} />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setStep(1)} disabled={loading}>Cancel</Button>
             <Button onClick={handleTransfer} variant="contained" disabled={loading || !otp}>Submit</Button>
           </DialogActions>
-          {loading && <CircularProgress sx={{ m: 2 }} />}
+          {loading && <CircularProgress style={{ margin: 16 }} />}
         </Dialog>
         {result && (
-          <Box sx={{ mt: 3 }}>
+          <Box mt={3}>
             <Typography variant="h6">Transaction Result</Typography>
             <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>{JSON.stringify(result, null, 2)}</pre>
           </Box>

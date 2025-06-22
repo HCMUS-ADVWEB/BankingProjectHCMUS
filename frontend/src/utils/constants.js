@@ -12,6 +12,8 @@ import {
   Lock,
 } from 'lucide-react';
 
+export const BASE_URL = 'http://localhost:8080';
+
 export const SOLUTIONS = [
   {
     icon: UserCircle2,

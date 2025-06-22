@@ -37,16 +37,16 @@ export default function DebtsPage() {
 
   return (
     <CustomerLayout>
-      <Box sx={{ p: 3 }}>
+      <Box p={3}>
         <Typography variant="h4" gutterBottom>Debts</Typography>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <TextField select label="Status" value={status} onChange={e => { setStatus(e.target.value); setPage(0); }} sx={{ minWidth: 120 }}>
+        <Box display="flex" gap={2} mb={2}>
+          <TextField select label="Status" value={status} onChange={e => { setStatus(e.target.value); setPage(0); }} style={{ minWidth: 120 }}>
             {statusOptions.map(opt => <MenuItem key={opt} value={opt}>{opt || 'All'}</MenuItem>)}
           </TextField>
         </Box>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
-        <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <TableContainer component={Paper} style={{ marginTop: 16 }}>
           <Table>
             <TableHead>
               <TableRow>

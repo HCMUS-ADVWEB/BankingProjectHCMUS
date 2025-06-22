@@ -5,7 +5,6 @@ import {
   Bell,
   Moon,
   Sun,
-  Settings,
   User,
   ChevronDown,
   PiggyBank,
@@ -13,6 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import ProfileModal from './ProfileModal';
 
 export default function MainHeader({ navigationItems = [] }) {
   const location = useLocation();
@@ -20,6 +20,7 @@ export default function MainHeader({ navigationItems = [] }) {
   const { state, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const generateBreadcrumb = () => {
     const breadcrumbs = [{ label: 'Home', href: '/', icon: PiggyBank }];
@@ -42,29 +43,12 @@ export default function MainHeader({ navigationItems = [] }) {
   const notifications = [
     {
       id: 1,
-      title: 'New transaction completed',
+      title: 'Demo',
       time: '2 min ago',
-      unread: true,
-    },
-    {
-      id: 2,
-      title: 'System maintenance scheduled',
-      time: '1 hour ago',
-      unread: true,
-    },
-    {
-      id: 3,
-      title: 'Account verification required',
-      time: '3 hours ago',
       unread: false,
     },
   ];
   const unreadCount = notifications.filter((n) => n.unread).length;
-
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/';
-  };
 
   return (
     <>
@@ -126,31 +110,16 @@ export default function MainHeader({ navigationItems = [] }) {
 
         {/* Right side */}
         <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={`p-2 ${
-              isDarkMode
-                ? 'text-gray-300 hover:text-white hover:bg-slate-700'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            } rounded-lg transition-colors`}
-          >
-            {isDarkMode ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
-
           {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
+              disabled
               className={`p-2 ${
                 isDarkMode
                   ? 'text-gray-300 hover:text-white hover:bg-slate-700'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              } rounded-lg transition-colors relative`}
+              } rounded-lg transition-colors relative disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
@@ -232,6 +201,22 @@ export default function MainHeader({ navigationItems = [] }) {
             )}
           </div>
 
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`p-2 ${
+              isDarkMode
+                ? 'text-gray-300 hover:text-white hover:bg-slate-700'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+            } rounded-lg transition-colors`}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
           {/* Profile Menu */}
           <div className="relative">
             <button
@@ -277,7 +262,7 @@ export default function MainHeader({ navigationItems = [] }) {
             {/* Profile Dropdown */}
             {showProfileMenu && (
               <div
-                className={`absolute right-0 mt-2 w-48 ${
+                className={`absolute right-0 mt-2 px-0 ${
                   isDarkMode
                     ? 'bg-slate-800 border-slate-700'
                     : 'bg-white border-gray-200'
@@ -304,6 +289,10 @@ export default function MainHeader({ navigationItems = [] }) {
                   </p>
                 </div>
                 <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setShowProfileModal(true);
+                  }}
                   className={`w-full text-left px-4 py-2 text-sm ${
                     isDarkMode
                       ? 'text-gray-300 hover:bg-slate-700'
@@ -313,23 +302,13 @@ export default function MainHeader({ navigationItems = [] }) {
                   <User className="w-4 h-4" />
                   <span>Profile</span>
                 </button>
-                <button
-                  className={`w-full text-left px-4 py-2 text-sm ${
-                    isDarkMode
-                      ? 'text-gray-300 hover:bg-slate-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  } flex items-center space-x-2`}
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </button>
                 <div
                   className={`border-t ${
                     isDarkMode ? 'border-slate-700' : 'border-gray-200'
                   }`}
                 >
                   <button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className={`w-full text-left px-4 mt-1.5 py-2 text-sm ${
                       isDarkMode
                         ? 'text-red-400 hover:bg-red-900/30'
@@ -356,6 +335,12 @@ export default function MainHeader({ navigationItems = [] }) {
           />
         )}
       </header>
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </>
   );
 }

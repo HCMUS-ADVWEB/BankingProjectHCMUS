@@ -41,7 +41,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        if (!captchaService.verityCaptchaToken(request.getToken())) {
+        if (!captchaService.
+        verityCaptchaToken(request.getToken())) {
             throw new ReCaptchaException("Fail reCAPTCHA!");
         }
 
@@ -119,4 +120,5 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
     }
+
 }

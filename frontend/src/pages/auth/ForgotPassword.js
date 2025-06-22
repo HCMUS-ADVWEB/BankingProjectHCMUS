@@ -3,6 +3,8 @@ import { useFormik } from 'formik';
 import { PiggyBank, Eye, EyeOff, CircleAlert } from 'lucide-react';
 import SuccessPage from './SuccessPage';
 import * as Yup from 'yup';
+import axios from 'axios';
+import { BASE_URL } from '../../utils/constants';
 
 export default function ForgotPasswordPage() {
   const [otpSent, setOtpSent] = useState(false);
@@ -96,28 +98,48 @@ export default function ForgotPasswordPage() {
 
   const sendEmail = async (email) => {
     try {
-      if (email !== 'demo@gmail.com') {
-        throw new Error('Email not found');
-      }
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          console.log(`OTP sent to ${email}`);
-          resolve();
-        }, 500);
+      setSendEmailError('');
+      console.log('Sending OTP to email:', email);
+      const response = await axios.post(`${BASE_URL}/api/auth/reset-password/request`, {
+        email,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      const { status, message, timestamp } = response.data;
+      console.log(`Success: ${message} at ${timestamp} (Status: ${status})`);
       return true;
     } catch (error) {
       console.error('Error sending OTP:', error);
       setSendEmailError(
         'Email not found. Please check your email or register.',
       );
+      if (error.response) {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        console.error(`Error ${status}: ${msg} at ${timestamp}`);
+        setSendEmailError(
+          msg || 'Failed to send OTP. Please try again.',
+        );
+      } else if (error.request) {
+        console.error('Network error or no response from server:', error.request);
+        setSendEmailError(
+          'Network error or no response from server. Please try again later.',
+        );
+      } else {
+        console.error('Unexpected error:', error.message);
+        setSendEmailError('Unexpected error occurred. Please try again.');
+      }
     }
     return false;
   };
 
-  const resetPassword = async (email, otp, newPassword, confirmNewPassword) => {
+  const resetPassword = async (email, otp, password, confirmPassword) => {
     try {
-      if (newPassword !== confirmNewPassword) {
+      if (password !== confirmPassword) {
         formik.setFieldError(
           'confirmPassword',
           'Confirm new password must match',
@@ -126,23 +148,41 @@ export default function ForgotPasswordPage() {
       }
       setResetPasswordError('');
       console.log('Resetting password...');
-      // Simulate API call to reset password
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          console.log(
-            `Password reset for ${email} with OTP ${otp} and new password`,
-          );
-          resolve();
-        }, 500);
-      });
-      if (otp !== '000000') {
-        console.log('Invalid OTP');
-        throw new Error('Invalid OTP');
-      }
+      const response = await axios.post(
+        `${BASE_URL}/api/auth/reset-password/confirm`,
+        {
+          email,
+          otp,
+          password,
+          confirmPassword,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      const { status, message, timestamp } = response.data;
+      console.log(`Success: ${message} at ${timestamp} (Status: ${status})`);
       return true;
     } catch (error) {
-      setResetPasswordError('Failed to reset password. Please try again.');
-      console.error('Error resetting password:', error);
+      if (error.response) {
+        const status = error.response.status;
+        const msg = error.response.data?.message;
+        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        console.error(`Error ${status}: ${msg} at ${timestamp}`);
+        setResetPasswordError(
+          msg || 'Failed to reset password. Please try again.',
+        );
+      } else if (error.request) {
+        console.error('Network error or no response from server:', error.request);
+        setResetPasswordError(
+          'Network error or no response from server. Please try again later.',
+        );
+      } else {
+        console.error('Unexpected error:', error.message);
+        setResetPasswordError('Unexpected error occurred. Please try again.');
+      }
     }
     return false;
   };

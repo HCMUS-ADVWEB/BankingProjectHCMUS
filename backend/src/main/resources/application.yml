@@ -15,7 +15,7 @@ spring:
       idle-timeout: 300000
       connection-timeout: 30000
       max-lifetime: 900000
-      pool-name: HikariPool-FoodService
+      pool-name: HikariPool
   jpa:
     properties:
       hibernate:

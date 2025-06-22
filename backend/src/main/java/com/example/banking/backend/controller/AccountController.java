@@ -28,7 +28,7 @@ public class AccountController {
     private final AccountService accountService;
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/")
+    @GetMapping("/my-account")
     public ResponseEntity<ApiResponse<GetAccountResponse>> getAccount() {
         UUID userId = CustomContextHolder.getCurrentUserId();
         ApiResponse<GetAccountResponse> apiResponse = accountService.getAccount(userId);
@@ -40,16 +40,12 @@ public class AccountController {
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getAccountTransactions(
             @PathVariable String accountId,
             @RequestParam(required = false, defaultValue = "10") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false) String type
+            @RequestParam(required = false, defaultValue = "0") Integer pn,
+            @RequestParam(required = false) TransactionType type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(accountId, limit, page, TransactionType.fromValue(type));
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions( accountId, limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-
-
-
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/create")
@@ -65,16 +61,22 @@ public class AccountController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/change-password")
-    public ResponseEntity<ApiResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
-        Boolean success = accountService.changePassword(request);
-        return new ResponseEntity<>(ApiResponse.builder()
-                .status(HttpStatus.OK.value())
+    @GetMapping("/customer/transactions")
+    public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getCustomerTransaction(
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestParam(required = false, defaultValue = "1") Integer pn) {
+        ApiResponse apiResponse = accountService.getCustomerTransactions(limit, pn);
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        accountService.changePassword(request);
+        return ResponseEntity.ok(ApiResponse.builder()
                 .message("Change password successfully!")
-                .build(),
-                HttpStatus.OK);
+                .status(HttpStatus.OK.value())
+                .build());
     }
 
 

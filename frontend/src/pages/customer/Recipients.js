@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, CircularProgress, Alert } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 
-const initialForm = { accountNumber: '', bankName: '', name: '', nickName: '' };
+const initialForm = { accountNumber: '', bankName: '', recipientName: '', recipientNickname: '' };
 
 export default function RecipientsPage() {
   const { state } = useAuth();
@@ -28,8 +28,13 @@ export default function RecipientsPage() {
   useEffect(() => { fetchRecipients(); }, []);
 
   const handleOpen = (recipient = null) => {
-    setEditId(recipient?.id || null);
-    setForm(recipient ? { ...recipient } : initialForm);
+    setEditId(recipient?.recipientId || null);
+    setForm(recipient ? {
+      accountNumber: recipient.accountNumber || '',
+      bankName: recipient.bankName || '',
+      recipientName: recipient.recipientName || '',
+      recipientNickname: recipient.recipientNickname || '',
+    } : initialForm);
     setOpen(true);
   };
   const handleClose = () => { setOpen(false); setForm(initialForm); setEditId(null); };
@@ -70,11 +75,11 @@ export default function RecipientsPage() {
 
   return (
     <CustomerLayout>
-      <Box sx={{ p: 3 }}>
+      <Box p={3}>
         <Typography variant="h4" gutterBottom>Recipients</Typography>
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">{success}</Alert>}
-        <Button variant="contained" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={() => handleOpen()}>Add Recipient</Button>
+        <Button variant="contained" startIcon={<AddIcon />} style={{ marginBottom: 16 }} onClick={() => handleOpen()}>Add Recipient</Button>
         {loading && <CircularProgress />}
         <TableContainer component={Paper}>
           <Table>
@@ -82,21 +87,21 @@ export default function RecipientsPage() {
               <TableRow>
                 <TableCell>Account Number</TableCell>
                 <TableCell>Bank Name</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Nick Name</TableCell>
+                <TableCell>Recipient Name</TableCell>
+                <TableCell>Recipient Nickname</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {recipients.map((rec) => (
-                <TableRow key={rec.id || rec.accountNumber}>
+                <TableRow key={rec.recipientId}>
                   <TableCell>{rec.accountNumber}</TableCell>
-                  <TableCell>{rec.bankName}</TableCell>
-                  <TableCell>{rec.name}</TableCell>
-                  <TableCell>{rec.nickName}</TableCell>
+                  <TableCell>{rec.bankName || '-'}</TableCell>
+                  <TableCell>{rec.recipientName}</TableCell>
+                  <TableCell>{rec.recipientNickname}</TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleOpen(rec)}><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDelete(rec.id)}><DeleteIcon /></IconButton>
+                    <IconButton onClick={() => handleDelete(rec.recipientId)}><DeleteIcon /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -106,10 +111,10 @@ export default function RecipientsPage() {
         <Dialog open={open} onClose={handleClose}>
           <DialogTitle>{editId ? 'Edit Recipient' : 'Add Recipient'}</DialogTitle>
           <DialogContent>
-            <TextField label="Account Number" name="accountNumber" fullWidth sx={{ mb: 2 }} value={form.accountNumber} onChange={handleChange} required />
-            <TextField label="Bank Name" name="bankName" fullWidth sx={{ mb: 2 }} value={form.bankName} onChange={handleChange} required />
-            <TextField label="Name" name="name" fullWidth sx={{ mb: 2 }} value={form.name} onChange={handleChange} required />
-            <TextField label="Nick Name" name="nickName" fullWidth sx={{ mb: 2 }} value={form.nickName} onChange={handleChange} />
+            <TextField label="Account Number" name="accountNumber" fullWidth style={{ marginBottom: 16 }} value={form.accountNumber} onChange={handleChange} required />
+            <TextField label="Bank Name" name="bankName" fullWidth style={{ marginBottom: 16 }} value={form.bankName} onChange={handleChange} />
+            <TextField label="Recipient Name" name="recipientName" fullWidth style={{ marginBottom: 16 }} value={form.recipientName} onChange={handleChange} required />
+            <TextField label="Recipient Nickname" name="recipientNickname" fullWidth style={{ marginBottom: 16 }} value={form.recipientNickname} onChange={handleChange} />
             {/* TODO: Add verify recipient */}
           </DialogContent>
           <DialogActions>

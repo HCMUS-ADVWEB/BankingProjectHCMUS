@@ -18,11 +18,12 @@ export default function ChangePasswordPage() {
   const handleRequestOtp = async () => {
     setLoading(true); setError(null);
     try {
-      await api.post('/api/otp', {
+      const body = {
         userId: state.user.id,
         email: state.user.email,
         otpType: 'PASSWORD_CHANGE',
-      });
+      };
+      await api.post('/api/otp', body);
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -34,11 +35,14 @@ export default function ChangePasswordPage() {
   const handleChangePassword = async () => {
     setLoading(true); setError(null);
     try {
-      await api.post('/api/accounts/change-password', {
+      const body = {
         oldPassword: form.oldPassword,
         newPassword: form.newPassword,
         otp,
-      });
+      };
+      console.log(body);
+
+      await api.post('/api/accounts/change-password', body);
       setSuccess('Password changed successfully!');
       setStep(1);
       setForm({ oldPassword: '', newPassword: '' });
@@ -52,25 +56,25 @@ export default function ChangePasswordPage() {
 
   return (
     <CustomerLayout>
-      <Box sx={{ p: 3, maxWidth: 400, mx: 'auto' }}>
+      <Box p={3} maxWidth={400} mx="auto">
         <Typography variant="h4" gutterBottom>Change Password</Typography>
         {error && <Alert severity="error">{error}</Alert>}
         {success && <Alert severity="success">{success}</Alert>}
         <form onSubmit={e => { e.preventDefault(); handleRequestOtp(); }}>
-          <TextField label="Old Password" name="oldPassword" type="password" fullWidth sx={{ mb: 2 }} value={form.oldPassword} onChange={handleChange} required disabled={loading || step === 2} />
-          <TextField label="New Password" name="newPassword" type="password" fullWidth sx={{ mb: 2 }} value={form.newPassword} onChange={handleChange} required disabled={loading || step === 2} />
-          <Button type="submit" variant="contained" color="primary" fullWidth disabled={loading || step === 2}>Send OTP</Button>
+          <TextField label="Old Password" name="oldPassword" type="password" fullWidth style={{ marginBottom: 16 }} value={form.oldPassword} onChange={handleChange} required disabled={loading || step === 2} />
+          <TextField label="New Password" name="newPassword" type="password" fullWidth style={{ marginBottom: 16 }} value={form.newPassword} onChange={handleChange} required disabled={loading || step === 2} />
+          <Button type="submit" variant="contained" fullWidth disabled={loading || step === 2}>Send OTP</Button>
         </form>
         <Dialog open={step === 2} onClose={() => setStep(1)}>
           <DialogTitle>Enter OTP</DialogTitle>
           <DialogContent>
-            <TextField label="OTP" fullWidth value={otp} onChange={e => setOtp(e.target.value)} autoFocus sx={{ mt: 1 }} />
+            <TextField label="OTP" fullWidth value={otp} onChange={e => setOtp(e.target.value)} autoFocus style={{ marginTop: 8 }} />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setStep(1)} disabled={loading}>Cancel</Button>
             <Button onClick={handleChangePassword} variant="contained" disabled={loading || !otp}>Submit</Button>
           </DialogActions>
-          {loading && <CircularProgress sx={{ m: 2 }} />}
+          {loading && <CircularProgress style={{ margin: 16 }} />}
         </Dialog>
       </Box>
     </CustomerLayout>
