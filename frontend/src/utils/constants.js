@@ -12,6 +12,8 @@ import {
   Lock,
 } from 'lucide-react';
 
+export const BASE_URL = 'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
+
 export const SOLUTIONS = [
   {
     icon: UserCircle2,

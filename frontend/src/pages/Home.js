@@ -42,39 +42,41 @@ export default function HomePage() {
       {/* Enhanced Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/20 border-b border-white/10">
         {/* Logo and Navigation */}
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-6 h-16">
-          {/* Logo */}
-          <div
-            className="flex items-center gap-3 cursor-pointer"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-xl blur-sm opacity-75
-                bg-gradient-to-r from-emerald-400 to-cyan-400"
-              ></div>
-              <div
-                className="relative flex h-11 w-11 items-center justify-center rounded-xl shadow-xl
-                bg-gradient-to-br from-emerald-500 to-cyan-500"
-              >
-                <PiggyBank className="h-6 w-6 text-white" />
+        <div className="max-w-7xl mx-auto flex items-center h-16 px-4 lg:px-6">
+          {/* Logo - Fixed width container */}
+          <div className="flex items-center w-48">
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <div className="relative">
+                <div
+                  className="absolute inset-0 rounded-xl blur-sm opacity-75
+                  bg-gradient-to-r from-emerald-400 to-cyan-400"
+                ></div>
+                <div
+                  className="relative flex h-11 w-11 items-center justify-center rounded-xl shadow-xl
+                  bg-gradient-to-br from-emerald-500 to-cyan-500"
+                >
+                  <PiggyBank className="h-6 w-6 text-white" />
+                </div>
               </div>
-            </div>
-            <div>
-              <span
-                className="text-lg font-bold bg-clip-text text-transparent
-                bg-gradient-to-r from-emerald-400 to-cyan-400"
-              >
-                FINTECH
-              </span>
-              <p className="text-xs text-gray-300 font-medium">
-                Internet Banking
-              </p>
+              <div>
+                <span
+                  className="text-lg font-bold bg-clip-text text-transparent
+                  bg-gradient-to-r from-emerald-400 to-cyan-400"
+                >
+                  FINTECH
+                </span>
+                <p className="text-xs text-gray-300 font-medium">
+                  Internet Banking
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
             {NAVIGATION_ITEMS.map((item) => (
               <a
                 key={item.label}
@@ -90,33 +92,36 @@ export default function HomePage() {
             ))}
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-gray-300 hover:text-white transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-
-          {/* Login Button */}
-          <div className="hidden md:block">
-            <a
-              href={
-                state.isAuthenticated
-                  ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
-                  : '/auth/login'
-              }
-              className="inline-flex items-center gap-2 px-4 py-1.5 text-white font-medium
-              rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105
-              bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
+          {/* Login Button - Fixed width container */}
+          <div className="flex items-center justify-end w-48">
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 text-gray-300 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <ShieldUser className="h-4 w-4" />
-              {state.isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
-            </a>
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+
+            {/* Login Button */}
+            <div className="hidden md:block">
+              <a
+                href={
+                  state.isAuthenticated
+                    ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
+                    : '/auth/login'
+                }
+                className="inline-flex items-center gap-2 px-4 py-1.5 text-white font-medium
+                rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105
+                bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
+              >
+                <ShieldUser className="h-4 w-4" />
+                {state.isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
+              </a>
+            </div>
           </div>
         </div>
 
