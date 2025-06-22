@@ -1,7 +1,10 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
+import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
@@ -17,7 +20,8 @@ public interface RecipientService {
     public RecipientDtoRes addRecipient(AddRecipientRequest request) ;
     public void deleteRecipient(DeleteRecipientRequest deleteRecipientRequest) ;
     public boolean verifyRecipient(String accountNumber, UUID bankId) ;
-
+    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) ;
+    public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request ) ;
 
 
 }

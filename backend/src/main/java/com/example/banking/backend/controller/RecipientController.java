@@ -1,8 +1,11 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
+import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
@@ -54,13 +57,13 @@ public class RecipientController {
     @DeleteMapping("")
     public ResponseEntity<ApiResponse<String>> deleteRecipient(@Valid @RequestBody DeleteRecipientRequest request) {
 
-            recipientService.deleteRecipient(request);
+        recipientService.deleteRecipient(request);
 
-            return ResponseEntity.ok(ApiResponse.<String>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipient deleted successfully")
-                    .data("Recipient removed")
-                    .build());
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(HttpStatus.OK.value())
+                .message("Recipient deleted successfully")
+                .data("Recipient removed")
+                .build());
 
     }
 
@@ -70,15 +73,16 @@ public class RecipientController {
             @RequestParam String accountNumber,
             @RequestParam String bankId) {
 
-            boolean isValid = recipientService.verifyRecipient(accountNumber, UUID.fromString(bankId));
+        boolean isValid = recipientService.verifyRecipient(accountNumber, UUID.fromString(bankId));
 
-            return ResponseEntity.ok(ApiResponse.<Boolean>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Recipient verification completed")
-                    .data(isValid)
-                    .build());
+        return ResponseEntity.ok(ApiResponse.<Boolean>builder()
+                .status(HttpStatus.OK.value())
+                .message("Recipient verification completed")
+                .data(isValid)
+                .build());
 
     }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
             @RequestParam(defaultValue = "10") int limit,
@@ -92,4 +96,20 @@ public class RecipientController {
                 .build());
 
     }
+
+
+    @PostMapping ("external/recipient-info")
+    @GetMapping
+    public ResponseEntity<ApiResponse<ExternalAccountDto>> returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request) {
+
+        ExternalAccountDto recipients = recipientService.returnRecipientForOtherBank(request);
+
+        return ResponseEntity.ok(ApiResponse.<ExternalAccountDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Recipient information retrieved successfully")
+                .data(recipients)
+                .build());
+    }
+
+
 }
