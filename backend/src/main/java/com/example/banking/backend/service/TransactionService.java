@@ -6,6 +6,7 @@ import com.example.banking.backend.dto.request.transaction.ExternalDepositReques
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
 import com.example.banking.backend.dto.response.account.AccountDto;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,8 @@ public interface TransactionService {
 
     BankTransactionStatsDto getBankTransactionStats(UUID bankId, String startDate, String endDate);
 
-    public AccountDto getExternalAccountInfo(String accountNumber , UUID bankId);
-
     DepositResult externalDeposit(ExternalDepositRequest request) throws Exception;
+
+    // Return an ExternalAccountDto for other bank
+    ExternalAccountDto ExternalAccountReturn();
 }

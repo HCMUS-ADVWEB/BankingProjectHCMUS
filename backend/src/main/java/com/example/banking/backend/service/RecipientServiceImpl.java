@@ -1,7 +1,10 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
+import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.exception.BadRequestException;
@@ -66,7 +69,7 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientName(),
                 recipient.getNickName(),
                 recipient.getBank() == null ? null : recipient.getBank().getBankName()
-                );
+        );
 
 
     }
@@ -126,7 +129,7 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getNickName(),
                 recipient.getBank() == null ? null : recipient.getBank().getBankName()
 
-                );
+        );
 
     }
 
@@ -167,6 +170,25 @@ public class RecipientServiceImpl implements RecipientService {
                         recipient.getNickName()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) {
+        if (request.getBankCode() == null) {
+            Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                    .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
+            return account.getUser().getFullName();
+        } else {
+            Bank bank = bankRepository.findByBankCode(request.getBankCode())
+                    .orElseThrow(() -> new BadRequestException("NOT FOUND THIS BANK"));
+            Account account = accountRepository.findByAccountNumberAndBankId(UUID.fromString(request.getAccountNumber()), bank.getId())
+                    .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
+            return account.getUser().getFullName();
+        }
+    }
+
+    @Override
+    public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request) {
+        return null;
     }
 
 
