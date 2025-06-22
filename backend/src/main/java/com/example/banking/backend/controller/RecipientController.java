@@ -3,6 +3,7 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
+import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
 import com.example.banking.backend.service.RecipientService;
@@ -23,11 +24,11 @@ public class RecipientController {
     RecipientService recipientService;
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<Recipient>> addRecipient(
+    public ResponseEntity<ApiResponse<RecipientDtoRes>> addRecipient(
             @Valid @RequestBody AddRecipientRequest request) {
-        Recipient recipient = recipientService.addRecipient(request);
+        RecipientDtoRes recipient = recipientService.addRecipient(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.<Recipient>builder()
+                .body(ApiResponse.<RecipientDtoRes>builder()
                         .status(HttpStatus.CREATED.value())
                         .message("Recipient added successfully")
                         .data(recipient)
@@ -35,13 +36,13 @@ public class RecipientController {
     }
 
     @PutMapping("/{recipientId}")
-    public ResponseEntity<ApiResponse<Recipient>> updateRecipient(
+    public ResponseEntity<ApiResponse<RecipientDtoRes>> updateRecipient(
             @PathVariable String recipientId,
             @Valid @RequestBody AddRecipientRequest request) {
 
-        Recipient recipient = recipientService.updateRecipient(UUID.fromString(recipientId), request);
+        RecipientDtoRes recipient = recipientService.updateRecipient(UUID.fromString(recipientId), request);
 
-        return ResponseEntity.ok(ApiResponse.<Recipient>builder()
+        return ResponseEntity.ok(ApiResponse.<RecipientDtoRes>builder()
                 .status(HttpStatus.OK.value())
                 .message("Recipient updated successfully")
                 .data(recipient)
