@@ -13,7 +13,7 @@ import {
   Alert,
   Divider,
   CircularProgress,
-  Backdrop
+  Backdrop,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -23,22 +23,22 @@ import {
   CalendarMonth as CalendarIcon,
   AccountCircle as UserIcon,
   Lock as LockIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
 export default function AccountsPage() {
   const { state } = useAuth();
-  const { 
-    createAccount, 
-    setCreateAccount, 
-    handleCreateAccount, 
-    loading, 
-    error, 
-    success
+  const {
+    createAccount,
+    setCreateAccount,
+    handleCreateAccount,
+    loading,
+    error,
+    success,
   } = useEmployee();
-  
+
   // Form validation state
   const [formErrors, setFormErrors] = useState({});
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -51,7 +51,7 @@ export default function AccountsPage() {
     if (success) {
       setLocalSuccess(success);
       setSnackbarOpen(true);
-      
+
       // Reset form after successful account creation
       if (formSubmitted) {
         resetForm();
@@ -70,24 +70,24 @@ export default function AccountsPage() {
   const validateForm = () => {
     const errors = {};
     // Basic validation
-    if (!createAccount.fullName?.trim()) errors.fullName = "Full name is required";
-    if (!createAccount.email?.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(createAccount.email)) errors.email = "Email is invalid";
-    
-    if (!createAccount.phone?.trim()) errors.phone = "Phone is required";
-    else if (!/^\d{10,11}$/.test(createAccount.phone.replace(/\D/g, ''))) errors.phone = "Phone must be 10-11 digits";
-    
-    if (!createAccount.address?.trim()) errors.address = "Address is required";
-    if (!createAccount.dob) errors.dob = "Date of birth is required";
-    
-    if (!createAccount.username?.trim()) errors.username = "Username is required";
-    else if (createAccount.username.length < 5) errors.username = "Username must be at least 5 characters";
+    if (!createAccount.fullName?.trim()) errors.fullName = 'Full name is required';
+    if (!createAccount.email?.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(createAccount.email)) errors.email = 'Email is invalid';
 
-    if (!createAccount.password?.trim()) errors.password = "Password is required";
-    else if (createAccount.password.length < 8) errors.password = "Password must be at least 8 characters";
-    
-    if (createAccount.password !== createAccount.passwordConfirmation) 
-      errors.passwordConfirmation = "Passwords do not match";
+    if (!createAccount.phone?.trim()) errors.phone = 'Phone is required';
+    else if (!/^\d{10,11}$/.test(createAccount.phone.replace(/\D/g, ''))) errors.phone = 'Phone must be 10-11 digits';
+
+    if (!createAccount.address?.trim()) errors.address = 'Address is required';
+    if (!createAccount.dob) errors.dob = 'Date of birth is required';
+
+    if (!createAccount.username?.trim()) errors.username = 'Username is required';
+    else if (createAccount.username.length < 5) errors.username = 'Username must be at least 5 characters';
+
+    if (!createAccount.password?.trim()) errors.password = 'Password is required';
+    else if (createAccount.password.length < 8) errors.password = 'Password must be at least 8 characters';
+
+    if (createAccount.password !== createAccount.passwordConfirmation)
+      errors.passwordConfirmation = 'Passwords do not match';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -95,7 +95,7 @@ export default function AccountsPage() {
 
   const handleConfirm = async () => {
     if (!validateForm()) return;
-    
+
     setFormSubmitted(true);
     try {
       await handleCreateAccount();
@@ -135,15 +135,15 @@ export default function AccountsPage() {
           <CircularProgress color="inherit" />
         </Backdrop>
 
-        <Snackbar 
-          open={snackbarOpen} 
-          autoHideDuration={6000} 
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert 
-            onClose={handleCloseSnackbar} 
-            severity={localError ? "error" : "success"} 
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={localError ? 'error' : 'success'}
             sx={{ width: '100%' }}
           >
             {localError || localSuccess}
@@ -166,7 +166,7 @@ export default function AccountsPage() {
           }}
         >
           <Divider sx={{ mb: 3 }} />
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Box
@@ -187,10 +187,10 @@ export default function AccountsPage() {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField 
-                      label="Full Name" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Full Name"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.fullName || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, fullName: e.target.value }))}
@@ -206,11 +206,11 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField 
-                      label="Email" 
-                      type="email" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Email"
+                      type="email"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.email || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, email: e.target.value }))}
@@ -226,10 +226,10 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField 
-                      label="Phone" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Phone"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.phone || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, phone: e.target.value }))}
@@ -245,10 +245,10 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6}>
-                    <TextField 
-                      label="Address" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Address"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.address || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, address: e.target.value }))}
@@ -264,12 +264,12 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={6}>
-                    <TextField 
-                      label="Date of Birth" 
-                      type="date" 
-                      variant="outlined" 
-                      fullWidth 
-                      required 
+                    <TextField
+                      label="Date of Birth"
+                      type="date"
+                      variant="outlined"
+                      fullWidth
+                      required
                       InputLabelProps={{ shrink: true }}
                       value={createAccount.dob || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, dob: e.target.value }))}
@@ -285,7 +285,7 @@ export default function AccountsPage() {
                     />
                   </Grid>
                 </Grid>
-                
+
                 <Typography
                   variant="subtitle1"
                   color="primary.main"
@@ -297,10 +297,10 @@ export default function AccountsPage() {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={12} md={4}>
-                    <TextField 
-                      label="Username" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Username"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.username || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, username: e.target.value }))}
@@ -316,11 +316,11 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField 
-                      label="Password" 
-                      type="password" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Password"
+                      type="password"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.password || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, password: e.target.value }))}
@@ -336,11 +336,11 @@ export default function AccountsPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} md={4}>
-                    <TextField 
-                      label="Confirm Password" 
-                      type="password" 
-                      variant="outlined" 
-                      fullWidth 
+                    <TextField
+                      label="Confirm Password"
+                      type="password"
+                      variant="outlined"
+                      fullWidth
                       required
                       value={createAccount.passwordConfirmation || ''}
                       onChange={e => setCreateAccount(prev => ({ ...prev, passwordConfirmation: e.target.value }))}
@@ -358,10 +358,10 @@ export default function AccountsPage() {
                 </Grid>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-                <Button 
-                  variant="outlined" 
-                  color="secondary" 
-                  onClick={resetForm} 
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={resetForm}
                   sx={{ mr: 2 }}
                   startIcon={<ClearIcon />}
                 >
