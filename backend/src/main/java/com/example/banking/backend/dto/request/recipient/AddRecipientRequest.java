@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class AddRecipientRequest {
     private String accountNumber;
-    private String bankName;
-    private String name ;
+    private String bankCode;
     private String nickName;
 }

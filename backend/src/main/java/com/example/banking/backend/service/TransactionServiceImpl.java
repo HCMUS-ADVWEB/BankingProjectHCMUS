@@ -18,6 +18,7 @@ import com.example.banking.backend.repository.*;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,6 +37,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,7 +51,7 @@ public class TransactionServiceImpl implements TransactionService {
     private BankRepository bankRepository;
     private UserRepository userRepository;
     private RecipientRepository recipientRepository;
-    private final PrivateKey bankAPrivateKey;
+    private final PrivateKey nhom3privateKey; // My bank
     private final RestTemplate restTemplate;
     OtpService otpService;
 
@@ -88,7 +90,6 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setMessage(request.getMessage() != null ? request.getMessage() : "");
         transaction.setStatus(TransactionStatusType.PENDING);
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
 
        String destinationApiUrl = destinationBank.getApiEndpoint();
         if (destinationApiUrl == null) {
@@ -102,12 +103,30 @@ public class TransactionServiceImpl implements TransactionService {
         externalRequest.setFeeType(request.getFeeType());
         externalRequest.setMessage(request.getMessage());
 
-        String dataToSign = externalRequest.getAccountNumberReceiver() + externalRequest.getAmount() + Instant.now().toString();
-        String signature = CryptoUtils.signData(dataToSign, bankAPrivateKey);
-        String hmac = CryptoUtils.generateHMAC(dataToSign, destinationBank.getSecretKey());
+
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> bankDetails = Map.of(
+                "senderAccountNumber", sourceAccount.getAccountNumber(),
+                "receiverAccountNumber", request.getAccountNumberReceiver(),
+                "amount", request.getAmount(),
+                "content", request.getMessage() != null ? request.getMessage() : ""
+        );
+
+        String body = objectMapper.writeValueAsString(bankDetails);
+        String timestamp = Instant.now().toString();
+        String bankCode = "FIN";
+        String secretKey = destinationBank.getSecretKey();
+
+        String hashInput = body + timestamp + bankCode + secretKey;
+        String hmac = CryptoUtils.generateHMAC(hashInput, secretKey); // HmacSHA256
+
+        String signature = CryptoUtils.signData(body, nhom3privateKey);
 
         externalRequest.setSignature(signature);
         externalRequest.setHmac(hmac);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         try {
             ResponseEntity<TransferResult> response = restTemplate.postForEntity(
@@ -135,6 +154,7 @@ public class TransactionServiceImpl implements TransactionService {
             return new TransferResult(false, null, request.getAmount(), fee, null, "External transfer failed: " + e.getMessage());
         }
     }
+
 
     public DepositResult externalDeposit(ExternalDepositRequest request) throws Exception {
         if (request == null) {
@@ -187,7 +207,7 @@ public class TransactionServiceImpl implements TransactionService {
                 response.setAmount(request.getAmount());
                 response.setTimestamp(Instant.now().toString());
                 String responseData = response.getTransactionId() + response.getTargetAccountId() + response.getAmount() + response.getTimestamp();
-                response.setSignature(CryptoUtils.signData(responseData, bankAPrivateKey));
+                response.setSignature(CryptoUtils.signData(responseData, nhom3privateKey));
                 restTemplate.postForEntity(sourceApiUrl + "/api/confirm", response, Void.class);
             }
 
@@ -284,10 +304,6 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Server is busy, please try again later", e);
         }
     }
-
-
-
-
 
     @Override
     public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page) {
