@@ -40,7 +40,7 @@ public class SecurityConfig {
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
     @Bean
-    public PrivateKey bankAPrivateKey() throws Exception {
+    public PrivateKey nhom3privateKey() throws Exception {
         return CryptoUtils.loadPrivateKey("keys/private_key.pem");
     }
     @Bean

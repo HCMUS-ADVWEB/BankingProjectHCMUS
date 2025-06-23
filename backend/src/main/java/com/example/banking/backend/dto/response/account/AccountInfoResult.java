@@ -14,7 +14,7 @@ import java.util.Map;
 public class AccountInfoResult {
     private boolean success;
     private String accountNumber;
-    private Map<String, Object> accountDetails;
+    private String fullName;
     private String errorMessage;
 
 

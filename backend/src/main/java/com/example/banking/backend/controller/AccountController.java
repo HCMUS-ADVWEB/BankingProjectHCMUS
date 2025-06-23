@@ -83,7 +83,7 @@ public class AccountController {
 
     @PostMapping("/account-info")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<ApiResponse<AccountInfoResult>> getAccountInfo(AccountInfoRequest request) {
+    public ResponseEntity<ApiResponse<AccountInfoResult>> getAccountInfo(@RequestBody AccountInfoRequest request) {
         return ResponseEntity.ok(ApiResponse.<AccountInfoResult>builder()
                 .status(HttpStatus.OK.value())
                 .message("Account info retrieved successfully")

@@ -29,6 +29,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.PrivateKey;
@@ -72,113 +75,174 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     public TransferResult externalTransfer(TransferExternalRequest request) throws Exception {
-        if (request == null || request.getAmount() <= 0) {
-            return new TransferResult(false, null, 0.0, 0.0, null, "Invalid request");
-        }
-        Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
-        if (sourceAccount.getBalance() < request.getAmount()) {
-            return new TransferResult(false, null, request.getAmount(), 0.0, null, "Insufficient balance");
-        }
-        double fee = calculateFee(request.getAmount(), FeeType.SENDER);
-        double totalAmount = request.getAmount() + fee;
-
-        if (sourceAccount.getBalance() < totalAmount) {
-            return new TransferResult(false, null, request.getAmount(), fee, null, "Insufficient balance after fee");
-        }
-        otpService.validateOtp(getCurrentUser().getId(), OtpType.TRANSFER, request.getOtp());
-        Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
-                .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
-
-        // Tạo transaction record
-        Account accountCurrentUser = getAccountCurrentUser();
-        Transaction transaction = createPendingTransaction(accountCurrentUser, destinationBank, request, fee);
-        Transaction savedTransaction = transactionRepository.save(transaction);
-
-        String destinationApiUrl = destinationBank.getApiEndpoint();
-        if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
-            transactionRepository.delete(savedTransaction);
-            return new TransferResult(false, null, request.getAmount(), fee, null,
-                    "Destination bank API endpoint not configured");
-        }
-
         try {
-            InterbankTransferRequest interbankRequest = new InterbankTransferRequest(
-                    sourceAccount.getAccountNumber(),
-                    request.getReceiverAccountNumber(),
-                    request.getAmount(),
-                    request.getContent() != null ? request.getContent() : ""
-            );
-
-            String timestamp = Instant.now().toString();
-            ObjectMapper objectMapper = new ObjectMapper();
-            String requestBody = objectMapper.writeValueAsString(interbankRequest);
-            String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
-            String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
-            String signature = CryptoUtils.signData(requestBody, nhom3privateKey);
-
-            // Setup headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Bank-Code", request.getBankCode());
-            headers.set("X-Timestamp", timestamp);
-            headers.set("X-Request-Hash", hmac);
-            headers.set("X-Signature", signature);
-
-            // Tạo HTTP entity
-            HttpEntity<InterbankTransferRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
-
-            // Gửi request đến ngân hàng đích
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    destinationApiUrl + "/api/linked-banks/transfers",
-                    HttpMethod.POST,
-                    httpEntity,
-                    Map.class
-            );
-
-            // Xử lý response
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                Boolean success = (Boolean) responseBody.get("success");
-
-                if (Boolean.TRUE.equals(success)) {
-                    // Thành công - trừ tiền và cập nhật transaction
-                    sourceAccount.setBalance(sourceAccount.getBalance() - totalAmount);
-                    accountRepository.save(sourceAccount);
-
-                    savedTransaction.setStatus(TransactionStatusType.COMPLETED);
-                    transactionRepository.save(savedTransaction);
-
-                    return new TransferResult(
-                            true,
-                            savedTransaction.getId().toString(),
-                            request.getAmount(),
-                            fee,
-                            request.getContent() != null ? request.getContent() : "",
-                            null
-                    );
-                } else {
-                    // Thất bại từ phía ngân hàng đích
-                    transactionRepository.delete(savedTransaction);
-                    String errorMessage = (String) responseBody.getOrDefault("message", "Transfer failed");
-                    return new TransferResult(false, null, request.getAmount(), fee, null,
-                            "External transfer failed: " + errorMessage);
-                }
-            } else {
-                // HTTP error
-                transactionRepository.delete(savedTransaction);
-                return new TransferResult(false, null, request.getAmount(), fee, null,
-                        "External transfer failed: HTTP " + response.getStatusCode());
+            if (request == null || request.getAmount() <= 0) {
+                return new TransferResult(false, null, 0.0, 0.0, null, "Invalid request");
             }
 
+            Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
+
+            if (sourceAccount.getBalance() < request.getAmount()) {
+                return new TransferResult(false, null, request.getAmount(), 0.0, null, "Insufficient balance");
+            }
+
+            double fee = calculateFee(request.getAmount(), FeeType.SENDER);
+            double totalAmount = request.getAmount() + fee;
+
+            if (sourceAccount.getBalance() < totalAmount) {
+                return new TransferResult(false, null, request.getAmount(), fee, null, "Insufficient balance after fee");
+            }
+
+            otpService.validateOtp(getCurrentUser().getId(), OtpType.TRANSFER, request.getOtp());
+
+            Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
+
+            // Tạo transaction record
+            Account accountCurrentUser = getAccountCurrentUser();
+
+            try {
+                Transaction transaction = new Transaction();
+                transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+                transaction.setFromAccount(accountCurrentUser);
+                transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
+                transaction.setToAccountNumber(request.getReceiverAccountNumber());
+                transaction.setToAccount(null); // Không biết account object của ngân hàng khác
+                transaction.setAmount(request.getAmount());
+                transaction.setFee(fee);
+                transaction.setFeeType(FeeType.SENDER);
+                transaction.setStatus(TransactionStatusType.PENDING);
+                transaction.setMessage(request.getContent());
+                Instant now = Instant.now();
+                transaction.setCreatedAt(now);
+                transaction.setUpdatedAt(now);
+                Transaction savedTransaction = transactionRepository.save(transaction);
+
+                String destinationApiUrl = destinationBank.getApiEndpoint();
+                if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
+                    transactionRepository.delete(savedTransaction);
+                    throw new BadRequestException("Destination bank API endpoint is not configured");
+                }
+
+                try {
+                    InterbankTransferRequest interbankRequest = new InterbankTransferRequest(
+                            sourceAccount.getAccountNumber(),
+                            request.getReceiverAccountNumber(),
+                            request.getAmount(),
+                            request.getContent() != null ? request.getContent() : ""
+                    );
+
+                    String timestamp =String.valueOf(Instant.now().toEpochMilli());
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String requestBody = objectMapper.writeValueAsString(interbankRequest);
+                    String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
+                    String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
+                    String signature = CryptoUtils.signData(requestBody, nhom3privateKey);
+
+                    // Setup headers
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+                    headers.set("Bank-Code", request.getBankCode());
+                    headers.set("X-Timestamp", timestamp);
+                    headers.set("X-Request-Hash", hmac);
+                    headers.set("X-Signature", signature);
+
+                    // Tạo HTTP entity
+                    HttpEntity<InterbankTransferRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
+
+                    // Gửi request đến ngân hàng đích
+                    ResponseEntity<Map> response = restTemplate.exchange(
+                            destinationApiUrl + "/api/linked-banks/transfers",
+                            HttpMethod.POST,
+                            httpEntity,
+                            Map.class
+                    );
+
+                    // Xử lý response
+                    if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                        Map<String, Object> responseBody = response.getBody();
+                        Boolean success = (Boolean) responseBody.get("success");
+
+                        if (Boolean.TRUE.equals(success)) {
+                            sourceAccount.setBalance(sourceAccount.getBalance() - totalAmount);
+                            accountRepository.save(sourceAccount);
+
+                            savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+                            transactionRepository.save(savedTransaction);
+
+                            return new TransferResult(
+                                    true,
+                                    savedTransaction.getId().toString(),
+                                    request.getAmount(),
+                                    fee,
+                                    request.getContent() != null ? request.getContent() : "",
+                                    null
+                            );
+                        } else {
+                            // Thất bại từ phía ngân hàng đích
+                            transactionRepository.delete(savedTransaction);
+                            String errorMessage = (String) responseBody.getOrDefault("message", "Transfer failed");
+                            return new TransferResult(false, null, request.getAmount(), fee, null,
+                                    "External transfer failed: " + errorMessage);
+                        }
+                    } else {
+                        // HTTP error
+                        transactionRepository.delete(savedTransaction);
+                        return new TransferResult(false, null, request.getAmount(), fee, null,
+                                "External transfer failed: HTTP " + response.getStatusCode());
+                    }
+
+                } catch (HttpClientErrorException e) {
+                    transactionRepository.delete(savedTransaction);
+                    return new TransferResult(false, null, request.getAmount(), fee, null,
+                            "External transfer failed: HTTP Client Error - " + e.getMessage());
+
+                } catch (HttpServerErrorException e) {
+                    transactionRepository.delete(savedTransaction);
+                    return new TransferResult(false, null, request.getAmount(), fee, null,
+                            "External transfer failed: HTTP Server Error - " + e.getMessage());
+
+                } catch (ResourceAccessException e) {
+                    transactionRepository.delete(savedTransaction);
+                    return new TransferResult(false, null, request.getAmount(), fee, null,
+                            "External transfer failed: Connection Error - " + e.getMessage());
+
+                } catch (Exception e) {
+                    transactionRepository.delete(savedTransaction);
+                    return new TransferResult(false, null, request.getAmount(), fee, null,
+                            "External transfer failed: " + e.getMessage());
+                }
+
+            } catch (org.springframework.dao.InvalidDataAccessApiUsageException e) {
+                if (e.getCause() instanceof org.hibernate.TransientPropertyValueException) {
+                    throw new BadRequestException("Database constraint error: Invalid entity reference");
+                }
+                throw new BadRequestException("Database access error: " + e.getMessage());
+
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                throw new BadRequestException("Database constraint violation: " + e.getMessage());
+
+            } catch (org.springframework.transaction.TransactionSystemException e) {
+                Throwable rootCause = e.getRootCause();
+                if (rootCause != null) {
+                }
+                throw new BadRequestException("Transaction commit failed: " + e.getMessage());
+
+            } catch (Exception e) {
+                throw new BadRequestException("Transaction creation failed: " + e.getMessage());
+            }
+
+        } catch (IllegalArgumentException e) {
+            return new TransferResult(false, null, 0.0, 0.0, null, e.getMessage());
+
+        } catch (BadRequestException e) {
+            throw e;
+
         } catch (Exception e) {
-            // Exception - rollback
-            transactionRepository.delete(savedTransaction);
-            return new TransferResult(false, null, request.getAmount(), fee, null,
-                    "External transfer failed: " + e.getMessage());
+            throw new Exception("External transfer failed: " + e.getMessage(), e);
         }
     }
-
 
     @Override
     public DepositResult externalDeposit(InterbankTransferRequest request
@@ -189,8 +253,6 @@ public class TransactionServiceImpl implements TransactionService {
         }
         Bank sourceBank = bankRepository.findByBankCode(sourceBankCode)
                 .orElseThrow(() -> new IllegalArgumentException("Source bank not found: " + sourceBankCode));
-
-        // Tìm tài khoản đích
         Account destinationAccount = accountRepository.findByAccountNumber(request.getReceiverAccountNumber())
                 .orElse(null);
 
@@ -266,7 +328,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransferResult internalTransfer(TransferRequest request) {
         try {
-            Transaction transaction = new Transaction();
 
             Account accountCurrentUser = getAccountCurrentUser();
             Account toAccount = getAccountFromNumber(request.getAccountNumberReceiver());
@@ -282,7 +343,7 @@ public class TransactionServiceImpl implements TransactionService {
             if (accountCurrentUser.getBalance() < totalAmount) {
                 throw new BadRequestException("Insufficient balance");
             }
-
+            Transaction transaction = new Transaction();
             transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
             transaction.setFromAccount(accountCurrentUser);
             transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());

@@ -1,6 +1,7 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.config.BankCodeConfig;
+import com.example.banking.backend.dto.request.account.AccountExternalRequest;
 import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
@@ -59,8 +61,7 @@ public class AccountServiceImpl implements AccountService {
     private final OtpService otpService;
     private final PrivateKey nhom3privateKey; // My bank
     private final RestTemplate restTemplate;
-
-    BankRepository bankRepository;
+    private  final BankRepository bankRepository;
     private  final TransactionRepository transactionRepository;
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
@@ -277,12 +278,11 @@ public class AccountServiceImpl implements AccountService {
         }
 
         try {
-            AccountInfoRequest interbankRequest = new AccountInfoRequest(
-                    sourceAccount.getAccountNumber(),
+            AccountExternalRequest interbankRequest = new AccountExternalRequest(
                     request.getAccountNumber()
             );
 
-            String timestamp = Instant.now().toString();
+            String timestamp =String.valueOf(Instant.now().toEpochMilli());
             ObjectMapper objectMapper = new ObjectMapper();
             String requestBody = objectMapper.writeValueAsString(interbankRequest);
             String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
@@ -294,9 +294,8 @@ public class AccountServiceImpl implements AccountService {
             headers.set("Bank-Code", request.getBankCode());
             headers.set("X-Timestamp", timestamp);
             headers.set("X-Request-Hash", hmac);
-            headers.set("X-Signature", signature);
 
-            HttpEntity<AccountInfoRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
+            HttpEntity<AccountExternalRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
 
             ResponseEntity<Map> response = restTemplate.exchange(
                     destinationApiUrl + "/api/linked-banks/account-info",
@@ -309,13 +308,14 @@ public class AccountServiceImpl implements AccountService {
                 Map<String, Object> responseBody = response.getBody();
                 Boolean success = (Boolean) responseBody.get("success");
 
-                if (Boolean.TRUE.equals(success)) {
-                    String accountNumber = (String) responseBody.get("accountNumber");
-                    Map<String, Object> accountDetails = (Map<String, Object>) responseBody.get("accountDetails");
+                if (response.getStatusCode() == HttpStatus.OK){
+                    Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+                    String accountNumber = (String) data.get("accountNumber");
+                    String fullName = (String) data.get("fullName");
                     return new AccountInfoResult(
                             true,
                             accountNumber,
-                            accountDetails,
+                            fullName,
                             null
                     );
                 } else {
