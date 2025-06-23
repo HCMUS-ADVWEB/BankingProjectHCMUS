@@ -74,7 +74,8 @@ public class SecurityConfig {
                                 "/topic/**",
                                 "/queue/**",
                                 "/app/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/api/linked-banks/**"
                                 ).permitAll()
                         .anyRequest().authenticated()
                 )

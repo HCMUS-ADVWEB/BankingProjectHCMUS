@@ -94,19 +94,6 @@ public class AccountController {
 
     }
 
-    @PostMapping("/linked-banks/accounts")
-    public ResponseEntity<ApiResponse<AccountInfoResponse>> processAccountInfo(
-            @RequestBody AccountInfoRequest request,
-            @RequestHeader("Bank-Code") String sourceBankCode,
-            @RequestHeader("X-Timestamp") String timestamp,
-            @RequestHeader("X-Request-Hash") String receivedHmac,
-            @RequestHeader("X-Signature") String signature) throws Exception {
-        AccountInfoResponse response = accountService.processAccountInfo(request, sourceBankCode, timestamp, receivedHmac, signature);
-        return ResponseEntity.ok(ApiResponse.<AccountInfoResponse>builder()
-                .status(HttpStatus.OK.value())
-                .message("Account info processed successfully")
-                .data(response)
-                .build());
-    }
+
 
 }
