@@ -20,7 +20,7 @@ public interface RecipientService {
     public RecipientDtoRes addRecipient(AddRecipientRequest request) ;
     public void deleteRecipient(DeleteRecipientRequest deleteRecipientRequest) ;
     public boolean verifyRecipient(String accountNumber, UUID bankId) ;
-    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) ;
+    //public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) ;
     public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request ) ;
 
 
