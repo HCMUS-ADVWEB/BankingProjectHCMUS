@@ -1,13 +1,14 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.account.DepositRequest;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
 import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
-import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
+import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
+import com.example.banking.backend.dto.response.account.*;
+import com.example.banking.backend.dto.response.transaction.DepositResult;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.AccountService;
@@ -43,7 +44,7 @@ public class AccountController {
             @RequestParam(required = false, defaultValue = "0") Integer pn,
             @RequestParam(required = false) TransactionType type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions( accountId, limit, pn, type);
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(accountId, limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -79,5 +80,31 @@ public class AccountController {
                 .build());
     }
 
+
+    @PostMapping("/account-info")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<AccountInfoResult>> getAccountInfo(AccountInfoRequest request) {
+        return ResponseEntity.ok(ApiResponse.<AccountInfoResult>builder()
+                .status(HttpStatus.OK.value())
+                .message("Account info retrieved successfully")
+                .data(accountService.getAccountInfo(request))
+                .build());
+
+    }
+
+    @PostMapping("/linked-banks/accounts")
+    public ResponseEntity<ApiResponse<AccountInfoResponse>> processAccountInfo(
+            @RequestBody AccountInfoRequest request,
+            @RequestHeader("Bank-Code") String sourceBankCode,
+            @RequestHeader("X-Timestamp") String timestamp,
+            @RequestHeader("X-Request-Hash") String receivedHmac,
+            @RequestHeader("X-Signature") String signature) throws Exception {
+        AccountInfoResponse response = accountService.processAccountInfo(request, sourceBankCode, timestamp, receivedHmac, signature);
+        return ResponseEntity.ok(ApiResponse.<AccountInfoResponse>builder()
+                .status(HttpStatus.OK.value())
+                .message("Account info processed successfully")
+                .data(response)
+                .build());
+    }
 
 }
