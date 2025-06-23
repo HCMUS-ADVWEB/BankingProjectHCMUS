@@ -24,6 +24,7 @@ import com.example.banking.backend.dto.response.transaction.TransferResult;
 import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.InvalidOtpException;
 import com.example.banking.backend.mapper.debtReminder.DebtReminderMapper;
+import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.DebtReminder;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.DebtStatusType;
@@ -31,22 +32,21 @@ import com.example.banking.backend.model.type.FeeType;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.repository.DebtReminderRepository;
 import com.example.banking.backend.repository.UserRepository;
+import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
-import com.example.banking.backend.service.NotificationService; 
 import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class DebtServiceImpl implements DebtService {
-
-    private final DebtReminderRepository debtReminderRepository;
+public class DebtServiceImpl implements DebtService {    private final DebtReminderRepository debtReminderRepository;
     private final UserRepository userRepository;
     private final DebtReminderMapper debtReminderMapper;
     private final TransactionService transactionService;
     private final OtpService otpService;
     private final NotificationService notificationService;
+    private final AccountRepository accountRepository;
     @Override
     public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
         User currentUser = getCurrentUser();
@@ -66,16 +66,31 @@ public class DebtServiceImpl implements DebtService {
                 .status(HttpStatus.OK.value())
                 .message("Debt reminders retrieved successfully!")
                 .build();
-    }
-
-    @Override
+    }    @Override
     public ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request) {
         // Get the currently authenticated user
         User creator = getCurrentUser();
+        
+        // Validate that the amount is positive
+        if (request.getAmount() <= 0) {
+            throw new BadRequestException("Amount must be greater than 0");
+        }
 
-        // Fetch the debtor from the database
-        User debtor = userRepository.findById(request.getDebtorId())
-                .orElseThrow(() -> new IllegalArgumentException("Debtor not found"));
+        // Get the creator's account
+        Account creatorAccount = accountRepository.findByUserId(creator.getId())
+                .orElseThrow(() -> new BadRequestException("Creator account not found"));
+
+        // Fetch the debtor's account from the database
+        Account debtorAccount = accountRepository.findByAccountNumber(request.getDebtorAccountNumber())
+                .orElseThrow(() -> new BadRequestException("Debtor account not found"));
+
+        // Get the debtor user from the account
+        User debtor = debtorAccount.getUser();
+        
+        // Ensure creator is not trying to create a debt for themselves
+        if (creator.getId().equals(debtor.getId())) {
+            throw new BadRequestException("Cannot create a debt reminder for yourself");
+        }
 
         // Create a new DebtReminder entity
         DebtReminder debtReminder = new DebtReminder();
