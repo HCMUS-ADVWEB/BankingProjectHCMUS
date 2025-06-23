@@ -3,8 +3,9 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
 import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
+import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
+import com.example.banking.backend.dto.request.transaction.TransferExternalRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
-import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
 import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -42,23 +44,14 @@ public class TransactionController {
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/external")
     public ResponseEntity<ApiResponse<TransferResult>> externalTransfer(
-            @Valid @RequestBody TransferRequestExternal request) throws Exception {
+            @Valid @RequestBody TransferExternalRequest request) throws Exception {
         TransferResult result = transactionService.externalTransfer(request);
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(ApiResponse.<TransferResult>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("External transfer initiated successfully")
-                    .data(result)
-                    .build());
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.<TransferResult>builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(result.getErrorMessage())
-                    .data(result)
-                    .build());
-        }
+        return ResponseEntity.ok(ApiResponse.<TransferResult>builder()
+                .status(HttpStatus.OK.value())
+                .message("External transfer completed successfully")
+                .data(result)
+                .build());
     }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
@@ -96,12 +89,16 @@ public class TransactionController {
     }
 
 
-    /*NOT COMPLETED */
     @PostMapping("/external/deposit")
-    public ResponseEntity<ApiResponse<DepositResult>> externalDeposit(
-            @Valid @RequestBody ExternalDepositRequest request) throws Exception {
+    public ResponseEntity<ApiResponse<DepositResult>> receiveInterbankTransfer(
+            @RequestBody InterbankTransferRequest request,
+            @RequestHeader("Bank-Code") String sourceBankCode,
+            @RequestHeader("X-Timestamp") String timestamp,
+            @RequestHeader("X-Request-Hash") String receivedHmac,
+            @RequestHeader("X-Signature") String signature) throws Exception {
 
-        DepositResult depositResult = transactionService.externalDeposit(request);
+        DepositResult depositResult = transactionService.externalDeposit(request, sourceBankCode,
+                timestamp, receivedHmac, signature);
 
         return ResponseEntity.ok(ApiResponse.<DepositResult>builder()
                 .status(HttpStatus.OK.value())

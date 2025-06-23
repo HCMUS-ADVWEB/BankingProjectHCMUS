@@ -1,46 +1,49 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.config.BankCodeConfig;
+import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
 import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
-import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
+import com.example.banking.backend.dto.response.account.*;
 import com.example.banking.backend.dto.response.transaction.TransactionDto;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.model.Account;
+import com.example.banking.backend.model.Bank;
 import com.example.banking.backend.model.Transaction;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.model.type.UserRoleType;
+import com.example.banking.backend.repository.BankRepository;
 import com.example.banking.backend.repository.TransactionRepository;
 import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
+import com.example.banking.backend.util.CryptoUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import javax.sound.midi.Track;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,6 +57,10 @@ public class AccountServiceImpl implements AccountService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
+    private final PrivateKey nhom3privateKey; // My bank
+    private final RestTemplate restTemplate;
+
+    BankRepository bankRepository;
     private  final TransactionRepository transactionRepository;
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
@@ -251,5 +258,116 @@ public class AccountServiceImpl implements AccountService {
         user.setPassword(hashedPassword);
         userRepository.save(user);
         return true;
+    }
+
+    public AccountInfoResult getAccountInfo(AccountInfoRequest request) {
+        if (request == null || request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
+            throw new BadRequestException("Invalid request parameters");
+        }
+
+        Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
+
+        Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
+                .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
+
+        String destinationApiUrl = destinationBank.getApiEndpoint();
+        if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
+            return new AccountInfoResult(false, null, null, "Destination bank API endpoint not configured");
+        }
+
+        try {
+            AccountInfoRequest interbankRequest = new AccountInfoRequest(
+                    sourceAccount.getAccountNumber(),
+                    request.getAccountNumber()
+            );
+
+            String timestamp = Instant.now().toString();
+            ObjectMapper objectMapper = new ObjectMapper();
+            String requestBody = objectMapper.writeValueAsString(interbankRequest);
+            String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
+            String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
+            String signature = CryptoUtils.signData(requestBody, nhom3privateKey);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Bank-Code", request.getBankCode());
+            headers.set("X-Timestamp", timestamp);
+            headers.set("X-Request-Hash", hmac);
+            headers.set("X-Signature", signature);
+
+            HttpEntity<AccountInfoRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    destinationApiUrl + "/api/linked-banks/account-info",
+                    HttpMethod.POST,
+                    httpEntity,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                Boolean success = (Boolean) responseBody.get("success");
+
+                if (Boolean.TRUE.equals(success)) {
+                    String accountNumber = (String) responseBody.get("accountNumber");
+                    Map<String, Object> accountDetails = (Map<String, Object>) responseBody.get("accountDetails");
+                    return new AccountInfoResult(
+                            true,
+                            accountNumber,
+                            accountDetails,
+                            null
+                    );
+                } else {
+                    String errorMessage = (String) responseBody.getOrDefault("message", "Account info retrieval failed");
+                    return new AccountInfoResult(false, null, null, "External account info failed: " + errorMessage);
+                }
+            } else {
+                return new AccountInfoResult(false, null, null,
+                        "External account info failed: HTTP " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            return new AccountInfoResult(false, null, null,
+                    "External account info failed: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
+                                                  String timestamp, String receivedHmac, String signature) throws Exception {
+        if (request == null || request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
+            throw new BadRequestException("Invalid request parameters");
+        }
+
+        Bank sourceBank = bankRepository.findByBankCode(sourceBankCode)
+                .orElseThrow(() -> new IllegalArgumentException("Source bank not found: " + sourceBankCode));
+
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new BadRequestException("Account not found: " + request.getAccountNumber()));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBody = objectMapper.writeValueAsString(request);
+        String expectedHashInput = requestBody + timestamp + sourceBankCode + sourceBank.getSecretKey();
+        String expectedHmac = CryptoUtils.generateHMAC(expectedHashInput, sourceBank.getSecretKey());
+
+        if (!expectedHmac.equals(receivedHmac)) {
+            throw new BadRequestException("HMAC verification failed - packet integrity compromised");
+        }
+
+        PublicKey sourcePublicKey = CryptoUtils.loadPublicKey(sourceBank.getPublicKey());
+        if (sourcePublicKey == null || !CryptoUtils.verifySignature(requestBody, signature, sourcePublicKey)) {
+            throw new BadRequestException("Digital signature verification failed");
+        }
+
+        Map<String, Object> accountDetails = new HashMap<>();
+        accountDetails.put("balance", account.getBalance());
+        accountDetails.put("accountHolder", account.getUser().getFullName());
+
+        return new AccountInfoResponse(
+                true,
+                account.getAccountNumber(),
+                accountDetails,
+                "Account info retrieved successfully"
+        );
     }
 }
