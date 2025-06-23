@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.example.banking.backend.dto.response.bank.BankDto;
 import com.example.banking.backend.service.BankSerivce;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ import com.example.banking.backend.service.DebtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/bank")
 @AllArgsConstructor

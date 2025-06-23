@@ -11,6 +11,7 @@ import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse
 import com.example.banking.backend.model.Recipient;
 import com.example.banking.backend.service.RecipientService;
 import com.example.banking.backend.service.RecipientServiceImpl;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/recipients")
 @AllArgsConstructor
