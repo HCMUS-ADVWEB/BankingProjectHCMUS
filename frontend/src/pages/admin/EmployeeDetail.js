@@ -25,6 +25,7 @@ import {
 } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useAuth } from "../../contexts/AuthContext";
+import { AdminService } from "../../services/AdminService";
 
 export default function EmployeeDetailPage() {
     const { id } = useParams();
@@ -52,16 +53,19 @@ export default function EmployeeDetailPage() {
             const fetchEmployee = async () => {
                 try {
                     setLoading(true);
-                    const response = await api.get(`/api/users/${id}`);
-                    setEmployee(response.data.data);
+                    const response = await AdminService.fetchEmployeeById(id);
+                    setEmployee(response.data);
+                    setEditedEmployee(response.data);
                 } catch (error) {
                     console.error("Failed to fetch employee", error);
-                    setEmployee(null); // fallback để tránh loading vĩnh viễn
+                    setEmployee(null);
                 } finally {
                     setLoading(false);
                 }
             };
             fetchEmployee();
+        } else {
+            setLoading(false);
         }
     }, [id, state]);
 
@@ -95,37 +99,17 @@ export default function EmployeeDetailPage() {
     const handleConfirmDelete = async () => {
         try {
             setLoading(true);
-            await api.delete(`/api/users/${id}`);
+            await AdminService.deleteEmployee(id);
             setOpenDeleteDialog(false);
-            navigate("/admin/employees"); // redirect về danh sách sau khi xóa
+            navigate("/admin/employees");
         } catch (error) {
-            console.error("Failed to delete employee", error);
-            if (error.response) {
-                const status = error.response.status;
-                const msg = error.response.data?.message;
-                const timestamp =
-                    error.response.data?.timestamp || new Date().toISOString();
-                console.error(`Error ${status}: ${msg} at ${timestamp}`);
-
-                if (status === 400) {
-                    alert(`${msg}`);
-                } else if (status === 500) {
-                    alert('Internal server error');
-                } else if (status === 401) {
-                    // logout
-                    alert('Unauthorized: Please log in again.');
-                    window.location.href = '/auth/login';
-                }
-            } else if (error.request) {
-                console.error('Network error or no response from server.');
-            } else {
-                console.error('Unexpected error:', error.message);
-            }
+            handleApiError(error);
         } finally {
             setEmployeeToDelete(null);
             setLoading(false);
         }
     };
+
 
 
     const handleEdit = () => {
@@ -144,42 +128,40 @@ export default function EmployeeDetailPage() {
                 ...editedEmployee,
                 dob: editedEmployee.dob ? new Date(editedEmployee.dob).toISOString() : null,
             };
-
-            await api.put(`/api/users/${id}`, payload);
-
+            await AdminService.updateEmployee(id, payload);
             setEmployee({ ...editedEmployee, updatedAt: new Date().toISOString() });
             setEditMode(false);
-            if (editedEmployee.id === user.id) {
+            if (user.id === editedEmployee.id) {
                 editedEmployee.role = editedEmployee.role.toLowerCase();
-                updateProfile(editedEmployee);
+                await updateProfile(editedEmployee);
             }
         } catch (error) {
-            console.error("Failed to update employee", error);
-            if (error.response) {
-                const status = error.response.status;
-                const msg = error.response.data?.message;
-                const timestamp =
-                    error.response.data?.timestamp || new Date().toISOString();
-                console.error(`Error ${status}: ${msg} at ${timestamp}`);
-
-                if (status === 400) {
-                    alert(`${msg}`);
-                } else if (status === 500) {
-                    alert('Internal server error');
-                } else if (status === 401) {
-                    // logout
-                    alert('Unauthorized: Please log in again.');
-                    window.location.href = '/auth/login';
-                }
-            } else if (error.request) {
-                console.error('Network error or no response from server.');
-            } else {
-                console.error('Unexpected error:', error.message);
-            }
+            handleApiError(error);
         } finally {
             setLoading(false);
         }
-    }
+    };
+
+    const handleApiError = (error) => {
+        if (error.response) {
+            const status = error.response.status;
+            const msg = error.response.data?.message;
+            const timestamp = error.response.data?.timestamp || new Date().toISOString();
+            console.error(`Error ${status}: ${msg} at ${timestamp}`);
+            if (status === 400) alert(msg);
+            else if (status === 500) alert('Internal server error');
+            else if (status === 401) {
+                alert('Unauthorized: Please log in again.');
+                window.location.href = '/auth/login';
+            }
+        } else if (error.request) {
+            console.error('Network error or no response from server.');
+        } else {
+            console.error('Unexpected error:', error.message);
+        }
+    };
+
+
 
 
     return (

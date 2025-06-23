@@ -32,10 +32,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../layouts/AdminLayout";
 import { useEffect, useState } from "react";
-import api from "../../utils/api";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useRef } from "react";
+import { AdminService } from '../../services/AdminService';
+
 
 
 export default function EmployeesPage() {
@@ -73,36 +74,17 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/api/users");
-      const { data, message, timestamp } = response.data;
+      const response = await AdminService.fetchEmployees();
+      const { data } = response;
       setEmployees(data.filter(emp => emp.role !== 'CUSTOMER'));
     } catch (error) {
-      setTimeout(fetchEmployees, 1000); // retry sau 1s
-      if (error.response) {
-        const status = error.response.status;
-        const msg = error.response.data?.message;
-        const timestamp =
-          error.response.data?.timestamp || new Date().toISOString();
-        console.error(`Error ${status}: ${msg} at ${timestamp}`);
-
-        if (status === 400) {
-          alert(`Bad request: ${msg}`);
-        } else if (status === 500) {
-          alert('Internal server error');
-        } else if (status === 401) {
-          // logout
-          alert('Unauthorized: Please log in again.');
-          window.location.href = '/auth/login';
-        }
-      } else if (error.request) {
-        console.error('Network error or no response from server.');
-      } else {
-        console.error('Unexpected error:', error.message);
-      }
+      setTimeout(fetchEmployees, 1000);
+      handleApiError(error);
     } finally {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
@@ -121,14 +103,11 @@ const handleInputChange = (e) => {
   const handleAddEmployee = async () => {
     try {
       setIsLoading(true);
-
       const payload = {
         ...newEmployee,
         dob: newEmployee.dob ? new Date(newEmployee.dob).toISOString() : null,
       };
-
-      await api.post("/api/users", payload);
-
+      await AdminService.createEmployee(payload);
       setNewEmployee({
         username: "",
         password: "",
@@ -142,28 +121,7 @@ const handleInputChange = (e) => {
       });
       fetchEmployees();
     } catch (error) {
-      console.error("Failed to add employee", error);
-      if (error.response) {
-        const status = error.response.status;
-        const msg = error.response.data?.message;
-        const timestamp =
-          error.response.data?.timestamp || new Date().toISOString();
-        console.error(`Error ${status}: ${msg} at ${timestamp}`);
-
-        if (status === 400) {
-          alert(`${msg}`);
-        } else if (status === 500) {
-          alert('Internal server error');
-        } else if (status === 401) {
-          // logout
-          alert('Unauthorized: Please log in again.');
-          window.location.href = '/auth/login';
-        }
-      } else if (error.request) {
-        console.error('Network error or no response from server.');
-      } else {
-        console.error('Unexpected error:', error.message);
-      }
+      handleApiError(error);
     } finally {
       setIsLoading(false);
       setOpenAddDialog(false);
@@ -218,38 +176,37 @@ const handleInputChange = (e) => {
   const handleConfirmDelete = async () => {
     try {
       setIsLoading(true);
-      await api.delete(`/api/users/${employeeToDelete}`);
+      await AdminService.deleteEmployee(employeeToDelete);
       setOpenDeleteDialog(false);
       setEmployeeToDelete(null);
-      fetchEmployees(); // reload danh sách
+      fetchEmployees();
     } catch (error) {
-      console.error("Failed to delete employee", error);
-      if (error.response) {
-        const status = error.response.status;
-        const msg = error.response.data?.message;
-        const timestamp =
-          error.response.data?.timestamp || new Date().toISOString();
-        console.error(`Error ${status}: ${msg} at ${timestamp}`);
-
-        if (status === 400) {
-          alert(`${msg}`);
-        } else if (status === 500) {
-          alert('Internal server error');
-        } else if (status === 401) {
-          // logout
-          alert('Unauthorized: Please log in again.');
-          window.location.href = '/auth/login';
-        }
-      } else if (error.request) {
-        console.error('Network error or no response from server.');
-      } else {
-        console.error('Unexpected error:', error.message);
-      }
-    }
-    finally {
+      handleApiError(error);
+    } finally {
       setIsLoading(false);
     }
   };
+
+  const handleApiError = (error) => {
+    if (error.response) {
+      const status = error.response.status;
+      const msg = error.response.data?.message;
+      const timestamp = error.response.data?.timestamp || new Date().toISOString();
+      console.error(`Error ${status}: ${msg} at ${timestamp}`);
+      if (status === 400) alert(msg);
+      else if (status === 500) alert('Internal server error');
+      else if (status === 401) {
+        alert('Unauthorized: Please log in again.');
+        window.location.href = '/auth/login';
+      }
+    } else if (error.request) {
+      console.error('Network error or no response from server.');
+    } else {
+      console.error('Unexpected error:', error.message);
+    }
+  };
+
+
 
   return (
     <AdminLayout>
