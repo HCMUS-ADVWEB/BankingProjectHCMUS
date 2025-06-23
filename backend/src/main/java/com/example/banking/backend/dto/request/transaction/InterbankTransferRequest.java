@@ -20,5 +20,12 @@ public class InterbankTransferRequest  {
     @NotBlank(message = "Receiver bank code is required")
     private Double amount;
     private String content;
+    @Override
+    public String toString() {
+        return "{\"senderAccountNumber\":\"" + senderAccountNumber +
+                "\",\"receiverAccountNumber\":\"" + receiverAccountNumber +
+                "\",\"amount\":" + amount +
+                ",\"content\":\"" + content + "\"}";
+    }
 
 }

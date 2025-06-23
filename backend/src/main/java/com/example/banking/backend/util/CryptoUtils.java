@@ -19,16 +19,6 @@ public class CryptoUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static PrivateKey loadPrivateKey(String resourcePath) throws Exception {
-        String privateKeyPEM = readResourceAsString(resourcePath)
-                .replaceAll("\\s+", "")
-                .replace("-----BEGINRSAPRIVATEKEY-----", "")
-                .replace("-----ENDRSAPRIVATEKEY-----", "")
-                .replaceAll("-" , "");
-        byte[] decodedKey = Base64.getDecoder().decode(privateKeyPEM);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
-    }
     
     private static String readResourceAsString(String resourcePath) throws IOException {
         try (InputStream is = CryptoUtils.class.getClassLoader().getResourceAsStream(resourcePath)) {
@@ -48,14 +38,6 @@ public class CryptoUtils {
         byte[] decodedKey = Base64.getDecoder().decode(publicKeyContent);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));
-    }
-
-    public static String signData(String data, PrivateKey privateKey) throws Exception {
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initSign(privateKey);
-        signature.update(data.getBytes(StandardCharsets.UTF_8));
-        byte[] signatureBytes = signature.sign();
-        return Base64.getEncoder().encodeToString(signatureBytes);
     }
 
     public static boolean verifySignature(String data, String signature, PublicKey publicKey) throws Exception {

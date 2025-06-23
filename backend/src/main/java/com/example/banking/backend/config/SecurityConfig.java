@@ -39,10 +39,7 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
-    @Bean
-    public PrivateKey nhom3privateKey() throws Exception {
-        return CryptoUtils.loadPrivateKey("keys/private_key.pem");
-    }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

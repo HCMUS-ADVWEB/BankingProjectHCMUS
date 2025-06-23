@@ -59,7 +59,6 @@ public class AccountServiceImpl implements AccountService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
-    private final PrivateKey nhom3privateKey; // My bank
     private final RestTemplate restTemplate;
     private  final BankRepository bankRepository;
     private  final TransactionRepository transactionRepository;
@@ -287,7 +286,6 @@ public class AccountServiceImpl implements AccountService {
             String requestBody = objectMapper.writeValueAsString(interbankRequest);
             String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
             String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
-            String signature = CryptoUtils.signData(requestBody, nhom3privateKey);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
