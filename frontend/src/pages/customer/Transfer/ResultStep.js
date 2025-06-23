@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Alert,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -26,8 +27,19 @@ const ResultStep = () => {
     formatCurrency,
     setStep,
     resetTransfer,
+    saveRecipient,
+    setSaveRecipient,
+    handleSaveRecipient,
+    loading,
+    error,
   } = useTransfer();
   const navigate = useNavigate();
+  
+  // Function to handle starting a new transfer
+  const handleNewTransfer = () => {
+    resetTransfer();
+    setStep(TRANSFER_STEPS.FORM);
+  };
 
   return (
     <>
@@ -128,7 +140,7 @@ const ResultStep = () => {
         </CardContent>
       </Card>
 
-      <Box display="flex" justifyContent="space-between">
+      <Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={2}>
         <Button
           variant="outlined"
           onClick={() => navigate('/customer/dashboard')}
@@ -137,11 +149,23 @@ const ResultStep = () => {
           Go to Dashboard
         </Button>
         
-        <Box>
+        <Box display="flex" gap={1} flexWrap="wrap">
+          {saveRecipient?.accountNumber && (
+            <Button
+              variant="outlined"
+              color="success"
+              onClick={handleSaveRecipient}
+              startIcon={<SaveIcon />}
+              disabled={loading}
+            >
+              Save Recipient
+            </Button>
+          )}
+          
           <Button
             variant="outlined"
             color="primary"
-            onClick={() => setStep(TRANSFER_STEPS.FORM)}
+            onClick={handleNewTransfer}
             startIcon={<SaveIcon />}
             sx={{ mr: 1 }}
           >
@@ -158,6 +182,12 @@ const ResultStep = () => {
           </Button>
         </Box>
       </Box>
+      
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
     </>
   );
 };

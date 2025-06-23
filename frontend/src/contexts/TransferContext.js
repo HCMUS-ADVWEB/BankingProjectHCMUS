@@ -179,20 +179,23 @@ export const TransferProvider = ({ children, initialAccountNumber }) => {
             transactionAmount: parseFloat(form.amount),
             transactionNote: form.message,
             transactionPayer: form.feeType,
-          };
-
-      const { data } = await api.post(
+          };      const { data } = await api.post(
         form.transferType === 'internal'
           ? '/api/transactions/internal'
           : '/api/transactions/external',
-        payload,
-      );
+        payload,      );
       setResult(data.data);
       setSuccess('Transfer successful!');
+      
+      // Always move to the complete step to show transaction result
+      setStep(4); // COMPLETE step
+      
       // Check if recipient exists
       const recipientExists = recipients.some(
-        (rec) => rec.accountNumber === form.accountNumberReceiver,
+        (rec) => rec.accountNumber === form.accountNumberReceiver
       );
+      
+      // If recipient doesn't exist, we'll handle save recipient after showing result
       if (!recipientExists) {
         setSaveRecipient({
           accountNumber: form.accountNumberReceiver,
@@ -200,37 +203,40 @@ export const TransferProvider = ({ children, initialAccountNumber }) => {
           recipientName: form.recipientName,
           recipientNickname: '',
         });
-        setStep(4); // Move to save recipient step
-      } else {
-        resetTransfer();
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      setStep(1); // Go back to form on error
+      setError(err.response?.data?.message || err.message || 'An error occurred during the transaction');
+      // Stay on OTP step to let user try again
+      setStep(3); // OTP step
     } finally {
       setLoading(false);
     }
   }, [form, otp, recipients]);
-
   const handleSaveRecipient = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       await api.post('/api/recipients', {
         accountNumber: saveRecipient.accountNumber,
-        bankName: saveRecipient.bankName,
+        bankName: saveRecipient.bankName || 'othergroup0002',
         recipientName: saveRecipient.recipientName,
-        recipientNickname: saveRecipient.recipientNickname,
+        recipientNickname: saveRecipient.recipientNickname || saveRecipient.recipientName,
       });
       setSuccess('Recipient saved successfully!');
-      resetTransfer();
+      setSaveRecipient({
+        accountNumber: '',
+        bankName: '',
+        recipientName: '',
+        recipientNickname: '',
+      });
+      // Refresh recipients list
+      fetchRecipients();
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.message || err.message || 'Failed to save recipient');
     } finally {
       setLoading(false);
     }
-  }, [saveRecipient]);
-
+  }, [saveRecipient, fetchRecipients]);
   // Reset the transfer form and state
   const resetTransfer = useCallback(() => {
     setStep(1);
@@ -245,6 +251,9 @@ export const TransferProvider = ({ children, initialAccountNumber }) => {
       recipientName: '',
     });
     setOtp('');
+    setError(null);
+    setSuccess(null);
+    setResult(null);
     setSaveRecipient({
       accountNumber: '',
       bankName: '',
