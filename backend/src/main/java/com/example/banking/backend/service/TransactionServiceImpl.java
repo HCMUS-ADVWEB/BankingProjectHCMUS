@@ -18,6 +18,7 @@ import com.example.banking.backend.repository.*;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
+import com.example.banking.backend.util.SignatureUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -51,7 +52,6 @@ public class TransactionServiceImpl implements TransactionService {
     private BankRepository bankRepository;
     private UserRepository userRepository;
     private RecipientRepository recipientRepository;
-    private final PrivateKey nhom3privateKey; // My bank
     private final RestTemplate restTemplate;
     OtpService otpService;
 
@@ -108,7 +108,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setFromAccount(accountCurrentUser);
                 transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
                 transaction.setToAccountNumber(request.getReceiverAccountNumber());
-                transaction.setToAccount(null); // Không biết account object của ngân hàng khác
+                transaction.setToAccount(null);
                 transaction.setAmount(request.getAmount());
                 transaction.setFee(fee);
                 transaction.setFeeType(FeeType.SENDER);
@@ -132,18 +132,17 @@ public class TransactionServiceImpl implements TransactionService {
                             request.getAmount(),
                             request.getContent() != null ? request.getContent() : ""
                     );
-
-                    String timestamp =String.valueOf(Instant.now().toEpochMilli());
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    String requestBody = objectMapper.writeValueAsString(interbankRequest);
-                    String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
+                    String myBankCode = "FIN";
+                    String timestamp = String.valueOf(Instant.now().toEpochMilli());
+                    String requestBodyToSign = interbankRequest.toString();
+                    String hashInput = requestBodyToSign + timestamp + myBankCode + destinationBank.getSecretKey();
                     String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
-                    String signature = CryptoUtils.signData(requestBody, nhom3privateKey);
+                    String signature = SignatureUtil.signData(interbankRequest);
 
                     // Setup headers
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.APPLICATION_JSON);
-                    headers.set("Bank-Code", request.getBankCode());
+                    headers.set("Bank-Code", myBankCode);
                     headers.set("X-Timestamp", timestamp);
                     headers.set("X-Request-Hash", hmac);
                     headers.set("X-Signature", signature);
@@ -160,32 +159,18 @@ public class TransactionServiceImpl implements TransactionService {
                     );
 
                     // Xử lý response
-                    if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                        Map<String, Object> responseBody = response.getBody();
-                        Boolean success = (Boolean) responseBody.get("success");
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+                        transactionRepository.save(savedTransaction);
 
-                        if (Boolean.TRUE.equals(success)) {
-                            sourceAccount.setBalance(sourceAccount.getBalance() - totalAmount);
-                            accountRepository.save(sourceAccount);
-
-                            savedTransaction.setStatus(TransactionStatusType.COMPLETED);
-                            transactionRepository.save(savedTransaction);
-
-                            return new TransferResult(
-                                    true,
-                                    savedTransaction.getId().toString(),
-                                    request.getAmount(),
-                                    fee,
-                                    request.getContent() != null ? request.getContent() : "",
-                                    null
-                            );
-                        } else {
-                            // Thất bại từ phía ngân hàng đích
-                            transactionRepository.delete(savedTransaction);
-                            String errorMessage = (String) responseBody.getOrDefault("message", "Transfer failed");
-                            return new TransferResult(false, null, request.getAmount(), fee, null,
-                                    "External transfer failed: " + errorMessage);
-                        }
+                        return new TransferResult(
+                                true,
+                                savedTransaction.getId().toString(),
+                                request.getAmount(),
+                                fee,
+                                request.getContent() != null ? request.getContent() : "",
+                                null
+                        );
                     } else {
                         // HTTP error
                         transactionRepository.delete(savedTransaction);
