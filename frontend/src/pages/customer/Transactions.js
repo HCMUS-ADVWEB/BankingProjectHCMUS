@@ -1,33 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomerLayout from '../../layouts/CustomerLayout';
+import {
+  Container,
+  Paper,
+  Typography,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Box,
+  Chip,
+  Snackbar,
+  CircularProgress,
+  Backdrop,
+  TablePagination,
+  TableSortLabel,
+} from '@mui/material';
+import {
+  History as HistoryIcon,
+} from '@mui/icons-material';
 import api from '../../utils/api';
-import { CircularProgress, Alert, Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination } from '@mui/material';
+// Transaction type icons mapping
 
 export default function TransactionsPage() {
+  // State
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [orderBy, setOrderBy] = useState('createdAt');
+  const [order, setOrder] = useState('desc');
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      console.log('Params:', { limit: rowsPerPage, pn: page });
       const res = await api.get('/api/accounts/customer/transactions', {
         params: {
           limit: rowsPerPage,
-          pn: page,
+          pn: page + 1, // Adding 1 because backend expects 1-based page numbers
         },
       });
-      console.log(res);
       const data = res.data.data || [];
       setTransactions(data);
-      // Giả sử backend trả về total count trong res.data.total hoặc tính từ data.length
       setTotal(res.data.total || data.length);
+      setError(null);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch transactions');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
@@ -37,68 +62,166 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, [page, rowsPerPage]);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  // Format currency
+  const formatVND = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
+  // Sort transactions
+  const getSortedTransactions = () => {
+    return [...transactions].sort((a, b) => {
+      const aValue = a[orderBy];
+      const bValue = b[orderBy];
+
+      if (orderBy === 'amount') {
+        return order === 'asc'
+          ? Number(aValue) - Number(bValue)
+          : Number(bValue) - Number(aValue);
+      }
+
+      if (orderBy === 'transactionDate') {
+        return order === 'asc'
+          ? new Date(aValue) - new Date(bValue)
+          : new Date(bValue) - new Date(aValue);
+      }
+
+      // String comparison for other fields
+      return order === 'asc'
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
     });
   };
 
+  const sortedTransactions = getSortedTransactions();
+
   return (
     <CustomerLayout>
-      <Box p={3}>
-        <Typography variant="h4" gutterBottom>
-          Transactions
-        </Typography>
-        {loading && <CircularProgress />}
-        {error && <Alert severity="error">{error}</Alert>}
-        {!loading && !error && (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default' }}>
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity="error"
+            sx={{ width: '100%' }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+            <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+            Transaction History
+          </Typography>
+        </Box>
+
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 2, sm: 3 },
+            borderRadius: 'shape.borderRadius',
+            bgcolor: 'background.paper',
+          }}
+        >
+          <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Bank ID</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Transaction Date</TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'transactionDate'}
+                      direction={orderBy === 'transactionDate' ? order : 'asc'}
+                      onClick={() => handleRequestSort('transactionDate')}
+                    >
+                      Date
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell>Message</TableCell>
+                  <TableCell>Bank</TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={orderBy === 'amount'}
+                      direction={orderBy === 'amount' ? order : 'asc'}
+                      onClick={() => handleRequestSort('amount')}
+                    >
+                      Amount
+                    </TableSortLabel>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {transactions.length > 0 ? (
-                  transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell>{tx.id}</TableCell>
-                      <TableCell>{tx.bankId || 'N/A'}</TableCell>
-                      <TableCell>${tx.amount.toFixed(2)}</TableCell>
-                      <TableCell>{formatDate(tx.transactionDate)}</TableCell>
-                      <TableCell>{tx.message}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No transactions found
+                {sortedTransactions.map((transaction) => (
+                  <TableRow key={transaction.id} hover>
+                    <TableCell>
+                      {new Date(transaction.transactionDate).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </TableCell>
+                    <TableCell>{transaction.message}</TableCell>
+                    <TableCell>{transaction.bankId || 'Internal'}</TableCell>
+                    <TableCell>
+                      <Typography
+                        sx={{
+                          color: transaction.amount < 0 ? 'error.main' : 'success.main',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {formatVND(transaction.amount)}
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                )}
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
-        )}
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50]}
-          component="div"
-          count={total}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-        />
-      </Box>
+          <TablePagination
+            component="div"
+            count={total}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+          />
+        </Paper>
+      </Container>
     </CustomerLayout>
   );
 }

@@ -41,33 +41,13 @@ import {
   AccountCircle as AccountIcon,
   CalendarToday as CalendarIcon,
   ReceiptLong as ReceiptIcon,
-  SyncAlt as TransferIcon,
-  Payment as PaymentIcon,
-  Send as SendIcon,
   CloudDownload as DownloadIcon,
   FilterAlt as FilterAltIcon,
   AttachMoney as MoneyIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
 import { useEmployee } from '../../contexts/EmployeeContext';
-import { TRANSACTION_TYPES } from '../../utils/constants';
-
-// Transaction type icons mapping
-const transactionTypeIcons = {
-  'INTERNAL_TRANSFER': <TransferIcon />,
-  'INTERBANK_TRANSFER': <SendIcon />,
-  'DEBT_PAYMENT': <PaymentIcon />,
-  'DEPOSIT': <MoneyIcon />,
-};
-
-// Transaction status colors
-const statusColors = {
-  'PENDING': 'warning',
-  'COMPLETED': 'success',
-  'FAILED': 'error',
-  'PROCESSING': 'info',
-};
-
+import { TRANSACTION_TYPES, TRANSACTION_TYPE_ICONS, STATUS_COLORS } from '../../utils/constants';
 export default function TransactionsPage() {
   const {
     transactionAccountHistory,
@@ -140,7 +120,6 @@ export default function TransactionsPage() {
       });
       resetFilters();
     } catch (err) {
-      // Error is handled by the effect
     }
   };
 
@@ -172,19 +151,15 @@ export default function TransactionsPage() {
     setOrderBy(property);
   };
 
-  // Sort and filter transactions
   const getFilteredTransactions = () => {
-    // First filter by transaction type
     let filtered = transactionAccountHistory.type === 'ALL'
       ? transactions
       : transactions.filter(tx => tx.transactionType === transactionAccountHistory.type);
 
-    // Then filter by status if not ALL
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(tx => tx.status === statusFilter);
     }
 
-    // Sort the filtered transactions
     return filtered.sort((a, b) => {
       const aValue = a[orderBy];
       const bValue = b[orderBy];
@@ -201,7 +176,6 @@ export default function TransactionsPage() {
           : new Date(bValue) - new Date(aValue);
       }
 
-      // String comparison for other fields
       return order === 'asc'
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
@@ -431,7 +405,7 @@ export default function TransactionsPage() {
               {TRANSACTION_TYPES.map(type => (
                 <ToggleButton key={type.value} value={type.value} sx={{ py: 1, px: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {transactionTypeIcons[type.value] || <ReceiptIcon />}
+                    {TRANSACTION_TYPE_ICONS[type.value] || <ReceiptIcon />}
                     <Box sx={{ ml: 1 }}>{type.label}</Box>
                   </Box>
                 </ToggleButton>
@@ -559,8 +533,8 @@ export default function TransactionsPage() {
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          icon={transactionTypeIcons[tx.transactionType] || <ReceiptIcon />}
+                        <Chip                        
+                          icon={TRANSACTION_TYPE_ICONS[tx.transactionType] || <ReceiptIcon />}
                           label={tx.transactionType?.replace('_', ' ')}
                           size="small"
                           color="primary"
@@ -584,10 +558,10 @@ export default function TransactionsPage() {
                         {formatVND(tx.fee)} ₫
                       </TableCell>
                       <TableCell>
-                        <Chip
+                        <Chip                   
                           label={tx.status}
                           size="small"
-                          color={statusColors[tx.status] || 'default'}
+                          color={STATUS_COLORS[tx.status] || 'default'}
                         />
                       </TableCell>
                       <TableCell>

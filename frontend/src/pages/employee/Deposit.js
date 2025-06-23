@@ -96,14 +96,6 @@ export default function DepositPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const resetForm = useCallback(() => {
-    setDepositAccount({
-      accountId: '',
-      amount: '',
-      note: ''
-    });
-    setFormErrors({});
-  }, [setDepositAccount]);
 
   // Handle success and error messages
   useEffect(() => {
@@ -111,9 +103,14 @@ export default function DepositPage() {
       setLocalSuccess(success);
       setSnackbarOpen(true);
       // Reset form after successful deposit
-      resetForm();
+      setDepositAccount({
+        accountId: '',
+        amount: '',
+        note: ''
+      });
+      setFormErrors({});
     }
-  }, [success, resetForm]);
+  }, [success]);
 
   useEffect(() => {
     if (error) {
