@@ -1,7 +1,11 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
+import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
+import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
 import org.springframework.stereotype.Service;
@@ -12,11 +16,12 @@ import java.util.UUID;
 @Service
 public interface RecipientService {
     List<RecipientDtoResponse> getRecipients(int limit, int page);
-    public Recipient updateRecipient(UUID recipientId, AddRecipientRequest request);
-    public Recipient addRecipient(AddRecipientRequest request) ;
+    public RecipientDtoRes updateRecipient(UUID recipientId, AddRecipientRequest request);
+    public RecipientDtoRes addRecipient(AddRecipientRequest request) ;
     public void deleteRecipient(DeleteRecipientRequest deleteRecipientRequest) ;
     public boolean verifyRecipient(String accountNumber, UUID bankId) ;
-
+    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) ;
+    public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request ) ;
 
 
 }

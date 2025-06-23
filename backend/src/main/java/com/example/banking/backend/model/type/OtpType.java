@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum OtpType {
     TRANSFER("TRANSFER", "Chuyển khoản", "💸"),
     PASSWORD_RESET("PASSWORD_RESET", "Reset password", "🔒"),
-    DEBT_PAYMENT("DEBT_PAYMENT", "Trả nợ", "💳");
+    DEBT_PAYMENT("DEBT_PAYMENT", "Trả nợ", "💳"),
+    PASSWORD_CHANGE("PASSWORD_CHANGE", "Thay đổi pasword", "💳");
 
     private final String value;
     private final String displayName;

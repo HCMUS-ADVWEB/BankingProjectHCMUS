@@ -47,7 +47,7 @@ import {
   CloudDownload as DownloadIcon,
   FilterAlt as FilterAltIcon,
   AttachMoney as MoneyIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useEmployee } from '../../contexts/EmployeeContext';
 import { TRANSACTION_TYPES } from '../../utils/constants';
@@ -57,7 +57,7 @@ const transactionTypeIcons = {
   'INTERNAL_TRANSFER': <TransferIcon />,
   'INTERBANK_TRANSFER': <SendIcon />,
   'DEBT_PAYMENT': <PaymentIcon />,
-  'DEPOSIT': <MoneyIcon />
+  'DEPOSIT': <MoneyIcon />,
 };
 
 // Transaction status colors
@@ -65,7 +65,7 @@ const statusColors = {
   'PENDING': 'warning',
   'COMPLETED': 'success',
   'FAILED': 'error',
-  'PROCESSING': 'info'
+  'PROCESSING': 'info',
 };
 
 export default function TransactionsPage() {
@@ -77,9 +77,9 @@ export default function TransactionsPage() {
     error,
     success,
     transactions,
-    formatVND
+    formatVND,
   } = useEmployee();
-  
+
   // State
   const [localSuccess, setLocalSuccess] = useState('');
   const [localError, setLocalError] = useState('');
@@ -91,13 +91,13 @@ export default function TransactionsPage() {
   const [order, setOrder] = useState('desc');
   const [dateRange, setDateRange] = useState({
     startDate: '',
-    endDate: ''
+    endDate: '',
   });
   const [advancedFilters, setAdvancedFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [amountRange, setAmountRange] = useState({
     min: '',
-    max: ''
+    max: '',
   });
 
   // Handle success and error messages
@@ -117,26 +117,26 @@ export default function TransactionsPage() {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!transactionAccountHistory.accountId?.trim()) {
-      errors.accountId = "Account ID is required";
+      errors.accountId = 'Account ID is required';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSearch = async () => {
     if (!validateForm()) return;
-    
+
     try {
-      await fetchTransactions(transactionAccountHistory.accountId, { 
-        limit: 50, 
+      await fetchTransactions(transactionAccountHistory.accountId, {
+        limit: 50,
         pn: 1,
         startDate: dateRange.startDate || undefined,
         endDate: dateRange.endDate || undefined,
         minAmount: amountRange.min || undefined,
-        maxAmount: amountRange.max || undefined
+        maxAmount: amountRange.max || undefined,
       });
       resetFilters();
     } catch (err) {
@@ -178,29 +178,29 @@ export default function TransactionsPage() {
     let filtered = transactionAccountHistory.type === 'ALL'
       ? transactions
       : transactions.filter(tx => tx.transactionType === transactionAccountHistory.type);
-    
+
     // Then filter by status if not ALL
     if (statusFilter !== 'ALL') {
       filtered = filtered.filter(tx => tx.status === statusFilter);
     }
-    
+
     // Sort the filtered transactions
     return filtered.sort((a, b) => {
       const aValue = a[orderBy];
       const bValue = b[orderBy];
-      
+
       if (orderBy === 'amount' || orderBy === 'fee') {
-        return order === 'asc' 
-          ? Number(aValue) - Number(bValue) 
+        return order === 'asc'
+          ? Number(aValue) - Number(bValue)
           : Number(bValue) - Number(aValue);
       }
-      
+
       if (orderBy === 'createdAt') {
         return order === 'asc'
           ? new Date(aValue) - new Date(bValue)
           : new Date(bValue) - new Date(aValue);
       }
-      
+
       // String comparison for other fields
       return order === 'asc'
         ? String(aValue).localeCompare(String(bValue))
@@ -220,15 +220,15 @@ export default function TransactionsPage() {
           <CircularProgress color="inherit" />
         </Backdrop>
 
-        <Snackbar 
-          open={snackbarOpen} 
-          autoHideDuration={6000} 
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert 
-            onClose={handleCloseSnackbar} 
-            severity={localError ? "error" : "success"} 
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={localError ? 'error' : 'success'}
             sx={{ width: '100%' }}
           >
             {localError || localSuccess}
@@ -237,7 +237,7 @@ export default function TransactionsPage() {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} /> 
+            <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Transaction History
           </Typography>
         </Box>
@@ -282,10 +282,10 @@ export default function TransactionsPage() {
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Search'}
               </Button>
-              
+
               <Tooltip title="Advanced Filters">
-                <IconButton 
-                  color={advancedFilters ? "primary" : "default"} 
+                <IconButton
+                  color={advancedFilters ? 'primary' : 'default'}
                   onClick={() => setAdvancedFilters(!advancedFilters)}
                   sx={{ height: 56, width: 56 }}
                 >
@@ -300,7 +300,7 @@ export default function TransactionsPage() {
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary' }}>
                 Advanced Filters
               </Typography>
-              
+
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle2" gutterBottom>
@@ -343,7 +343,7 @@ export default function TransactionsPage() {
                     </Grid>
                   </Grid>
                 </Grid>
-                
+
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle2" gutterBottom>
                     Amount Range (VND)
@@ -387,7 +387,7 @@ export default function TransactionsPage() {
                     </Grid>
                   </Grid>
                 </Grid>
-                
+
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" gutterBottom>
                     Transaction Status
@@ -409,7 +409,7 @@ export default function TransactionsPage() {
               </Grid>
             </Box>
           )}
-          
+
           <Box sx={{ mt: 3, mb: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
               Transaction Type
@@ -438,22 +438,22 @@ export default function TransactionsPage() {
               ))}
             </ToggleButtonGroup>
           </Box>
-          
+
           <Divider sx={{ my: 3 }} />
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Transaction Results
               {filteredTransactions.length > 0 && (
-                <Chip 
-                  label={`${filteredTransactions.length} transactions`} 
-                  size="small" 
-                  color="primary" 
-                  sx={{ ml: 1 }} 
+                <Chip
+                  label={`${filteredTransactions.length} transactions`}
+                  size="small"
+                  color="primary"
+                  sx={{ ml: 1 }}
                 />
               )}
             </Typography>
-            
+
             <Box>
               <Tooltip title="Refresh">
                 <IconButton onClick={handleSearch} disabled={!transactionAccountHistory.accountId}>
@@ -467,14 +467,14 @@ export default function TransactionsPage() {
               </Tooltip>
             </Box>
           </Box>
-          
-          <TableContainer 
-            component={Paper} 
-            elevation={0} 
-            sx={{ 
+
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
               borderRadius: 2,
               maxHeight: 600,
-              overflow: 'auto'
+              overflow: 'auto',
             }}
           >
             <Table stickyHeader>
@@ -531,26 +531,26 @@ export default function TransactionsPage() {
                     </TableCell>
                   </TableRow>
                 )}
-                
+
                 {!loading && filteredTransactions.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                      {transactionAccountHistory.accountId ? 
-                        "No transactions found with the current filters" : 
-                        "Enter an account ID and click Search to view transactions"}
+                      {transactionAccountHistory.accountId ?
+                        'No transactions found with the current filters' :
+                        'Enter an account ID and click Search to view transactions'}
                     </TableCell>
                   </TableRow>
                 )}
-                
+
                 {!loading && filteredTransactions
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((tx) => (
-                    <TableRow 
-                      key={tx.id} 
+                    <TableRow
+                      key={tx.id}
                       hover
-                      sx={{ 
+                      sx={{
                         cursor: 'pointer',
-                        '&:hover': { bgcolor: 'action.hover' }
+                        '&:hover': { bgcolor: 'action.hover' },
                       }}
                     >
                       <TableCell>
@@ -598,7 +598,7 @@ export default function TransactionsPage() {
               </TableBody>
             </Table>
           </TableContainer>
-          
+
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 100]}
             component="div"
@@ -608,7 +608,7 @@ export default function TransactionsPage() {
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-          
+
           {filteredTransactions.length > 0 && (
             <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
               <Typography variant="subtitle2" gutterBottom>

@@ -56,7 +56,7 @@ export default function EmployeeDashboard() {
             Your dashboard provides a quick overview of key metrics and actions.
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
               <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
                 <Typography variant="h6" color="text.primary">
                   Total Users
@@ -69,6 +69,7 @@ export default function EmployeeDashboard() {
                   1,234
                 </Typography>
                 <Chip
+                  onClick={() => {}}
                   label="+5% this month"
                   color="success"
                   size="small"
@@ -76,7 +77,7 @@ export default function EmployeeDashboard() {
                 />
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
               <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
                 <Typography variant="h6" color="text.primary">
                   Revenue
@@ -89,6 +90,7 @@ export default function EmployeeDashboard() {
                   $56,789
                 </Typography>
                 <Chip
+                  onClick={() => {}}
                   label="+12% this month"
                   color="success"
                   size="small"
@@ -96,7 +98,7 @@ export default function EmployeeDashboard() {
                 />
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
               <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
                 <Typography variant="h6" color="text.primary">
                   Active Projects
@@ -108,12 +110,12 @@ export default function EmployeeDashboard() {
                 >
                   42
                 </Typography>
-                <Badge badgeContent={3} color="error" onClick={() => {}} sx={{ mt: 1 }}>
-                  <Chip label="Pending" size="small" />
+                <Badge badgeContent={3} color="error" sx={{ mt: 1 }}>
+                  <Chip label="Pending" size="small" onClick={() => {}} />
                 </Badge>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
               <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
                 <Typography variant="h6" color="text.primary">
                   System Status

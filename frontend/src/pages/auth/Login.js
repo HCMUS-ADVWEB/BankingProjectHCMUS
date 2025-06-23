@@ -108,7 +108,7 @@ export default function LoginPage() {
               formik.setFieldValue('recaptcha', '');
             }
           }
-        }, 100);
+        }, 500);
 
       } catch (error) {
         // On login failure, reset reCAPTCHA after a delay

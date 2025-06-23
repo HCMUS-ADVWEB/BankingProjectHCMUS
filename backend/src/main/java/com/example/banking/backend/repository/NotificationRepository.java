@@ -9,7 +9,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.example.banking.backend.model.Notification;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
     @Query("SELECT n FROM Notification n WHERE n.userId = :userId ORDER BY n.createdAt DESC")
