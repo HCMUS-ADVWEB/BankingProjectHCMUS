@@ -12,6 +12,7 @@ import com.example.banking.backend.dto.response.transaction.DepositResult;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.AccountService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/accounts")
