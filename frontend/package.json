@@ -10,6 +10,7 @@
     "@mui/material": "^7.1.1",
     "@mui/x-charts": "^8.5.2",
     "@mui/x-date-pickers": "^8.5.2",
+    "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/cli": "^4.1.8",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -25,6 +26,7 @@
     "react-hook-form": "^7.57.0",
     "react-router-dom": "^7.6.1",
     "react-scripts": "5.0.1",
+    "sockjs-client": "^1.6.1",
     "web-vitals": "^2.1.4",
     "yup": "^1.6.1",
     "@date-io/date-fns": "^3.2.1"

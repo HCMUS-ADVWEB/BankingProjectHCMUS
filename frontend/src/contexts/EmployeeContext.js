@@ -1,5 +1,5 @@
-import { Password } from '@mui/icons-material';
-import React, { createContext, useContext, useState } from 'react';
+
+import { createContext, useContext, useState } from 'react';
 import { EmployeeService } from '../services/EmployeeService';
 
 // Utility function to format VND

@@ -32,6 +32,8 @@ import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.repository.DebtReminderRepository;
 import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
+import com.example.banking.backend.service.NotificationService; 
+import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,6 +46,7 @@ public class DebtServiceImpl implements DebtService {
     private final DebtReminderMapper debtReminderMapper;
     private final TransactionService transactionService;
     private final OtpService otpService;
+    private final NotificationService notificationService;
     @Override
     public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
         User currentUser = getCurrentUser();
@@ -87,6 +90,25 @@ public class DebtServiceImpl implements DebtService {
 
         // Save the entity to the database
         debtReminder = debtReminderRepository.save(debtReminder);
+        
+        // Notify debtor
+        notificationService.addNotification(AddNotificationRequest.builder()
+            .userId(debtor.getId())
+            .title("New Debt Reminder")
+            .content(String.format("%s has created a debt reminder for %.2f VND with message: %s",
+                creator.getFullName(),
+                debtReminder.getAmount(),
+                debtReminder.getMessage()))
+            .build());
+
+        // Notify creator
+        notificationService.addNotification(AddNotificationRequest.builder()
+            .userId(creator.getId())
+            .title("Debt Reminder Created")
+            .content(String.format("You have created a debt reminder for %.2f VND for %s",
+                debtReminder.getAmount(),
+                debtor.getFullName()))
+            .build());
 
         // Build the response DTO
         CreateDebtReminderResponse response = new CreateDebtReminderResponse();
@@ -153,6 +175,25 @@ public class DebtServiceImpl implements DebtService {
         reminder.setTransactionId(UUID.fromString(transferResult.getTransactionId()));
         debtReminderRepository.save(reminder);
 
+        // Notify creator (creditor)
+        notificationService.addNotification(AddNotificationRequest.builder()
+            .userId(reminder.getCreator().getId())
+            .title("Debt Reminder Paid")
+            .content(String.format("%s has paid the debt of %.2f VND with message: %s",
+                reminder.getDebtor().getFullName(),
+                reminder.getAmount(),
+                request.getMessage()))
+            .build());
+
+        // Notify debtor
+        notificationService.addNotification(AddNotificationRequest.builder()
+            .userId(reminder.getDebtor().getId())
+            .title("Debt Payment Sent")
+            .content(String.format("You have paid the debt of %.2f VND to %s",
+                reminder.getAmount(),
+                reminder.getCreator().getFullName()))
+            .build());
+
         // Create PayDebtResponse
         PayDebtResponse response = new PayDebtResponse(reminderId, transferResult.getTransactionId(), "Debt paid successfully");
 
@@ -186,6 +227,25 @@ public class DebtServiceImpl implements DebtService {
             debtReminder.setUpdatedAt(Instant.now());
 
             debtReminderRepository.save(debtReminder);
+
+            // Notify debtor
+            notificationService.addNotification(AddNotificationRequest.builder()
+                .userId(debtReminder.getDebtor().getId())
+                .title("Debt Reminder Cancelled")
+                .content(String.format("%s has cancelled the debt reminder of %.2f VND. Reason: %s",
+                    debtReminder.getCreator().getFullName(),
+                    debtReminder.getAmount(),
+                    request.getCancelledReason()))
+                .build());
+
+            // Notify creator
+            notificationService.addNotification(AddNotificationRequest.builder()
+                .userId(debtReminder.getCreator().getId())
+                .title("Debt Reminder Cancelled")
+                .content(String.format("You have cancelled the debt reminder of %.2f VND for %s",
+                    debtReminder.getAmount(),
+                    debtReminder.getDebtor().getFullName()))
+                .build());
 
             return ApiResponse.<Void>builder()
                     .status(HttpStatus.OK.value())
