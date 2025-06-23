@@ -172,7 +172,7 @@ public class RecipientServiceImpl implements RecipientService {
                 .collect(Collectors.toList());
     }
 
-    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) {
+    /*public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) {
         if (request.getBankCode() == null) {
             Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
                     .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
@@ -184,7 +184,7 @@ public class RecipientServiceImpl implements RecipientService {
                     .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
             return account.getUser().getFullName();
         }
-    }
+    }*/
 
     @Override
     public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request) {
