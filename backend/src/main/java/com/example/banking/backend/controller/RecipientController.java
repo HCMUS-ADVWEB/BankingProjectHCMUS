@@ -5,12 +5,14 @@ import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromO
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.request.recipient.UpdateRecipientRequest;
 import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.model.Recipient;
 import com.example.banking.backend.service.RecipientService;
 import com.example.banking.backend.service.RecipientServiceImpl;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/recipients")
 @AllArgsConstructor
@@ -29,7 +32,11 @@ public class RecipientController {
     @PostMapping()
     public ResponseEntity<ApiResponse<RecipientDtoRes>> addRecipient(
             @Valid @RequestBody AddRecipientRequest request) {
-        RecipientDtoRes recipient = recipientService.addRecipient(request);
+
+        RecipientDtoRes recipient =
+                request.getBankCode() == null ?
+                        recipientService.addRecipientInternal(request) :
+                         recipientService.addRecipientExternal(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<RecipientDtoRes>builder()
                         .status(HttpStatus.CREATED.value())
@@ -41,7 +48,7 @@ public class RecipientController {
     @PutMapping("/{recipientId}")
     public ResponseEntity<ApiResponse<RecipientDtoRes>> updateRecipient(
             @PathVariable String recipientId,
-            @Valid @RequestBody AddRecipientRequest request) {
+            @Valid @RequestBody UpdateRecipientRequest request) {
 
         RecipientDtoRes recipient = recipientService.updateRecipient(UUID.fromString(recipientId), request);
 
@@ -95,20 +102,6 @@ public class RecipientController {
                 .data(recipients)
                 .build());
 
-    }
-
-
-    @PostMapping ("external/recipient-info")
-    @GetMapping
-    public ResponseEntity<ApiResponse<ExternalAccountDto>> returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request) {
-
-        ExternalAccountDto recipients = recipientService.returnRecipientForOtherBank(request);
-
-        return ResponseEntity.ok(ApiResponse.<ExternalAccountDto>builder()
-                .status(HttpStatus.OK.value())
-                .message("Recipient information retrieved successfully")
-                .data(recipients)
-                .build());
     }
 
 

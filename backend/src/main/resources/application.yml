@@ -32,6 +32,8 @@ spring:
       starttls.enable: true
       ssl.trust: smtp.gmail.com
   cloud:
+    compatibility-verifier:
+      enabled: false
     openfeign:
       client:
         config:

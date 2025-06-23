@@ -41,7 +41,7 @@ public class SecurityConfig {
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
     @Bean
-    public PrivateKey bankAPrivateKey() throws Exception {
+    public PrivateKey nhom3privateKey() throws Exception {
         return CryptoUtils.loadPrivateKey("keys/private_key.pem");
     }
     @Bean
@@ -67,13 +67,18 @@ public class SecurityConfig {
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/topic/**").permitAll()
-                        .requestMatchers("/queue/**").permitAll()
-                        .requestMatchers("/app/**").permitAll()
+                        .requestMatchers("/actuator/**",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",                      
+                                "/ws/**",
+                                "/topic/**",
+                                "/queue/**",
+                                "/app/**",
+                                "/favicon.ico"
+                                ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
