@@ -60,8 +60,9 @@ public class AccountServiceImpl implements AccountService {
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
     private final RestTemplate restTemplate;
-    private  final BankRepository bankRepository;
-    private  final TransactionRepository transactionRepository;
+    private final BankRepository bankRepository;
+    private final TransactionRepository transactionRepository;
+
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
         Account account = accountRepository.findByUserId(userId).orElse(null);
@@ -104,40 +105,43 @@ public class AccountServiceImpl implements AccountService {
                 .message("Account's transaction history found successfully!")
                 .build();
     }
+
     Account getAccountCurrentUser() {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("Please sign in first "));
     }
+
     @Override
     public ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size, Integer pagination) {
         if (size <= 0 || pagination <= 0) {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
         }
 
-        Pageable pageable = PageRequest.of(pagination -  1 , size);
-        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findByFromAccountId(getAccountCurrentUser().getAccountId() ,  pageable);
+        Pageable pageable = PageRequest.of(pagination - 1, size);
+        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findByFromAccountId(getAccountCurrentUser().getAccountId(), pageable);
         List<TransactionDto> transactions = transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
                         transaction.getId(),
-                        transaction.getToBank() != null ?  transaction.getToBank().getId() : null,
+                        transaction.getToBank() != null ? transaction.getToBank().getId() : null,
                         transaction.getAmount(),
                         transaction.getUpdatedAt(),
                         transaction.getMessage()
                 ))
                 .collect(Collectors.toList());
 
-        return ApiResponse.<  List<TransactionDto>>builder()
+        return ApiResponse.<List<TransactionDto>>builder()
                 .data(transactions)
                 .status(HttpStatus.OK.value())
                 .message("Account's transaction history found successfully!")
-                .build();    }
+                .build();
+    }
 
     @Override
     public ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request) {
 
         if (accountRepository.findByUserEmail(request.getUsername()).isPresent()
-        || accountRepository.findByUserPhone(request.getPhone()).isPresent()
-        || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
+                || accountRepository.findByUserPhone(request.getPhone()).isPresent()
+                || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
 
             return ApiResponse.<CreateCustomerAccountResponse>builder()
                     .data(null)
@@ -238,6 +242,7 @@ public class AccountServiceImpl implements AccountService {
 
         return account.getBalance();
     }
+
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new BadRequestException("NOT FOUND CURRENT USER"));
@@ -251,7 +256,7 @@ public class AccountServiceImpl implements AccountService {
             throw new BadRequestException("Old password is incorrect");
         }
 
-        if(!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
+        if (!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
             throw new BadRequestException("OTP is not true , please try again");
         }
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
@@ -261,88 +266,76 @@ public class AccountServiceImpl implements AccountService {
     }
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request) {
-        if (request == null || request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
+        if (request == null)
             throw new BadRequestException("Invalid request parameters");
-        }
+        //Internal
+        if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
+            Account sourceAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+            return new AccountInfoResult(sourceAccount.getAccountNumber(), sourceAccount.getUser().getFullName());
+        } else {
+            // External
 
-        Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
+            Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
 
-        Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
-                .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
+            Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
 
-        String destinationApiUrl = destinationBank.getApiEndpoint();
-        if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
-            return new AccountInfoResult(false, null, null, "Destination bank API endpoint not configured");
-        }
-
-        try {
-            AccountExternalRequest interbankRequest = new AccountExternalRequest(
-                    request.getAccountNumber()
-            );
-
-            String timestamp =String.valueOf(Instant.now().toEpochMilli());
-            ObjectMapper objectMapper = new ObjectMapper();
-            String requestBody = objectMapper.writeValueAsString(interbankRequest);
-            String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
-            String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Bank-Code", request.getBankCode());
-            headers.set("X-Timestamp", timestamp);
-            headers.set("X-Request-Hash", hmac);
-
-            HttpEntity<AccountExternalRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    destinationApiUrl + "/api/linked-banks/account-info",
-                    HttpMethod.POST,
-                    httpEntity,
-                    Map.class
-            );
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                Boolean success = (Boolean) responseBody.get("success");
-
-                if (response.getStatusCode() == HttpStatus.OK){
-                    Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
-                    String accountNumber = (String) data.get("accountNumber");
-                    String fullName = (String) data.get("fullName");
-                    return new AccountInfoResult(
-                            true,
-                            accountNumber,
-                            fullName,
-                            null
-                    );
-                } else {
-                    String errorMessage = (String) responseBody.getOrDefault("message", "Account info retrieval failed");
-                    return new AccountInfoResult(false, null, null, "External account info failed: " + errorMessage);
-                }
-            } else {
-                return new AccountInfoResult(false, null, null,
-                        "External account info failed: HTTP " + response.getStatusCode());
+            String destinationApiUrl = destinationBank.getApiEndpoint();
+            if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
+                throw new BadRequestException("Destination bank API endpoint not configured");
             }
-        } catch (Exception e) {
-            return new AccountInfoResult(false, null, null,
-                    "External account info failed: " + e.getMessage());
+
+            try {
+                AccountExternalRequest interbankRequest = new AccountExternalRequest(
+                        request.getAccountNumber()
+                );
+                String timestamp = String.valueOf(Instant.now().toEpochMilli());
+                ObjectMapper objectMapper = new ObjectMapper();
+                String requestBody = objectMapper.writeValueAsString(interbankRequest);
+                String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
+                String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Bank-Code", request.getBankCode());
+                headers.set("X-Timestamp", timestamp);
+                headers.set("X-Request-Hash", hmac);
+                HttpEntity<AccountExternalRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
+                ResponseEntity<Map> response = restTemplate.exchange(
+                        destinationApiUrl + "/api/linked-banks/account-info",
+                        HttpMethod.POST,
+                        httpEntity,
+                        Map.class
+                );
+                if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                    Map<String, Object> responseBody = response.getBody();
+                    Boolean success = (Boolean) responseBody.get("success");
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+                        String accountNumber = (String) data.get("accountNumber");
+                        String fullName = (String) data.get("fullName");
+                        return new AccountInfoResult(accountNumber, fullName);
+                    }
+                } else {
+                    throw new BadRequestException(
+                            "External account info failed: HTTP " + response.getStatusCode());
+                }
+            } catch (Exception e) {
+                throw new BadRequestException("Error processing external account info request: " + e.getMessage());
+            }
         }
+        return null;
     }
 
     @Override
     public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
-                                                  String timestamp, String receivedHmac, String signature) throws Exception {
+                                                  String timestamp, String receivedHmac) throws Exception {
         if (request == null || request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
             throw new BadRequestException("Invalid request parameters");
         }
-
         Bank sourceBank = bankRepository.findByBankCode(sourceBankCode)
-                .orElseThrow(() -> new IllegalArgumentException("Source bank not found: " + sourceBankCode));
-
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new BadRequestException("Account not found: " + request.getAccountNumber()));
-
+                .orElseThrow(() -> new IllegalArgumentException("Your bank is not linked to FIN" ));
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(request);
         String expectedHashInput = requestBody + timestamp + sourceBankCode + sourceBank.getSecretKey();
@@ -351,21 +344,11 @@ public class AccountServiceImpl implements AccountService {
         if (!expectedHmac.equals(receivedHmac)) {
             throw new BadRequestException("HMAC verification failed - packet integrity compromised");
         }
-
-        PublicKey sourcePublicKey = CryptoUtils.loadPublicKey(sourceBank.getPublicKey());
-        if (sourcePublicKey == null || !CryptoUtils.verifySignature(requestBody, signature, sourcePublicKey)) {
-            throw new BadRequestException("Digital signature verification failed");
-        }
-
-        Map<String, Object> accountDetails = new HashMap<>();
-        accountDetails.put("balance", account.getBalance());
-        accountDetails.put("accountHolder", account.getUser().getFullName());
-
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new BadRequestException("Account not found: " + request.getAccountNumber()));
         return new AccountInfoResponse(
-                true,
                 account.getAccountNumber(),
-                accountDetails,
-                "Account info retrieved successfully"
+                account.getUser().getFullName()
         );
     }
 }

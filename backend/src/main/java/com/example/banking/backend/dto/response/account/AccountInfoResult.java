@@ -12,10 +12,8 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountInfoResult {
-    private boolean success;
     private String accountNumber;
     private String fullName;
-    private String errorMessage;
 
 
 }

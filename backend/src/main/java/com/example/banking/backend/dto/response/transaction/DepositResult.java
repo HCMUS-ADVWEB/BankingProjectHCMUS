@@ -9,9 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class DepositResult {
 
-    private boolean success;
-    private String transactionId;
-    private double newBalance;
+
     private String message;
 
 
