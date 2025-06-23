@@ -12,6 +12,9 @@ import {
   Lock,
 } from 'lucide-react';
 
+// export const BASE_URL = 'http://localhost:8080';
+export const BASE_URL = 'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
+
 export const SOLUTIONS = [
   {
     icon: UserCircle2,
@@ -184,3 +187,15 @@ export const CONTACT_INFO = {
 };
 
 export const CURRENT_YEAR = new Date().getFullYear();
+
+export const formatVND = (amount) => {
+  if (typeof amount !== 'number') return amount;
+  return amount.toLocaleString('vi-VN');
+};
+
+export const TRANSACTION_TYPES = [
+  { value: 'INTERNAL_TRANSFER', label: 'Internal Transfer' },
+  { value: 'INTERBANK_TRANSFER', label: 'Interbank Transfer' },
+  { value: 'DEBT_PAYMENT', label: 'Debt Payment' },
+  { value: 'DEPOSIT', label: 'Deposit' },
+];

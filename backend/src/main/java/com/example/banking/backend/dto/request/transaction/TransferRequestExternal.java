@@ -17,8 +17,8 @@ public class TransferRequestExternal {
     @NotBlank(message = "Receiver account number cannot be null or empty")
     private String accountNumberReceiver;
 
-    @NotNull(message = "Destination bank ID cannot be null")
-    private UUID destinationBankId;
+    @NotNull(message = "BankCode is required")
+    private String bankCode;
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
@@ -28,4 +28,5 @@ public class TransferRequestExternal {
     private String feeType;
 
     private String message; // optional
+    private String otp; // optional, for OTP verification
 }

@@ -6,17 +6,20 @@ import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequestExternal;
 import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.request.transaction.*;
+import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.InvalidUserException;
 import com.example.banking.backend.model.*;
 import com.example.banking.backend.model.type.FeeType;
+import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionStatusType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.repository.*;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,6 +38,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,8 +52,9 @@ public class TransactionServiceImpl implements TransactionService {
     private BankRepository bankRepository;
     private UserRepository userRepository;
     private RecipientRepository recipientRepository;
-    private final PrivateKey bankAPrivateKey;
+    private final PrivateKey nhom3privateKey; // My bank
     private final RestTemplate restTemplate;
+    OtpService otpService;
 
     public TransferResult externalTransfer(TransferRequestExternal request) throws Exception {
         Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
@@ -64,8 +69,11 @@ public class TransactionServiceImpl implements TransactionService {
         if (sourceAccount.getBalance() < totalAmount) {
             return new TransferResult(false, null, request.getAmount(), fee, null, "Insufficient balance after fee");
         }
-
-        Bank destinationBank = bankRepository.findById(request.getDestinationBankId())
+        otpService.validateOtp(
+                getCurrentUser().getId(),
+                OtpType.TRANSFER,
+                request.getOtp()) ;
+        Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
                 .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
 
         Account accountCurrentUser = getAccountCurrentUser();
@@ -83,7 +91,6 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setMessage(request.getMessage() != null ? request.getMessage() : "");
         transaction.setStatus(TransactionStatusType.PENDING);
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
 
        String destinationApiUrl = destinationBank.getApiEndpoint();
         if (destinationApiUrl == null) {
@@ -97,12 +104,30 @@ public class TransactionServiceImpl implements TransactionService {
         externalRequest.setFeeType(request.getFeeType());
         externalRequest.setMessage(request.getMessage());
 
-        String dataToSign = externalRequest.getAccountNumberReceiver() + externalRequest.getAmount() + Instant.now().toString();
-        String signature = CryptoUtils.signData(dataToSign, bankAPrivateKey);
-        String hmac = CryptoUtils.generateHMAC(dataToSign, destinationBank.getSecretKey());
+
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> bankDetails = Map.of(
+                "senderAccountNumber", sourceAccount.getAccountNumber(),
+                "receiverAccountNumber", request.getAccountNumberReceiver(),
+                "amount", request.getAmount(),
+                "content", request.getMessage() != null ? request.getMessage() : ""
+        );
+
+        String body = objectMapper.writeValueAsString(bankDetails);
+        String timestamp = Instant.now().toString();
+        String bankCode = "FIN";
+        String secretKey = destinationBank.getSecretKey();
+
+        String hashInput = body + timestamp + bankCode + secretKey;
+        String hmac = CryptoUtils.generateHMAC(hashInput, secretKey); // HmacSHA256
+
+        String signature = CryptoUtils.signData(body, nhom3privateKey);
 
         externalRequest.setSignature(signature);
         externalRequest.setHmac(hmac);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         try {
             ResponseEntity<TransferResult> response = restTemplate.postForEntity(
@@ -131,70 +156,94 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
+
     public DepositResult externalDeposit(ExternalDepositRequest request) throws Exception {
         if (request == null) {
             return new DepositResult(false, null, 0.0, 0.0, null, "Deposit request cannot be null");
         }
 
-            Account destinationAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
-                    .orElseThrow(() -> new IllegalArgumentException("Destination account not found: " + request.getAccountNumber()));
+        // Kiểm tra đầu vào
+        if (request.getAmount() <= 0) {
+            return new DepositResult(false, null, request.getAmount(), 0.0, null, "Invalid amount");
+        }
 
-            Bank sourceBank = bankRepository.findById(request.getSourceBankId())
-                    .orElseThrow(() -> new IllegalArgumentException("Source bank not found"));
+        Account destinationAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new IllegalArgumentException("Destination account not found: " + request.getAccountNumber()));
 
-            String dataToHash = request.getAccountNumber() + request.getAmount() + request.getTimestamp();
-            String calculatedHmac = CryptoUtils.generateHMAC(dataToHash, sourceBank.getSecretKey());
-            if (!calculatedHmac.equals(request.getHmac())) {
-                return new DepositResult(false, null, request.getAmount(), 0.0, null, "Packet integrity compromised");
-            }
+        Bank sourceBank = bankRepository.findById(request.getSourceBankId())
+                .orElseThrow(() -> new IllegalArgumentException("Source bank not found"));
 
-            PublicKey sourcePublicKey = CryptoUtils.loadPublicKey(sourceBank.getPublicKey());
-            if (!CryptoUtils.verifySignature(dataToHash, request.getSignature(), sourcePublicKey)) {
-                return new DepositResult(false, null, request.getAmount(), 0.0, null, "Invalid signature from source bank");
-            }
+        String dataToHash = request.getAccountNumber() + request.getAmount() + request.getTimestamp();
+        String calculatedHmac = CryptoUtils.generateHMAC(dataToHash, sourceBank.getSecretKey());
+        if (!calculatedHmac.equals(request.getHmac())) {
+            return new DepositResult(false, null, request.getAmount(), 0.0, null, "Packet integrity compromised");
+        }
 
-            Transaction transaction = new Transaction();
-            transaction.setTransactionType(TransactionType.DEPOSIT);
-            transaction.setFromBank(sourceBank);
-            transaction.setFromAccount(null);
-            transaction.setFromAccountNumber(request.getSenderAccountNumber());
-            transaction.setToBank(null);
-            transaction.setToAccount(destinationAccount);
-            transaction.setToAccountNumber(request.getAccountNumber());
-            transaction.setAmount(request.getAmount());
-            transaction.setFee(0.0);
-            transaction.setFeeType(null);
-            transaction.setMessage(request.getMessage() != null ? request.getMessage() : "External deposit from " + sourceBank.getBankName());
-            transaction.setStatus(TransactionStatusType.COMPLETED);
+        PublicKey sourcePublicKey = CryptoUtils.loadPublicKey(sourceBank.getPublicKey());
+        if (sourcePublicKey == null || !CryptoUtils.verifySignature(dataToHash, request.getSignature(), sourcePublicKey)) {
+            return new DepositResult(false, null, request.getAmount(), 0.0, null, "Invalid signature from source bank");
+        }
 
-            Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction transaction = new Transaction();
+        transaction.setTransactionType(TransactionType.DEPOSIT);
+        transaction.setFromBank(sourceBank);
+        transaction.setFromAccount(null);
+        transaction.setFromAccountNumber(request.getSenderAccountNumber());
+        transaction.setToBank(null);
+        transaction.setToAccount(destinationAccount);
+        transaction.setToAccountNumber(request.getAccountNumber());
+        transaction.setAmount(request.getAmount());
+        transaction.setFee(0.0);
+        transaction.setFeeType(null);
+        transaction.setMessage(request.getMessage() != null ? request.getMessage() : "External deposit from " + sourceBank.getBankName());
+        transaction.setStatus(TransactionStatusType.PENDING);
 
-            double oldBalance = destinationAccount.getBalance();
-            double newBalance = oldBalance + request.getAmount();
-            destinationAccount.setBalance(newBalance);
-            accountRepository.save(destinationAccount);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
-            String sourceApiUrl = sourceBank.getApiEndpoint();
-            if (sourceApiUrl != null) {
+        double oldBalance = destinationAccount.getBalance();
+        double newBalance = oldBalance + request.getAmount();
+        destinationAccount.setBalance(newBalance);
+        accountRepository.save(destinationAccount);
+
+        String sourceApiUrl = sourceBank.getApiEndpoint();
+        if (sourceApiUrl != null) {
+            try {
                 TransactionResponse response = new TransactionResponse();
                 response.setTransactionId(savedTransaction.getId());
                 response.setTargetAccountId(String.valueOf(destinationAccount.getAccountId()));
                 response.setAmount(request.getAmount());
                 response.setTimestamp(Instant.now().toString());
                 String responseData = response.getTransactionId() + response.getTargetAccountId() + response.getAmount() + response.getTimestamp();
-                response.setSignature(CryptoUtils.signData(responseData, bankAPrivateKey));
+                response.setSignature(CryptoUtils.signData(responseData, nhom3privateKey));
                 restTemplate.postForEntity(sourceApiUrl + "/api/confirm", response, Void.class);
+                savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+                transactionRepository.save(savedTransaction);
+            } catch (Exception e) {
+                // Rollback nếu gửi xác nhận thất bại
+                destinationAccount.setBalance(oldBalance);
+                accountRepository.save(destinationAccount);
+                transactionRepository.delete(savedTransaction);
+                return new DepositResult(false, null, request.getAmount(), 0.0, null, "Failed to confirm with source bank: " + e.getMessage());
             }
+        } else {
+            // Nếu không có API endpoint, vẫn hoàn tất nhưng ghi log cảnh báo
+            savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+            transactionRepository.save(savedTransaction);
+        }
 
-            return new DepositResult(
-                    true,
-                    savedTransaction.getId().toString(),
-                    request.getAmount(),
-                    newBalance,
-                    "External deposit completed successfully from " + sourceBank.getBankName(),
-                    ""
-            );
+        return new DepositResult(
+                true,
+                savedTransaction.getId().toString(),
+                request.getAmount(),
+                newBalance,
+                "External deposit completed successfully from " + sourceBank.getBankName(),
+                ""
+        );
+    }
 
+    @Override
+    public ExternalAccountDto ExternalAccountReturn() {
+        return null;
     }
 
     private double calculateFee(double amount, FeeType feeType) {
@@ -259,7 +308,10 @@ public class TransactionServiceImpl implements TransactionService {
             Instant now = Instant.now();
             transaction.setCreatedAt(now);
             transaction.setUpdatedAt(now);
-
+            otpService.validateOtp(
+                    getCurrentUser().getId(),
+                    OtpType.TRANSFER,
+                    request.getOtp()) ;
             var savedTransaction = transactionRepository.save(transaction);
 
             return new TransferResult(
@@ -271,23 +323,11 @@ public class TransactionServiceImpl implements TransactionService {
                     null
             );
 
-        } catch (DataIntegrityViolationException e) {
-            throw new BadRequestException("Data integrity violation: " + e.getRootCause().getMessage());
-        } catch (ConstraintViolationException e) {
-            throw new BadRequestException("Validation error: " + e.getMessage());
+
         } catch (Exception e) {
-            throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+            throw new RuntimeException("Server is busy, please try again later", e);
         }
     }
-
-    @Override
-    public void verifyTransferOtp(VerifyOtpRequest request) {
-
-    }
-
-
-
-
 
     @Override
     public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page) {
@@ -350,30 +390,6 @@ public class TransactionServiceImpl implements TransactionService {
                 .sum();
 
         return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime);
-    }
-
-    @Override
-    public AccountDto getExternalAccountInfo(String accountNumber, UUID bankId) {
-        if (accountNumber == null || accountNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Account number cannot be null or empty");
-        }
-        if (bankId == null) {
-            throw new IllegalArgumentException("Bank ID cannot be null");
-        }
-        Optional<Bank> bank = bankRepository.findById(bankId);
-        if (bank.isEmpty()) throw new IllegalArgumentException("Bank ID cannot be null");
-
-
-        Recipient account = recipientRepository.findByAccountNumberAndBankId(accountNumber, bankId)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found for accountNumber: " + accountNumber + " and bankId: " + bankId));
-
-
-        return new AccountDto(
-                account.getId(),
-                account.getRecipientAccountNumber(),
-                bank.get().getBankName(),
-                account.getUser().getFullName()
-        );
     }
 
 }

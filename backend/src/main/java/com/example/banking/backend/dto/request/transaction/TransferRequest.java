@@ -12,4 +12,5 @@ public class TransferRequest {
     double amount;
     String message;
     FeeType feeType;
+    String otp;
 }

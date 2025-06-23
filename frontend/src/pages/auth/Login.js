@@ -91,14 +91,56 @@ export default function LoginPage() {
 
     onSubmit: async (values) => {
       setIsLoading(true);
-      await login(values.username, values.password, values.recaptcha);
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-        formik.setFieldValue('recaptcha', '');
+
+      try {
+        await login(values.username, values.password, values.recaptcha);
+
+        // Only reset reCAPTCHA after successful login or if we need to retry
+        // Wait a bit to ensure any ongoing reCAPTCHA operations complete
+        setTimeout(() => {
+          if (recaptchaRef.current) {
+            try {
+              recaptchaRef.current.reset();
+              formik.setFieldValue('recaptcha', '');
+            } catch (error) {
+              console.warn('Error resetting reCAPTCHA:', error);
+              // If reset fails, just clear the form field
+              formik.setFieldValue('recaptcha', '');
+            }
+          }
+        }, 500);
+
+      } catch (error) {
+        // On login failure, reset reCAPTCHA after a delay
+        setTimeout(() => {
+          if (recaptchaRef.current) {
+            try {
+              recaptchaRef.current.reset();
+              formik.setFieldValue('recaptcha', '');
+            } catch (resetError) {
+              console.warn('Error resetting reCAPTCHA after login failure:', resetError);
+              formik.setFieldValue('recaptcha', '');
+            }
+          }
+        }, 100);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     },
   });
+
+  // Handle reCAPTCHA changes with error handling
+  const handleRecaptchaChange = (token) => {
+    formik.setFieldValue('recaptcha', token || '');
+  };
+
+  const handleRecaptchaExpired = () => {
+    formik.setFieldValue('recaptcha', '');
+  };
+
+  const handleRecaptchaError = () => {
+    formik.setFieldValue('recaptcha', '');
+  };
 
   return (
     <div
@@ -322,9 +364,9 @@ export default function LoginPage() {
               <ReCAPTCHA
                 ref={recaptchaRef}
                 sitekey={process.env.REACT_APP_GG_SITE_KEY}
-                onChange={(token) => formik.setFieldValue('recaptcha', token)}
-                onExpired={() => formik.setFieldValue('recaptcha', '')}
-                onError={() => formik.setFieldValue('recaptcha', '')}
+                onChange={handleRecaptchaChange}
+                onExpired={handleRecaptchaExpired}
+                onError={handleRecaptchaError}
                 theme="white"
               />
             </div>
