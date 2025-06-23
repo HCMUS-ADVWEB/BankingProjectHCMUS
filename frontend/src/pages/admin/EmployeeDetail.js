@@ -24,11 +24,13 @@ import {
     LocalizationProvider
 } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function EmployeeDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { state } = useLocation();
+    const { updateProfile, state: { user } } = useAuth();
     const [employee, setEmployee] = useState(state?.employee);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -36,9 +38,16 @@ export default function EmployeeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
+    useEffect(() => {
+        if (employee) {
+            setEditedEmployee({ ...employee });
+        }
+    }, [employee]);
+
+
 
     // nếu chưa có state thì fetch
-    useEffect(() => {
+    useEffect(() =>{
         if (!state?.employee) {
             const fetchEmployee = async () => {
                 try {
@@ -56,6 +65,18 @@ export default function EmployeeDetailPage() {
         }
     }, [id, state]);
 
+    if (loading) {
+        return (
+            <AdminLayout>
+                <Box sx={{ p: 3, bgcolor: "#121212", minHeight: "100vh" }}>
+                    <Typography variant="h4" sx={{ color: 'text.primary' }}>
+                        Loading employee details...
+                    </Typography>
+                </Box>
+            </AdminLayout>
+        );
+    }
+
     if (!employee) {
         return (
             <AdminLayout>
@@ -68,6 +89,7 @@ export default function EmployeeDetailPage() {
             </AdminLayout>
         );
     }
+
 
 
     const handleConfirmDelete = async () => {
@@ -127,6 +149,10 @@ export default function EmployeeDetailPage() {
 
             setEmployee({ ...editedEmployee, updatedAt: new Date().toISOString() });
             setEditMode(false);
+            if (editedEmployee.id === user.id) {
+                editedEmployee.role = editedEmployee.role.toLowerCase();
+                updateProfile(editedEmployee);
+            }
         } catch (error) {
             console.error("Failed to update employee", error);
             if (error.response) {

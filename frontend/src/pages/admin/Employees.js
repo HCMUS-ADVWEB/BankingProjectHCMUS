@@ -58,6 +58,8 @@ export default function EmployeesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [errors, setErrors] = useState({});
+
   const rowsPerPage = 5;
 
   const usernameRef = useRef();
@@ -109,10 +111,12 @@ export default function EmployeesPage() {
     setPage(newPage);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewEmployee((prev) => ({ ...prev, [name]: value }));
-  };
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setNewEmployee((prev) => ({ ...prev, [name]: value }));
+  setErrors((prev) => ({ ...prev, [name]: '' }));  // clear lỗi khi gõ lại
+};
+
 
   const handleAddEmployee = async () => {
     try {
@@ -166,42 +170,38 @@ export default function EmployeesPage() {
     }
   };
 
-  const isFormValid = () => {
-    const {
-      username, password, fullName, email, phone, address, dob
-    } = newEmployee;
-    return (
-      username.trim() &&
-      password.trim() &&
-      fullName.trim() &&
-      email.trim() &&
-      phone.trim() &&
-      address.trim() &&
-      dob
-    );
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!newEmployee.fullName?.trim()) newErrors.fullName = 'Full name is required';
+    if (!newEmployee.email?.trim()) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) newErrors.email = 'Email is invalid';
+
+    if (!newEmployee.phone?.trim()) newErrors.phone = 'Phone is required';
+    else if (!/^\d{10,11}$/.test(newEmployee.phone.replace(/\D/g, ''))) newErrors.phone = 'Phone must be 10-11 digits';
+
+    if (!newEmployee.address?.trim()) newErrors.address = 'Address is required';
+    if (!newEmployee.dob) newErrors.dob = 'Date of birth is required';
+
+    if (!newEmployee.username?.trim()) newErrors.username = 'Username is required';
+    else if (newEmployee.username.length < 5) newErrors.username = 'Username must be at least 5 characters';
+
+    if (!newEmployee.password?.trim()) newErrors.password = 'Password is required';
+    else if (newEmployee.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+
+
   const handleSubmit = () => {
-    if (!newEmployee.username.trim()) {
-      usernameRef.current.focus();
-    } else if (!newEmployee.password.trim()) {
-      passwordRef.current.focus();
-    } else if (!newEmployee.fullName.trim()) {
-      fullNameRef.current.focus();
-    } else if (!newEmployee.email.trim()) {
-      emailRef.current.focus();
-    } else if (!newEmployee.phone.trim()) {
-      phoneRef.current.focus();
-    } else if (!newEmployee.address.trim()) {
-      addressRef.current.focus();
-    } else if (!newEmployee.dob) {
-      dobRef.current.focus();
-    }
-    else {
+    if (validateForm()) {
       handleAddEmployee();
       setOpenAddDialog(false);
     }
   };
+
 
   const handleEdit = (e, id) => {
     e.stopPropagation();
@@ -290,6 +290,8 @@ export default function EmployeesPage() {
               fullWidth
               variant="outlined"
               required
+              error={Boolean(errors.username)}
+              helperText={errors.username}
             />
             <TextField
               inputRef={passwordRef}
@@ -314,6 +316,8 @@ export default function EmployeesPage() {
                   </InputAdornment>
                 )
               }}
+              error={Boolean(errors.password)}
+              helperText={errors.password}
             />
 
             <TextField
@@ -326,6 +330,8 @@ export default function EmployeesPage() {
               onChange={handleInputChange}
               fullWidth
               variant="outlined"
+              error={Boolean(errors.fullName)}
+              helperText={errors.fullName}
             />
             <TextField
               inputRef={emailRef}
@@ -337,6 +343,8 @@ export default function EmployeesPage() {
               onChange={handleInputChange}
               fullWidth
               variant="outlined"
+              error={Boolean(errors.email)}
+              helperText={errors.email}
             />
             <TextField
               inputRef={phoneRef}
@@ -348,6 +356,8 @@ export default function EmployeesPage() {
               onChange={handleInputChange}
               fullWidth
               variant="outlined"
+              error={Boolean(errors.phone)}
+              helperText={errors.phone}
             />
             <TextField
               inputRef={addressRef}
@@ -359,6 +369,8 @@ export default function EmployeesPage() {
               onChange={handleInputChange}
               fullWidth
               variant="outlined"
+              error={Boolean(errors.address)}
+              helperText={errors.address}
             />
 
             <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -379,6 +391,8 @@ export default function EmployeesPage() {
                     variant="outlined" />
                 )}
                 sx={{ my: 1 }}
+                error={Boolean(errors.dob)}
+                helperText={errors.dob}
               />
             </LocalizationProvider>
             <Select
@@ -415,7 +429,6 @@ export default function EmployeesPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!isFormValid()}
               sx={{ bgcolor: "primary.main", color: "text.primary" }}
             >
               Add
