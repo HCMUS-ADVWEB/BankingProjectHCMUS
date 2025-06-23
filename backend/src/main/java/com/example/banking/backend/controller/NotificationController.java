@@ -1,5 +1,6 @@
 package com.example.banking.backend.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import com.example.banking.backend.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/notifications")

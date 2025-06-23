@@ -1,10 +1,12 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.security.jwt.CustomContextHolder;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/test")

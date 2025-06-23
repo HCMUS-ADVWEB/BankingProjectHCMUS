@@ -4,6 +4,7 @@ import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.otp.OtpRequest;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.service.OtpService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/otp")
 @AllArgsConstructor

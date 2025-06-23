@@ -9,6 +9,7 @@ import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @CrossOrigin(origins = "*")
