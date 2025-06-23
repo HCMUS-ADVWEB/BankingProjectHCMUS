@@ -351,7 +351,7 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setToAccount(toAccount);
             transaction.setAmount(request.getAmount());
             transaction.setFee(fee);
-            transaction.setFeeType(request.getFeeType());
+            transaction.setFeeType(request.getFeeType());            
             transaction.setStatus(TransactionStatusType.PENDING);
             transaction.setMessage(request.getMessage());
 
@@ -359,11 +359,29 @@ public class TransactionServiceImpl implements TransactionService {
             Instant now = Instant.now();
             transaction.setCreatedAt(now);
             transaction.setUpdatedAt(now);
-            otpService.validateOtp(
-                    getCurrentUser().getId(),
-                    OtpType.TRANSFER,
-                    request.getOtp());
+            
+            // Validate OTP if provided
+            if (request.getOtp() != null && !request.getOtp().isEmpty()) {
+                otpService.validateOtp(
+                        getCurrentUser().getId(),
+                        OtpType.TRANSFER,
+                        request.getOtp());
+            }
+            
+            // Save transaction
             var savedTransaction = transactionRepository.save(transaction);
+            
+            // Update account balances
+            accountCurrentUser.setBalance(accountCurrentUser.getBalance() - totalAmount);
+            accountRepository.save(accountCurrentUser);
+            
+            toAccount.setBalance(toAccount.getBalance() + request.getAmount());
+            accountRepository.save(toAccount);
+            
+            // Update transaction status to COMPLETED
+            savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+            savedTransaction.setUpdatedAt(Instant.now());
+            savedTransaction = transactionRepository.save(savedTransaction);
 
             return new TransferResult(
                     true,

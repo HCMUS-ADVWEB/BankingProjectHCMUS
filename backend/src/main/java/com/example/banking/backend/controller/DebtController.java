@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.GetDebtPaymentOtpRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
@@ -83,8 +82,8 @@ public class DebtController {
         
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/request-otp")
-        public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody GetDebtPaymentOtpRequest request) {
-        debtService.requestOtpForPayDebt(request);
+        public ResponseEntity<ApiResponse<?>> requestPayDebtOtp() {
+        debtService.requestOtpForPayDebt();
         return ResponseEntity.ok(ApiResponse.builder()
                 .message("Email sent successfully!")
                 .status(HttpStatus.OK.value())

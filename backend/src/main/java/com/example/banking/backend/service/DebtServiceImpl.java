@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.GetDebtPaymentOtpRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
@@ -145,29 +144,28 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
     private User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
-    }
-
-    @Override
-    public void requestOtpForPayDebt(GetDebtPaymentOtpRequest request) {
-        String email = request.getEmail();
+    }    @Override
+    public void requestOtpForPayDebt() {
         User currentUser = getCurrentUser();
-        otpService.generateAndSendOtp(currentUser.getId(), email, OtpType.DEBT_PAYMENT);
-    }
-
-    @Override
+        // Use user's email directly from JWT/User object instead of requiring it in the request
+        otpService.generateAndSendOtp(currentUser.getId(), OtpType.DEBT_PAYMENT);
+    }    @Override
     @Transactional
     public ApiResponse<PayDebtResponse> payDebtReminder(UUID reminderId, PayDebtRequest request) {
         // Validate the reminder ID
         DebtReminder reminder = debtReminderRepository.findById(reminderId)
                 .orElseThrow(() -> new IllegalArgumentException("Debt reminder not found"));
         
+        // Check if the debt is in PENDING status
+        if (reminder.getStatus() != DebtStatusType.PENDING) {
+            throw new BadRequestException("Only PENDING debts can be paid");
+        }
+        
         // Validate OTP
         boolean isValidOtp = otpService.validateOtp(reminder.getDebtor().getId(), OtpType.DEBT_PAYMENT, request.getOtp());
         if (!isValidOtp) {
             throw new InvalidOtpException("Otp is not valid");
-        }
-
-        // Retrieve creditor's account number (assuming the creator is the creditor)
+        }        // Retrieve creditor's account number (assuming the creator is the creditor)
         String creditorAccountNumber = reminder.getCreator().getAccount().getAccountNumber();
 
         // Prepare transfer request
@@ -176,6 +174,7 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
         transferRequest.setAmount(reminder.getAmount());
         transferRequest.setFeeType(FeeType.SENDER); // Example fee type
         transferRequest.setMessage(request.getMessage());
+        transferRequest.setOtp(request.getOtp()); // Set the OTP for transaction validation
 
         // Call TransactionService to process the transfer
         TransferResult transferResult = transactionService.internalTransfer(transferRequest);
@@ -228,11 +227,14 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
             if (!isValidUUID(trimmedId)) {
                 throw new IllegalArgumentException("Invalid UUID format: " + trimmedId);
             }
-            UUID reminderUUID = UUID.fromString(trimmedId);
-
-            // Fetch the debt reminder
+            UUID reminderUUID = UUID.fromString(trimmedId);            // Fetch the debt reminder
             DebtReminder debtReminder = debtReminderRepository.findById(reminderUUID)
                     .orElseThrow(() -> new IllegalArgumentException("Debt reminder not found"));
+
+            // Check if the debt is in PENDING status
+            if (debtReminder.getStatus() != DebtStatusType.PENDING) {
+                throw new IllegalArgumentException("Only PENDING debts can be cancelled");
+            }
 
             // Check if the current user is the creator of the debt reminder
 
