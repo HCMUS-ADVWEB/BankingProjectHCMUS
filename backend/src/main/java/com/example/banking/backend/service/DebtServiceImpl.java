@@ -47,26 +47,52 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
     private final OtpService otpService;
     private final NotificationService notificationService;
     private final AccountRepository accountRepository;
+
+    
     @Override
-    public ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page) {
+    public ApiResponse<DebtReminderListsResponse> getDebtReminderLists(DebtStatusType status, int limit, int page) {
         User currentUser = getCurrentUser();
         PageRequest pageRequest = PageRequest.of(page - 1, limit);
-        Page<DebtReminder> debtReminders;
+        
+        // Get created debt reminders
+        Page<DebtReminder> createdDebts;
         if (status == null) {
-            debtReminders = debtReminderRepository.findByCreator_IdOrDebtor_Id(currentUser.getId(), currentUser.getId(), pageRequest);
+            createdDebts = debtReminderRepository.findByCreator_Id(currentUser.getId(), pageRequest);
         } else {
-            debtReminders = debtReminderRepository.findByStatusAndCreator_IdOrStatusAndDebtor_Id(
-                status, currentUser.getId(), status, currentUser.getId(), pageRequest);
+            createdDebts = debtReminderRepository.findByStatusAndCreator_Id(status, currentUser.getId(), pageRequest);
         }
-        List<GetDebtReminderResponse> responses = debtReminders.getContent().stream()
+        
+        // Get received debt reminders
+        Page<DebtReminder> receivedDebts;
+        if (status == null) {
+            receivedDebts = debtReminderRepository.findByDebtor_Id(currentUser.getId(), pageRequest);
+        } else {
+            receivedDebts = debtReminderRepository.findByStatusAndDebtor_Id(status, currentUser.getId(), pageRequest);
+        }
+        
+        // Convert to response DTOs
+        List<GetDebtReminderResponse> createdDebtsResponses = createdDebts.getContent().stream()
                 .map(debtReminderMapper::toResponse)
                 .collect(Collectors.toList());
-        return ApiResponse.<List<GetDebtReminderResponse>>builder()
-                .data(responses)
+                
+        List<GetDebtReminderResponse> receivedDebtsResponses = receivedDebts.getContent().stream()
+                .map(debtReminderMapper::toResponse)
+                .collect(Collectors.toList());
+        
+        // Build the combined response
+        DebtReminderListsResponse response = DebtReminderListsResponse.builder()
+                .createdDebts(createdDebtsResponses)
+                .receivedDebts(receivedDebtsResponses)
+                .build();
+        
+        return ApiResponse.<DebtReminderListsResponse>builder()
+                .data(response)
                 .status(HttpStatus.OK.value())
                 .message("Debt reminders retrieved successfully!")
                 .build();
-    }    @Override
+    }
+    
+    @Override
     public ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request) {
         // Get the currently authenticated user
         User creator = getCurrentUser();
@@ -145,12 +171,15 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
     private User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
-    }    @Override
+    }    
+
+    @Override
     public void requestOtpForPayDebt() {
         User currentUser = getCurrentUser();
         // Use user's email directly from JWT/User object instead of requiring it in the request
         otpService.generateAndSendOtp(currentUser.getId(), OtpType.DEBT_PAYMENT);
-    }    @Override
+    }    
+    @Override
     @Transactional
     public ApiResponse<PayDebtResponse> payDebtReminder(UUID reminderId, PayDebtRequest request) {
         // Validate the reminder ID
@@ -279,48 +308,5 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
 
     private boolean isValidUUID(String uuid) {
         return uuid.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-    }
-
-    @Override
-    public ApiResponse<DebtReminderListsResponse> getDebtReminderLists(DebtStatusType status, int limit, int page) {
-        User currentUser = getCurrentUser();
-        PageRequest pageRequest = PageRequest.of(page - 1, limit);
-        
-        // Get created debt reminders
-        Page<DebtReminder> createdDebts;
-        if (status == null) {
-            createdDebts = debtReminderRepository.findByCreator_Id(currentUser.getId(), pageRequest);
-        } else {
-            createdDebts = debtReminderRepository.findByStatusAndCreator_Id(status, currentUser.getId(), pageRequest);
-        }
-        
-        // Get received debt reminders
-        Page<DebtReminder> receivedDebts;
-        if (status == null) {
-            receivedDebts = debtReminderRepository.findByDebtor_Id(currentUser.getId(), pageRequest);
-        } else {
-            receivedDebts = debtReminderRepository.findByStatusAndDebtor_Id(status, currentUser.getId(), pageRequest);
-        }
-        
-        // Convert to response DTOs
-        List<GetDebtReminderResponse> createdDebtsResponses = createdDebts.getContent().stream()
-                .map(debtReminderMapper::toResponse)
-                .collect(Collectors.toList());
-                
-        List<GetDebtReminderResponse> receivedDebtsResponses = receivedDebts.getContent().stream()
-                .map(debtReminderMapper::toResponse)
-                .collect(Collectors.toList());
-        
-        // Build the combined response
-        DebtReminderListsResponse response = DebtReminderListsResponse.builder()
-                .createdDebts(createdDebtsResponses)
-                .receivedDebts(receivedDebtsResponses)
-                .build();
-        
-        return ApiResponse.<DebtReminderListsResponse>builder()
-                .data(response)
-                .status(HttpStatus.OK.value())
-                .message("Debt reminders retrieved successfully!")
-                .build();
     }
 }

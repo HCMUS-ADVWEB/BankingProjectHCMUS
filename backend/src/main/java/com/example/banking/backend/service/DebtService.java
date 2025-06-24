@@ -14,15 +14,6 @@ import com.example.banking.backend.dto.response.debt.PayDebtResponse;
 import com.example.banking.backend.model.type.DebtStatusType;
 
 public interface DebtService {
-    /**
-     * @deprecated Use {@link #getDebtReminderLists(DebtStatusType, int, int)} instead.
-     */
-    @Deprecated
-    ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page);
-    
-    /**
-     * Gets debt reminders separated into created and received lists.
-     */
     ApiResponse<DebtReminderListsResponse> getDebtReminderLists(DebtStatusType status, int limit, int page);
 
     ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request);
