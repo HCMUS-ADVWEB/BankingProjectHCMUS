@@ -14,6 +14,4 @@ import java.util.Map;
 public class AccountInfoResponse {
     private String accountNumber;
     private String accountName;
-
-
 }

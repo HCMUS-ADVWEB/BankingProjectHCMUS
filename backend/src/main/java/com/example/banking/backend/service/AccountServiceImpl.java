@@ -287,7 +287,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
+    public AccountInfoResult processAccountInfo(AccountInfoRequest request, String sourceBankCode,
                                                   String timestamp, String receivedHmac) throws Exception {
         if (request == null || request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
             throw new BadRequestException("Invalid request parameters");
@@ -304,7 +304,7 @@ public class AccountServiceImpl implements AccountService {
         }
         Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
                 .orElseThrow(() -> new NotFoundException("Account not found: " + request.getAccountNumber()));
-        return new AccountInfoResponse(
+        return new AccountInfoResult(
                 account.getAccountNumber(),
                 account.getUser().getFullName()
         );

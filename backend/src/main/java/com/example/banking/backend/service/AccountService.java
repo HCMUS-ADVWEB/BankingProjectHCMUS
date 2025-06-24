@@ -28,7 +28,7 @@ public interface AccountService {
     Double debitAccount(UUID accountId, Double amount);
 
 
-    public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
+    public AccountInfoResult processAccountInfo(AccountInfoRequest request, String sourceBankCode,
                                                   String timestamp, String receivedHmac) throws Exception;
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request);
