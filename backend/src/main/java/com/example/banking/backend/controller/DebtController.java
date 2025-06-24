@@ -38,18 +38,6 @@ public class DebtController {
     private final DebtService debtService;
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<GetDebtReminderResponse>>> getDebtReminders(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page
-    ) {
-        DebtStatusType debtStatusType = status != null ? DebtStatusType.fromValue(status) : null;
-        ApiResponse<List<GetDebtReminderResponse>> response = debtService.getDebtReminders(debtStatusType, limit, page);
-        return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/reminders")
     public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(
             @RequestBody CreateDebtReminderRequest request) {
@@ -114,7 +102,7 @@ public class DebtController {
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/lists")
+    @GetMapping("/get-all")
     public ResponseEntity<ApiResponse<DebtReminderListsResponse>> getDebtReminderLists(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "10") int limit,

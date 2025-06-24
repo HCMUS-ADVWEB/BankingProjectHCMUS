@@ -9,8 +9,10 @@ import java.util.UUID;
 @Data
 public class GetDebtReminderResponse {
     private UUID id;
-    private UUID creatorId;
-    private UUID debtorId;
+    private String creatorFullName;
+    private String debtorFullName;
+    private String creatorAccountNumber;
+    private String debtorAccountNumber;
     private Double amount;
     private String message;
     private DebtStatusType status;
