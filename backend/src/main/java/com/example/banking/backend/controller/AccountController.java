@@ -57,12 +57,12 @@ public class AccountController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    /*@PreAuthorize("hasRole('EMPLOYEE')")
     @PutMapping("/recharge")
     public ResponseEntity<ApiResponse> rechargeCustomer(@RequestBody RechargeAccountRequest request) {
         ApiResponse apiResponse = accountService.rechargeAccount(request);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
+    }*/
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/customer/transactions")
