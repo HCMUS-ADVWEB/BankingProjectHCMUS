@@ -217,22 +217,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
     }
 
-    @Override
-    public Boolean changePassword(ChangePasswordRequest request) {
-        User user = getCurrentUser();
-        System.out.println("Old Password: " + request.getOldPassword());
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new BadRequestException("Old password is incorrect");
-        }
 
-        if (!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
-            throw new InvalidOtpException("OTP is not true , please try again");
-        }
-        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
-        user.setPassword(hashedPassword);
-        userRepository.save(user);
-        return true;
-    }
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request) {
         if (request == null)
@@ -241,6 +226,10 @@ public class AccountServiceImpl implements AccountService {
         if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
             Account sourceAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
                     .orElseThrow(() -> new NotFoundException("Account not found"));
+            Account userAccount = getCurrentUser().getAccount();
+            if (sourceAccount.getUser().getId() == userAccount.getUser().getId()) {
+                throw new BadRequestException("Cannot get account info of your own account");
+            }
             return new AccountInfoResult(sourceAccount.getAccountNumber(), sourceAccount.getUser().getFullName());
         } else {
             // External

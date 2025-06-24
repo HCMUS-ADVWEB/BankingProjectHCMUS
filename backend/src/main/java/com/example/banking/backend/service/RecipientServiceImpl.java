@@ -65,23 +65,7 @@ public class RecipientServiceImpl implements RecipientService {
 
     }
 
-    @Override
-    public boolean verifyRecipient(String accountNumber, UUID bankId) {
-        if (accountNumber == null || accountNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Account number cannot be null or empty");
-        }
-        if (bankId == null) {
-            throw new IllegalArgumentException("Bank ID cannot be null");
-        }
 
-        Recipient account = recipientRepository.findByAccountNumberAndBankId(accountNumber, bankId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Recipient verification failed: Account not found for accountNumber: " + accountNumber + " and bankId: " + bankId
-                ));
-
-        return true;
-
-    }
 
     @Override
     @Transactional
@@ -159,38 +143,44 @@ public class RecipientServiceImpl implements RecipientService {
 
 
     @Override
-    public void deleteRecipient(DeleteRecipientRequest request) {
+    public void deleteRecipient(String id) {
         User currentUser = getCurrentUser();
         Recipient recipient = currentUser.getRecipients().stream()
-                .filter(r -> r.getRecipientName().equals(request.getRecipientFullName()) &&
-                        r.getRecipientAccountNumber().equals(request.getRecipientAccountNumber()) &&
-                        r.getBank().getBankName().equals(request.getBankName()))
+                .filter(r -> r.getRecipientName().toString().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new InvalidUserException("Recipient not found"));
-
-
         recipientRepository.delete(recipient);
-
-
     }
+
+
+    Account getAccountCurrentUser() {
+        return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new RuntimeException("Please sign in first "));
+    }
+
+    Account getAccountFromNumber(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new BadRequestException("ACCOUNT RECEIVER NOT FOUND"));
+    }
+
 
     @Override
     public List<RecipientDtoResponse> getRecipients(int limit, int page) {
         int pageNumber = page - 1;
-
         if (limit <= 0 || pageNumber < 0) {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
         }
 
         Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        Page<Recipient> recipientPage = recipientRepository.findAll(pageable);
+        User currentUser = getCurrentUser();
+        Page<Recipient> recipientPage = recipientRepository.findByUserId(currentUser.getId(), pageable);
 
         return recipientPage.getContent().stream()
                 .map(recipient -> new RecipientDtoResponse(
                         recipient.getId(),
                         recipient.getRecipientAccountNumber(),
                         recipient.getBank() == null ? null : recipient.getBank().getBankName(),
+                        recipient.getBank() == null ? null : recipient.getBank().getBankCode(),
                         recipient.getRecipientName(),
                         recipient.getNickName()
                 ))
@@ -210,7 +200,6 @@ public class RecipientServiceImpl implements RecipientService {
             return account.getUser().getFullName();
         }
     }*/
-
 
 
 }

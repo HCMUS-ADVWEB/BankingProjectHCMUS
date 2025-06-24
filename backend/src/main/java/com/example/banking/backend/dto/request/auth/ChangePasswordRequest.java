@@ -15,7 +15,4 @@ public class ChangePasswordRequest {
     @NotBlank
     @NotNull
     private String newPassword;
-    @NotNull(message = "Otp is required")
-    @Size(message = "Otp length must be 6", min = 6, max = 6)
-    private String otp;
 }

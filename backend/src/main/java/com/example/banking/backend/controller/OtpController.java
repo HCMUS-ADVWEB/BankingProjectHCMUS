@@ -3,6 +3,7 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.otp.OtpRequest;
 import com.example.banking.backend.model.type.OtpType;
+import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.OtpService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
@@ -27,15 +28,17 @@ public class OtpController {
     public ApiResponse<Boolean> generateOtp(
          @RequestBody OtpRequest otpRequest
     ) {
-        otpService.generateAndSendOtp(UUID.fromString(otpRequest.getUserId()),
-                OtpType.fromValue(otpRequest.getOtpType()));
 
+        otpService.generateAndSendOtp(CustomContextHolder.getCurrentUserId(),
+                OtpType.fromValue(otpRequest.getOtpType()));
         return ApiResponse.<Boolean>builder()
                 .message("Sent OTP successfully!")
                 .status(200)
                 .data(true)
                 .build();
     }
+
+
 
 
 
