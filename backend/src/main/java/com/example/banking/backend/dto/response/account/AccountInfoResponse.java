@@ -12,10 +12,8 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountInfoResponse {
-    private boolean success;
     private String accountNumber;
-    private Map<String, Object> accountDetails;
-    private String message;
+    private String accountName;
 
 
 }

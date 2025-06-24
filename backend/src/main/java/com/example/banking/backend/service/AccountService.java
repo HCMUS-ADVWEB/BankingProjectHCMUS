@@ -19,18 +19,18 @@ public interface AccountService {
     ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size,
             Integer pagination, TransactionType type);
     // void deposit(UUID accountId, DepositRequest request);
-    ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size,
-                                                              Integer pagination);
+    ApiResponse<GetAccountTransactionsResponse> getCustomerTransactions(Integer size, Integer pagination, TransactionType type);
+
     ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request);
 
-    ApiResponse rechargeAccount(RechargeAccountRequest request);
+    void rechargeAccount(String accountNumber, Long rechargeAmount);
 
     Double debitAccount(UUID accountId, Double amount);
 
     Boolean changePassword(ChangePasswordRequest request);
 
     public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
-                                                  String timestamp, String receivedHmac, String signature) throws Exception;
+                                                  String timestamp, String receivedHmac) throws Exception;
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request);
 

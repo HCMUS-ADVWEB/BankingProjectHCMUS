@@ -12,8 +12,4 @@ import lombok.Setter;
 public class AccountInfoRequest {
     private String accountNumber;
     private String bankCode;
-
-
-
-
 }

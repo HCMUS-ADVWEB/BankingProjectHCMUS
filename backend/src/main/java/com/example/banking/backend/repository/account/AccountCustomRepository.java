@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface AccountCustomRepository {
-    Account getPaginatedTransactions(String accountNumber, int page, int size, TransactionType type);
+    Account getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type);
 }

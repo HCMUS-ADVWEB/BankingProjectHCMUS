@@ -270,11 +270,13 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setToAccountNumber(request.getReceiverAccountNumber());
         transaction.setAmount(request.getAmount());
         transaction.setFee(0.0); // Người nhận không chịu phí
-        transaction.setFeeType(null);
+        transaction.setFeeType(FeeType.SENDER);
         transaction.setMessage(request.getContent() != null ? request.getContent() :
                 "Interbank transfer from " + sourceBank.getBankName());
         transaction.setStatus(TransactionStatusType.COMPLETED);
-
+        Instant now = Instant.now();
+        transaction.setCreatedAt(now);
+        transaction.setUpdatedAt(now);
         Transaction savedTransaction = transactionRepository.save(transaction);
         double oldBalance = destinationAccount.getBalance();
         double newBalance = oldBalance + request.getAmount();
@@ -282,9 +284,6 @@ public class TransactionServiceImpl implements TransactionService {
         accountRepository.save(destinationAccount);
 
         return new DepositResult(
-                true,
-                savedTransaction.getId().toString(),
-                newBalance,
                 "Transfer completed successfully"
         );
     }
