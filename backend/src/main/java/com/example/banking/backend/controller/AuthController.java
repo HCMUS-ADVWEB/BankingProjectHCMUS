@@ -6,6 +6,8 @@ import com.example.banking.backend.dto.response.auth.LoginResponse;
 import com.example.banking.backend.dto.response.auth.LogoutResponse;
 import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
 import com.example.banking.backend.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,9 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(tags = "Authorization"
+            , summary = "[UNAUTHORIZED] Log in"
+            , description = "Unauthorized users log in into the system")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
@@ -32,6 +37,9 @@ public class AuthController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(tags = "Authorization"
+            , summary = "[UNAUTHORIZED] Refresh new token after access token is expired"
+            , description = "Expired users request new access token")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         RefreshTokenResponse response = authService.refresh(request);
@@ -43,8 +51,11 @@ public class AuthController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(tags = "Authorization"
+            , summary = "[AUTHORIZED] Log out"
+            , description = "Users log out of the system")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<LogoutResponse>> refreshToken(@RequestParam String refreshToken) {
+    public ResponseEntity<ApiResponse<LogoutResponse>> logout(@Parameter(description = "Account's refresh token")@RequestParam String refreshToken) {
         LogoutResponse response = authService.logout(UUID.fromString(refreshToken));
         ApiResponse<LogoutResponse> apiResponse = ApiResponse.<LogoutResponse>builder()
                 .message("Log out successfully!")
@@ -54,6 +65,9 @@ public class AuthController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(tags = "Authorization"
+            , summary = "[UNAUTHORIZED] Unauthorized users forgot their password"
+            , description = "Send OTP to unauthorized users' mail after they request to set new password")
     @PostMapping("/reset-password/request")
     public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request);
@@ -63,6 +77,9 @@ public class AuthController {
                 .build());
     }
 
+    @Operation(tags = "Authorization"
+            , summary = "[UNAUTHORIZED] Unauthorized users reset their password"
+            , description = "Unauthorized users reset their password with given OTP code")
     @PostMapping("/reset-password/confirm")
     public ResponseEntity<ApiResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request);
