@@ -192,4 +192,15 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.internalServerError().body(response);
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFoundException(RuntimeException ex) {
+        log.error("Unhandled runtime exception", ex);
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status(HttpStatus.NOT_FOUND.value())
+                .message("Resource not found: " + ex.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }

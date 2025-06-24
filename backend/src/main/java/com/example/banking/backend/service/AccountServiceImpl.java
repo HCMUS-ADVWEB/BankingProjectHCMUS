@@ -11,7 +11,7 @@ import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.response.account.*;
 import com.example.banking.backend.dto.response.transaction.TransactionDto;
 import com.example.banking.backend.dto.response.user.UserDto;
-import com.example.banking.backend.exception.BadRequestException;
+import com.example.banking.backend.exception.*;
 import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.Bank;
@@ -34,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -68,11 +69,7 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByUserId(userId).orElse(null);
 
         if (account == null) {
-            return ApiResponse.<GetAccountResponse>builder()
-                    .data(null)
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message("Account found successfully!")
-                    .build();
+            throw new NotFoundException("Account not found");
         }
 
         GetAccountResponse accountResponse = AccountMapper.INSTANCE.accountToGetAccountResponse(account);
@@ -91,10 +88,7 @@ public class AccountServiceImpl implements AccountService {
 
 
         if (account == null) {
-            return ApiResponse.<GetAccountTransactionsResponse>builder()
-                    .status(HttpStatus.NO_CONTENT.value())
-                    .message("Account not found!")
-                    .build();
+            throw new NotFoundException("Account not found!");
         }
 
         GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
@@ -108,7 +102,7 @@ public class AccountServiceImpl implements AccountService {
 
     Account getAccountCurrentUser() {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("Please sign in first "));
+                .orElseThrow(() -> new InvalidUserException("Please switch account."));
     }
 
     @Override
@@ -143,11 +137,7 @@ public class AccountServiceImpl implements AccountService {
                 || accountRepository.findByUserPhone(request.getPhone()).isPresent()
                 || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
 
-            return ApiResponse.<CreateCustomerAccountResponse>builder()
-                    .data(null)
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message("Account already exists!")
-                    .build();
+            throw new ExistenceException("Account already exists!");
         }
 
         CreateUserRequest userRequest = CreateUserRequest.builder()
@@ -214,10 +204,7 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElse(null);
 
         if (account == null) {
-            return ApiResponse.builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message("Account not found!")
-                    .build();
+            throw new NotFoundException("Account not found!");
         }
 
 
@@ -234,7 +221,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Double debitAccount(UUID userId, Double amount) {
         Account account = accountRepository.findByUserId(userId).orElseThrow(
-                () -> new RuntimeException("Account not found!"));
+                () -> new NotFoundException("Account not found!"));
 
         account.setBalance(account.getBalance() - amount);
 
@@ -245,7 +232,7 @@ public class AccountServiceImpl implements AccountService {
 
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new BadRequestException("NOT FOUND CURRENT USER"));
+                .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
     }
 
     @Override
@@ -257,7 +244,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         if (!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
-            throw new BadRequestException("OTP is not true , please try again");
+            throw new InvalidOtpException("OTP is not true , please try again");
         }
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedPassword);
@@ -271,16 +258,16 @@ public class AccountServiceImpl implements AccountService {
         //Internal
         if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
             Account sourceAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
-                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+                    .orElseThrow(() -> new NotFoundException("Account not found"));
             return new AccountInfoResult(sourceAccount.getAccountNumber(), sourceAccount.getUser().getFullName());
         } else {
             // External
 
             Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
+                    .orElseThrow(() -> new NotFoundException("Source account not found"));
 
             Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
-                    .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
+                    .orElseThrow(() -> new NotFoundException("Destination bank not found"));
 
             String destinationApiUrl = destinationBank.getApiEndpoint();
             if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
@@ -345,7 +332,7 @@ public class AccountServiceImpl implements AccountService {
             throw new BadRequestException("HMAC verification failed - packet integrity compromised");
         }
         Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new BadRequestException("Account not found: " + request.getAccountNumber()));
+                .orElseThrow(() -> new NotFoundException("Account not found: " + request.getAccountNumber()));
         return new AccountInfoResponse(
                 account.getAccountNumber(),
                 account.getUser().getFullName()
