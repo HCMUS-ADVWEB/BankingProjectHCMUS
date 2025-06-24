@@ -3,6 +3,8 @@ package com.example.banking.backend.controller;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +39,11 @@ public class DebtController {
 
     private final DebtService debtService;
 
+    @Operation(tags = "Debt"
+            , summary = "[CUSTOMER] Create a debt reminder"
+            , description = "Customers create a debt reminder and send it to the debtor")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/reminders")
+    @PostMapping("")
     public ResponseEntity<ApiResponse<CreateDebtReminderResponse>> createDebtReminder(
             @RequestBody CreateDebtReminderRequest request) {
         // Use a default UUID for creatorId
@@ -49,15 +54,23 @@ public class DebtController {
         // Return the response
         return ResponseEntity.ok(response);
     }
+
+    @Operation(tags = "Debt"
+            , summary = "[CUSTOMER] Cancel a debt reminder"
+            , description = "Customers cancel an existing debt reminder")
     @PreAuthorize("hasRole('CUSTOMER')")
     @DeleteMapping("/{reminderId}")
-    public ResponseEntity<ApiResponse<Void>> cancelDebtReminder(@PathVariable String reminderId, @RequestBody CancelDebtReminderRequest request) {
+    public ResponseEntity<ApiResponse<?>> cancelDebtReminder(
+            @Parameter(description = "Id of the reminder that needs to be cancelled"
+                    , required = true
+                    , example = "ca1b8d49-ebe3-426c-adaf-130dde641fc6")@PathVariable String reminderId,
+            @RequestBody CancelDebtReminderRequest request) {
         try {
             // Trim and validate the UUID string
             reminderId = reminderId.trim();
             UUID reminderUUID = UUID.fromString(reminderId); // Convert the string to UUID
 
-            ApiResponse<Void> response = debtService.cancelDebtReminder(reminderUUID, request);
+            ApiResponse<?> response = debtService.cancelDebtReminder(reminderUUID, request);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             // Handle invalid UUID format
@@ -68,7 +81,10 @@ public class DebtController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
-        
+
+    @Operation(tags = "Debt"
+            , summary = "[CUSTOMER] Request an OTP to pay a debt"
+            , description = "Customers request an OTP to pay a debt")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/request-otp")
         public ResponseEntity<ApiResponse<?>> requestPayDebtOtp() {
@@ -78,35 +94,42 @@ public class DebtController {
                 .status(HttpStatus.OK.value())
                 .build());
     }
-    
+
+    @Operation(tags = "Debt"
+            , summary = "[CUSTOMER] Pay an existing debt"
+            , description = "Customers pay an existing debt")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/{reminderId}/pay")
-    public ResponseEntity<ApiResponse<String>> payDebtReminder(
-            @PathVariable String reminderId,
+    @PostMapping("/{reminderId}")
+    public ResponseEntity<ApiResponse<?>> payDebtReminder(
+            @Parameter(description = "Id of the debt reminder that is about to be paid"
+                    , required = true
+                    , example = "ca1b8d49-ebe3-426c-adaf-130dde641fc6")@PathVariable String reminderId,
             @Valid @RequestBody PayDebtRequest request) {
         try {
             debtService.payDebtReminder(UUID.fromString(reminderId), request);
 
-            return ResponseEntity.ok(ApiResponse.<String>builder()
+            return ResponseEntity.ok(ApiResponse.builder()
                     .status(HttpStatus.OK.value())
                     .message("Debt reminder paid successfully")
-                    .data("Payment processed")
                     .build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.<String>builder()
+                    .body(ApiResponse.builder()
                             .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                             .message("Failed to pay debt reminder: " + e.getMessage())
                             .build());
         }
     }
 
+    @Operation(tags = "Debt"
+            , summary = "[CUSTOMER] Get all current account's debt reminders"
+            , description = "Customers get all of their debt reminders")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/get-all")
+    @GetMapping("")
     public ResponseEntity<ApiResponse<DebtReminderListsResponse>> getDebtReminderLists(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page
+            @Parameter(description = "Debt's status")@RequestParam(required = false) String status,
+            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page
     ) {
         DebtStatusType debtStatusType = status != null ? DebtStatusType.fromValue(status) : null;
         ApiResponse<DebtReminderListsResponse> response = debtService.getDebtReminderLists(debtStatusType, limit, page);

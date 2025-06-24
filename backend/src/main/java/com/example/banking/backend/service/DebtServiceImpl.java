@@ -40,7 +40,8 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class DebtServiceImpl implements DebtService {    private final DebtReminderRepository debtReminderRepository;
+public class DebtServiceImpl implements DebtService {
+    private final DebtReminderRepository debtReminderRepository;
     private final UserRepository userRepository;
     private final DebtReminderMapper debtReminderMapper;
     private final TransactionService transactionService;
@@ -158,7 +159,7 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
         response.setDebtorId(debtReminder.getDebtor().getId());
         response.setAmount(debtReminder.getAmount());
         response.setMessage(debtReminder.getMessage());
-        response.setStatus(debtReminder.getStatus().name());
+        response.setStatus(debtReminder.getStatus());
 
         // Return the response wrapped in ApiResponse
         return ApiResponse.<CreateDebtReminderResponse>builder()
