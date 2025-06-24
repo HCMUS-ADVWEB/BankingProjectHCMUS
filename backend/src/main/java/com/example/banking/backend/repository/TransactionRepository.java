@@ -25,4 +25,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("SELECT t FROM Transaction t WHERE t.fromAccount.accountId = :fromAccountId")
     Page<Transaction> findByFromAccountId(UUID fromAccountId, Pageable pageable);
 
+    Page<Transaction> findByUpdatedAtBetween(Instant startDate, Instant endDate, Pageable pageable);
+    List<Transaction> findByUpdatedAtBetween(Instant startDate, Instant endDate);
+    List<Transaction> findByToBankIdAndUpdatedAtBetween(UUID toBankId, Instant startDate, Instant endDate);
+
 }

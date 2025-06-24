@@ -1,5 +1,6 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.user.UserDto;
@@ -22,4 +23,6 @@ public interface UserService {
     UserDto updateUser(UUID userId, UpdateUserRequest request);
 
     void deleteUser(UUID userId);
+    Boolean changePassword(ChangePasswordRequest request);
+
 }

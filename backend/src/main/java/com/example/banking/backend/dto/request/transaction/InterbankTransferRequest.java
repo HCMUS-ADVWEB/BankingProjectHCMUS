@@ -17,7 +17,6 @@ public class InterbankTransferRequest  {
     private String senderAccountNumber;
     @NotBlank(message = "Receiver account number is required")
     private String receiverAccountNumber;
-    @NotBlank(message = "Receiver bank code is required")
     private Double amount;
     private String content;
     @Override

@@ -1,13 +1,17 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.user.UserDto;
+import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.ExistenceException;
+import com.example.banking.backend.exception.NotFoundException;
 import com.example.banking.backend.mapper.user.UserMapper;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.UserRepository;
+import com.example.banking.backend.security.jwt.CustomContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -145,5 +149,21 @@ public class UserServiceImpl implements UserService {
             throw new ExistenceException("User not found!");
         }
         userRepository.deleteById(userId);
+    }
+    User getCurrentUser() {
+        return userRepository.findById(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
+    }
+    @Override
+    public Boolean changePassword(ChangePasswordRequest request) {
+        User user = getCurrentUser();
+        System.out.println("Old Password: " + request.getOldPassword());
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password is incorrect");
+        }
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+        return true;
     }
 }
