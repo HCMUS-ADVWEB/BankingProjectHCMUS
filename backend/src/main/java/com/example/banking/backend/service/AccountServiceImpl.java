@@ -189,18 +189,15 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElseThrow(() -> new NotFoundException("Account not found!"));
+    public void rechargeAccount(String accountNumber, Long rechargeAmount) {
+        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
 
-        account.setBalance(account.getBalance() + request.getRechargeAmount());
+        account.setBalance(account.getBalance() + rechargeAmount);
 
         accountRepository.save(account);
 
-        return ApiResponse.builder()
-                .status(HttpStatus.OK.value())
-                .message("Account recharged successfully!")
-                .build();
+        return;
     }
 
     @Override

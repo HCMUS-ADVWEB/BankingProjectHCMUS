@@ -23,7 +23,7 @@ public interface AccountService {
 
     ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request);
 
-    ApiResponse rechargeAccount(RechargeAccountRequest request);
+    void rechargeAccount(String accountNumber, Long rechargeAmount);
 
     Double debitAccount(UUID accountId, Double amount);
 
