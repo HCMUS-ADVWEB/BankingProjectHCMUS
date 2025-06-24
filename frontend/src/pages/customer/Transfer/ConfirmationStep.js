@@ -103,7 +103,7 @@ const ConfirmationStep = () => {
             
 
           </Grid>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, p: 1.5, bgcolor: form.feeType === 'SENDER' ? 'primary.50' : 'warning.50', borderRadius: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, p: 1.5, bgcolor: form.feeType === 'SENDER' ? 'primary.50' : 'warning.50', borderRadius: 1 }}>
                 <Typography variant="body1" fontWeight="medium" color={form.feeType === 'SENDER' ? 'primary.main' : 'warning.main'}>
                   {form.feeType === 'SENDER' ? '💰 You will pay the transfer fees' : '💰 Recipient will pay the transfer fees'}
                 </Typography>

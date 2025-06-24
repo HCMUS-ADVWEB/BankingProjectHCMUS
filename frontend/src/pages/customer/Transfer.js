@@ -103,7 +103,8 @@ const TransferSteps = () => {
           width: '100%' // Ensure the content inside the refs fills the container
         }
       }}>
-        <TransitionGroup>          {step === TRANSFER_STEPS.FORM && (
+        <TransitionGroup>          
+          {step === TRANSFER_STEPS.FORM && (
             <CSSTransition
               in={step === TRANSFER_STEPS.FORM}
               timeout={300}

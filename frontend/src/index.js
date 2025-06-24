@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { EmployeeProvider } from './contexts/EmployeeContext';
+import { DebtProvider } from './contexts/DebtContext';
 import './styles/output.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,7 +17,9 @@ root.render(
         <ThemeProvider>
           <NotificationProvider>
             <EmployeeProvider>
-              <App />
+              <DebtProvider>
+                <App />
+              </DebtProvider>
             </EmployeeProvider>
           </NotificationProvider>
         </ThemeProvider>

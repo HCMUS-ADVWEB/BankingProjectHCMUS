@@ -17,6 +17,7 @@ import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.DebtReminderListsResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
 import com.example.banking.backend.dto.response.debt.PayDebtResponse;
 import com.example.banking.backend.dto.response.transaction.TransferResult;
@@ -278,5 +279,48 @@ public class DebtServiceImpl implements DebtService {    private final DebtRemin
 
     private boolean isValidUUID(String uuid) {
         return uuid.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    }
+
+    @Override
+    public ApiResponse<DebtReminderListsResponse> getDebtReminderLists(DebtStatusType status, int limit, int page) {
+        User currentUser = getCurrentUser();
+        PageRequest pageRequest = PageRequest.of(page - 1, limit);
+        
+        // Get created debt reminders
+        Page<DebtReminder> createdDebts;
+        if (status == null) {
+            createdDebts = debtReminderRepository.findByCreator_Id(currentUser.getId(), pageRequest);
+        } else {
+            createdDebts = debtReminderRepository.findByStatusAndCreator_Id(status, currentUser.getId(), pageRequest);
+        }
+        
+        // Get received debt reminders
+        Page<DebtReminder> receivedDebts;
+        if (status == null) {
+            receivedDebts = debtReminderRepository.findByDebtor_Id(currentUser.getId(), pageRequest);
+        } else {
+            receivedDebts = debtReminderRepository.findByStatusAndDebtor_Id(status, currentUser.getId(), pageRequest);
+        }
+        
+        // Convert to response DTOs
+        List<GetDebtReminderResponse> createdDebtsResponses = createdDebts.getContent().stream()
+                .map(debtReminderMapper::toResponse)
+                .collect(Collectors.toList());
+                
+        List<GetDebtReminderResponse> receivedDebtsResponses = receivedDebts.getContent().stream()
+                .map(debtReminderMapper::toResponse)
+                .collect(Collectors.toList());
+        
+        // Build the combined response
+        DebtReminderListsResponse response = DebtReminderListsResponse.builder()
+                .createdDebts(createdDebtsResponses)
+                .receivedDebts(receivedDebtsResponses)
+                .build();
+        
+        return ApiResponse.<DebtReminderListsResponse>builder()
+                .data(response)
+                .status(HttpStatus.OK.value())
+                .message("Debt reminders retrieved successfully!")
+                .build();
     }
 }
