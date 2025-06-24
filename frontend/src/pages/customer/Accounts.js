@@ -31,7 +31,10 @@ export default function AccountsPage() {
 
   return (
     <CustomerLayout>
-      <Container maxWidth="xl" sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         {/* Header Section */}
         <Box
           sx={{
@@ -55,7 +58,8 @@ export default function AccountsPage() {
             Your Account 💳
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            View your account details, including account number and current balance.
+            View your account details, including account number and current
+            balance.
           </Typography>
         </Box>
 
@@ -80,14 +84,24 @@ export default function AccountsPage() {
                 >
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
-                      <Skeleton variant="circular" width={28} height={28} sx={{ mr: 2 }} />
+                      <Skeleton
+                        variant="circular"
+                        width={28}
+                        height={28}
+                        sx={{ mr: 2 }}
+                      />
                       <Box>
                         <Skeleton variant="text" width="30%" height={20} />
                         <Skeleton variant="text" width="50%" height={32} />
                       </Box>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Skeleton variant="circular" width={28} height={28} sx={{ mr: 2 }} />
+                      <Skeleton
+                        variant="circular"
+                        width={28}
+                        height={28}
+                        sx={{ mr: 2 }}
+                      />
                       <Box>
                         <Skeleton variant="text" width="30%" height={20} />
                         <Skeleton variant="text" width="70%" height={48} />
@@ -102,7 +116,10 @@ export default function AccountsPage() {
 
         {/* Error State */}
         {error && (
-          <Alert severity="error" sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}
+          >
             {error}
           </Alert>
         )}
@@ -138,12 +155,18 @@ export default function AccountsPage() {
                 >
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
-                      <CreditCard sx={{ color: 'text.secondary', mr: 3, fontSize: 32 }} />
+                      <CreditCard
+                        sx={{ color: 'text.secondary', mr: 3, fontSize: 32 }}
+                      />
                       <Box>
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          sx={{ fontWeight: 500, textTransform: 'uppercase', mb: 1 }}
+                          sx={{
+                            fontWeight: 500,
+                            textTransform: 'uppercase',
+                            mb: 1,
+                          }}
                         >
                           Account Number
                         </Typography>
@@ -157,12 +180,18 @@ export default function AccountsPage() {
                       </Box>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <AccountBalance sx={{ color: 'text.secondary', mr: 3, fontSize: 32 }} />
+                      <AccountBalance
+                        sx={{ color: 'text.secondary', mr: 3, fontSize: 32 }}
+                      />
                       <Box>
                         <Typography
                           variant="body2"
                           color="text.secondary"
-                          sx={{ fontWeight: 500, textTransform: 'uppercase', mb: 1 }}
+                          sx={{
+                            fontWeight: 500,
+                            textTransform: 'uppercase',
+                            mb: 1,
+                          }}
                         >
                           Current Balance
                         </Typography>
@@ -192,7 +221,8 @@ export default function AccountsPage() {
               No Account Found
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              You currently have no accounts. Contact support to open a new account.
+              You currently have no accounts. Contact support to open a new
+              account.
             </Typography>
           </Box>
         )}

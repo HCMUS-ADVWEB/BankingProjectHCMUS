@@ -21,12 +21,11 @@ import OtpVerificationStep from './Transfer/OtpVerificationStep';
 import ResultStep from './Transfer/ResultStep';
 import { useTransfer } from '../../contexts/TransferContext';
 
-
 const TransferSteps = () => {
   const { step, loading, error, success } = useTransfer();
   const [direction, setDirection] = useState('right');
   const [prevStep, setPrevStep] = useState(step);
-  
+
   // Create refs for React 18+ compatibility with CSSTransition
   // These refs replace the deprecated findDOMNode functionality
   const formStepRef = useRef(null);
@@ -61,49 +60,61 @@ const TransferSteps = () => {
             </Step>
           ))}
         </Stepper>
-      </Box>      {loading && step !== TRANSFER_STEPS.FORM && (
-        <Box display="flex" justifyContent="center" my={3} sx={{ maxWidth: '700px', mx: 'auto' }}>
+      </Box>{' '}
+      {loading && step !== TRANSFER_STEPS.FORM && (
+        <Box
+          display="flex"
+          justifyContent="center"
+          my={3}
+          sx={{ maxWidth: '700px', mx: 'auto' }}
+        >
           <CircularProgress />
         </Box>
       )}
-
       {error && step !== TRANSFER_STEPS.FORM && step !== TRANSFER_STEPS.OTP && (
         <Alert severity="error" sx={{ mb: 3, maxWidth: '700px', mx: 'auto' }}>
           {error}
         </Alert>
-      )}      {success && (
+      )}{' '}
+      {success && (
         <Alert severity="success" sx={{ mb: 3, maxWidth: '700px', mx: 'auto' }}>
           {success}
         </Alert>
-      )}      <Paper elevation={3} sx={{ 
-        p: 3, 
-        borderRadius: 2, 
-        maxWidth: '700px', 
-        mx: 'auto',
-        overflow: 'hidden',
-        '& .fade-enter': {
-          opacity: 0,
-          transform: direction === 'right' ? 'translateX(100%)' : 'translateX(-100%)',
-        },
-        '& .fade-enter-active': {
-          opacity: 1,
-          transform: 'translateX(0)',
-          transition: 'opacity 300ms, transform 300ms ease',
-        },
-        '& .fade-exit': {
-          opacity: 1,
-          transform: 'translateX(0)',
-        },
-        '& .fade-exit-active': {
-          opacity: 0,
-          transform: direction === 'right' ? 'translateX(-100%)' : 'translateX(100%)',
-          transition: 'opacity 300ms, transform 300ms ease',
-        },
-        '& > div > div': {
-          width: '100%' // Ensure the content inside the refs fills the container
-        }
-      }}>
-        <TransitionGroup>          
+      )}{' '}
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          borderRadius: 2,
+          maxWidth: '700px',
+          mx: 'auto',
+          overflow: 'hidden',
+          '& .fade-enter': {
+            opacity: 0,
+            transform:
+              direction === 'right' ? 'translateX(100%)' : 'translateX(-100%)',
+          },
+          '& .fade-enter-active': {
+            opacity: 1,
+            transform: 'translateX(0)',
+            transition: 'opacity 300ms, transform 300ms ease',
+          },
+          '& .fade-exit': {
+            opacity: 1,
+            transform: 'translateX(0)',
+          },
+          '& .fade-exit-active': {
+            opacity: 0,
+            transform:
+              direction === 'right' ? 'translateX(-100%)' : 'translateX(100%)',
+            transition: 'opacity 300ms, transform 300ms ease',
+          },
+          '& > div > div': {
+            width: '100%', // Ensure the content inside the refs fills the container
+          },
+        }}
+      >
+        <TransitionGroup>
           {step === TRANSFER_STEPS.FORM && (
             <CSSTransition
               in={step === TRANSFER_STEPS.FORM}
@@ -171,22 +182,25 @@ const TransferSteps = () => {
 };
 
 export default function TransferPage() {
-  const { state } = useLocation();  return (
+  const { state } = useLocation();
+  return (
     <CustomerLayout>
-      <Box 
-        sx={{ 
-          width: '100%', 
+      <Box
+        sx={{
+          width: '100%',
           height: '100%',
-          minHeight: 'calc(100vh - 64px)', /* Adjust based on header height */
-          bgcolor: 'background.default', 
+          minHeight: 'calc(100vh - 64px)' /* Adjust based on header height */,
+          bgcolor: 'background.default',
           py: 4,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
       >
         <Container maxWidth="md" sx={{ mx: 'auto', flex: '1 0 auto' }}>
           <Box sx={{ maxWidth: '800px', mx: 'auto' }}>
-            <TransferProvider initialAccountNumber={state?.accountNumberReceiver}>
+            <TransferProvider
+              initialAccountNumber={state?.accountNumberReceiver}
+            >
               <TransferSteps />
             </TransferProvider>
           </Box>

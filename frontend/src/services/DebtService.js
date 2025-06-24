@@ -8,32 +8,51 @@ const DebtService = {
    * @param {string|null} status - Filter by status (PENDING, PAID, CANCELLED)
    * @param {number} limit - Number of items per page
    * @param {number} page - Page number (1-based)
+   * @param {string} orderBy - Field to sort by
+   * @param {string} order - Sort direction ('asc' or 'desc')
    * @returns {Promise} Promise containing the debt reminders data
    */
-  async getDebtReminderLists(status = null, limit = 10, page = 1) {
+  async getDebtReminderLists(
+    status = null,
+    limit = 10,
+    page = 1,
+    orderBy = 'createdAt',
+    order = 'desc',
+  ) {
     const queryParams = new URLSearchParams();
     if (status) queryParams.append('status', status);
     queryParams.append('limit', limit);
     queryParams.append('page', page);
-    
-    const url = `/api/debts/lists?${queryParams.toString()}`;
-    return api.get(url)
-      .then(res => res.data)
-      .catch(err => {
+    queryParams.append('orderBy', orderBy);
+    queryParams.append('order', order);
+
+    const url = `/api/debts?${queryParams.toString()}`;
+    return api
+      .get(url)
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error fetching debt reminders:', err);
         throw err;
       });
   },
-
   /**
    * Create a new debt reminder
-   * @param {Object} debtData - Debt reminder data
+   * @param {Object} debtData - Debt reminder data with format { debtorAccountNumber, amount, message }
    * @returns {Promise} Promise containing the create operation result
    */
   async createDebtReminder(debtData) {
-    return api.post('/api/debts/reminders', debtData)
-      .then(res => res.data)
-      .catch(err => {
+    // Format data according to API requirements
+    const formattedData = {
+      debtorAccountNumber:
+        debtData.accountNumber || debtData.debtorAccountNumber,
+      amount: debtData.amount,
+      message: debtData.message || '',
+    };
+
+    return api
+      .post('/api/debts', formattedData)
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error creating debt reminder:', err);
         throw err;
       });
@@ -46,11 +65,12 @@ const DebtService = {
    * @returns {Promise} Promise containing the cancel operation result
    */
   async cancelDebtReminder(reminderId, reason) {
-    return api.delete(`/api/debts/${reminderId}`, {
-      data: { cancelledReason: reason }
-    })
-      .then(res => res.data)
-      .catch(err => {
+    return api
+      .delete(`/api/debts/${reminderId}`, {
+        data: { cancelledReason: reason },
+      })
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error cancelling debt reminder:', err);
         throw err;
       });
@@ -61,9 +81,10 @@ const DebtService = {
    * @returns {Promise} Promise containing the OTP request result
    */
   async requestOtpForPayDebt() {
-    return api.post('/api/debts/request-otp')
-      .then(res => res.data)
-      .catch(err => {
+    return api
+      .post('/api/debts/request-otp')
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error requesting OTP for debt payment:', err);
         throw err;
       });
@@ -76,13 +97,14 @@ const DebtService = {
    * @returns {Promise} Promise containing the payment operation result
    */
   async payDebtReminder(reminderId, paymentData) {
-    return api.post(`/api/debts/${reminderId}/pay`, paymentData)
-      .then(res => res.data)
-      .catch(err => {
+    return api
+      .post(`/api/debts/${reminderId}/pay`, paymentData)
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error paying debt reminder:', err);
         throw err;
       });
-  }
+  },
 };
 
 export default DebtService;

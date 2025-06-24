@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import CustomerLayout from '../../layouts/CustomerLayout';
-import api from '../../utils/api';
-import { useAuth } from '../../contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useRecipient } from '../../contexts/RecipientContext';
+import AddRecipientDialog from '../../components/AddRecipientDialog';
 import {
   Box,
   Container,
@@ -24,98 +24,62 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Fab,
+  Tooltip,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Send as SendIcon } from '@mui/icons-material';
-
-const initialForm = { accountNumber: '', bankName: '', recipientName: '', recipientNickname: '' };
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Send as SendIcon,
+} from '@mui/icons-material';
 
 export default function RecipientsPage() {
-  const { state } = useAuth();
   const navigate = useNavigate();
-  const [recipients, setRecipients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState(initialForm);
-  const [success, setSuccess] = useState(null);
+  const {
+    recipients,
+    loading,
+    error,
+    success,
+    fetchRecipients,
+    deleteRecipient,
+    openDialog: openEditDialog,
+    dialogOpen: editDialogOpen,
+    closeDialog: closeEditDialog,
+    handleFormChange,
+    submitForm,
+    form,
+  } = useRecipient();
 
-  const fetchRecipients = () => {
-    setLoading(true);
-    api
-      .get('/api/recipients', { params: { limit: 20, page: 1 } })
-      .then((res) => setRecipients(res.data.data || []))
-      .catch((err) => setError(err.response?.data?.message || err.message))
-      .finally(() => setLoading(false));
-  };
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchRecipients();
-  }, []);
-
-  const handleOpen = (recipient = null) => {
-    setEditId(recipient?.recipientId || null);
-    setForm(
-      recipient
-        ? {
-          accountNumber: recipient.accountNumber || '',
-          bankName: recipient.bankName || '',
-          recipientNickname: recipient.recipientNickname || '',
-        }
-        : initialForm,
-    );
-    setOpen(true);
+  }, [fetchRecipients]);
+  const handleOpenAddDialog = () => {
+    setAddDialogOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setForm(initialForm);
-    setEditId(null);
-  };
-
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (editId) {
-        await api.put(`/api/recipients/${editId}`, form);
-        setSuccess('Recipient updated successfully!');
-      } else {
-        await api.post('/api/recipients', form);
-        setSuccess('Recipient added successfully!');
-      }
-      fetchRecipients();
-      handleClose();
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await api.delete('/api/recipients', { data: { recipientId: id } });
-      setSuccess('Recipient deleted successfully!');
-      fetchRecipients();
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleCloseAddDialog = () => {
+    setAddDialogOpen(false);
   };
 
   const handleTransfer = (accountNumber) => {
-    navigate('/customer/transfer', { state: { accountNumberReceiver: accountNumber } });
+    navigate('/customer/transfer', {
+      state: { accountNumberReceiver: accountNumber },
+    });
+  };
+
+  const handleDelete = async (id) => {
+    await deleteRecipient(id);
   };
 
   return (
     <CustomerLayout>
-      <Container maxWidth="xl" sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         {/* Header Section */}
         <Box
           sx={{
@@ -143,33 +107,36 @@ export default function RecipientsPage() {
             Manage your list of recipients for easy and secure transfers.
           </Typography>
         </Box>
-
         {/* Recipients Section */}
         <Box sx={{ mb: 4, width: '100%' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
             <Typography variant="h5" color="text.primary">
               Recipient List
             </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpen()}
-              sx={{ py: 1.5 }}
-            >
-              Add Recipient
-            </Button>
           </Box>
           <Divider sx={{ mt: 1, mb: 3 }} />
 
           {/* Error and Success Alerts */}
           {error && (
-            <Alert severity="error" sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}>
+            <Alert
+              severity="error"
+              sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}
+            >
               {error}
             </Alert>
           )}
           {success && (
-            <Alert severity="success" sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}>
+            <Alert
+              severity="success"
+              sx={{ mb: 4, borderRadius: 'shape.borderRadius' }}
+            >
               {success}
             </Alert>
           )}
@@ -201,19 +168,49 @@ export default function RecipientsPage() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'left' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        textAlign: 'left',
+                      }}
+                    >
                       Account Number
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'center'}}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        textAlign: 'center',
+                      }}
+                    >
                       Bank Name
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'center' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        textAlign: 'center',
+                      }}
+                    >
                       Recipient Name
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'center' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        textAlign: 'center',
+                      }}
+                    >
                       Recipient Nickname
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: 'text.primary', textAlign: 'right' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        textAlign: 'right',
+                      }}
+                    >
                       Actions
                     </TableCell>
                   </TableRow>
@@ -229,13 +226,22 @@ export default function RecipientsPage() {
                         },
                       }}
                     >
-                      <TableCell sx={{ textAlign: 'left' }}>{rec.accountNumber}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>{rec.bankName || '-'}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>{rec.recipientName}</TableCell>
-                      <TableCell sx={{ textAlign: 'center' }}>{rec.recipientNickname}</TableCell>
+                      <TableCell sx={{ textAlign: 'left' }}>
+                        {rec.accountNumber}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        {rec.bankName || '-'}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        {rec.recipientName}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
+                        {rec.recipientNickname}
+                      </TableCell>
                       <TableCell sx={{ textAlign: 'right' }}>
+                        {' '}
                         <IconButton
-                          onClick={() => handleOpen(rec)}
+                          onClick={() => openEditDialog(rec)}
                           sx={{ color: 'primary.main', mr: 1 }}
                         >
                           <EditIcon />
@@ -274,12 +280,16 @@ export default function RecipientsPage() {
               </Typography>
             </Box>
           )}
-        </Box>
-
-        {/* Add/Edit Recipient Dialog */}
+        </Box>{' '}
+        {/* Add Recipient Dialog */}
+        <AddRecipientDialog
+          open={addDialogOpen}
+          onClose={handleCloseAddDialog}
+        />
+        {/* Edit Recipient Dialog */}
         <Dialog
-          open={open}
-          onClose={handleClose}
+          open={editDialogOpen}
+          onClose={closeEditDialog}
           sx={{
             '& .MuiDialog-paper': {
               borderRadius: 'shape.borderRadius',
@@ -294,7 +304,7 @@ export default function RecipientsPage() {
           }}
         >
           <DialogTitle sx={{ fontWeight: 600, color: 'text.primary' }}>
-            {editId ? 'Edit Recipient' : 'Add Recipient'}
+            Edit Recipient
           </DialogTitle>
           <DialogContent>
             <TextField
@@ -303,50 +313,62 @@ export default function RecipientsPage() {
               fullWidth
               sx={{ mb: 2, mt: 1 }}
               value={form.accountNumber}
-              onChange={handleChange}
+              onChange={handleFormChange}
               required
             />
             <TextField
-              label="Bank Name"
-              name="bankName"
+              label="Bank Code"
+              name="bankCode"
               fullWidth
               sx={{ mb: 2 }}
-              value={form.bankName}
-              onChange={handleChange}
+              value={form.bankCode}
+              onChange={handleFormChange}
             />
             <TextField
-              label="Recipient Name"
-              name="recipientName"
+              label="Nickname"
+              name="nickName"
               fullWidth
               sx={{ mb: 2 }}
-              value={form.recipientName}
-              onChange={handleChange}
-              required
+              value={form.nickName}
+              onChange={handleFormChange}
             />
-            <TextField
-              label="Recipient Nickname"
-              name="recipientNickname"
-              fullWidth
-              sx={{ mb: 2 }}
-              value={form.recipientNickname}
-              onChange={handleChange}
-            />
-            {/* TODO: Add verify recipient */}
           </DialogContent>
           <DialogActions sx={{ p: 3 }}>
-            <Button onClick={handleClose} sx={{ color: 'text.secondary' }}>
+            <Button onClick={closeEditDialog} sx={{ color: 'text.secondary' }}>
               Cancel
             </Button>
             <Button
-              onClick={handleSubmit}
+              onClick={submitForm}
               variant="contained"
               color="primary"
               disabled={loading}
             >
-              {editId ? 'Update' : 'Add'}
-            </Button>
-          </DialogActions>
+              Update
+            </Button>{' '}
+          </DialogActions>{' '}
         </Dialog>
+        {/* New AddRecipientDialog component */}
+        <AddRecipientDialog
+          open={addDialogOpen}
+          onClose={handleCloseAddDialog}
+        />
+        {/* Floating Action Button for quick add */}
+        <Tooltip title="Add Recipient">
+          <Fab
+            color="primary"
+            aria-label="add"
+            onClick={handleOpenAddDialog}
+            sx={{
+              position: 'fixed',
+              bottom: 24,
+              right: 24,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': { transform: 'scale(1.1)' },
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        </Tooltip>
       </Container>
     </CustomerLayout>
   );
