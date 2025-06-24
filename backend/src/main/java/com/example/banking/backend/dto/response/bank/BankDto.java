@@ -11,7 +11,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @Data
-@Schema(description = "Bank's information")
+@Schema(name="Bank",
+        description = "Bank's information")
 public class BankDto {
     @Schema(description = "Bank's code",
             example = "FIN")
