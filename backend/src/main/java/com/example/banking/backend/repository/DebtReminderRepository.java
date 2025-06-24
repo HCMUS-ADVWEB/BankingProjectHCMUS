@@ -15,6 +15,8 @@ public interface DebtReminderRepository extends JpaRepository<DebtReminder, UUID
     Page<DebtReminder> findByStatusAndCreator_IdOrStatusAndDebtor_Id(
             DebtStatusType status1, UUID creatorId, DebtStatusType status2, UUID debtorId, Pageable pageable);
     
+    Page<DebtReminder> findByCreator_Id(UUID creatorId, Pageable pageable);
+    Page<DebtReminder> findByDebtor_Id(UUID debtorId, Pageable pageable);
     Page<DebtReminder> findByStatusAndCreator_Id(DebtStatusType status, UUID creatorId, Pageable pageable);
     Page<DebtReminder> findByStatusAndDebtor_Id(DebtStatusType status, UUID debtorId, Pageable pageable);
 }
