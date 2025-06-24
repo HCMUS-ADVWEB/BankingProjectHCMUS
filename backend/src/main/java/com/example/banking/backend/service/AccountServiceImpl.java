@@ -66,11 +66,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
-        Account account = accountRepository.findByUserId(userId).orElse(null);
-
-        if (account == null) {
-            throw new NotFoundException("Account not found");
-        }
+        Account account = accountRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException("Account not found"));
 
         GetAccountResponse accountResponse = AccountMapper.INSTANCE.accountToGetAccountResponse(account);
 
@@ -84,12 +80,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
 
     public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type) {
-        Account account = accountRepository.getPaginatedTransactions(accountNumber, size, pagination, type);
+        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
-
-        if (account == null) {
-            throw new NotFoundException("Account not found!");
-        }
+        Account accountTransaction = accountRepository.getPaginatedTransactions(account.getAccountId(), pagination, size, type);
 
         GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
 
@@ -106,25 +99,21 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size, Integer pagination) {
+    public ApiResponse<GetAccountTransactionsResponse> getCustomerTransactions(Integer size, Integer pagination, TransactionType type) {
         if (size <= 0 || pagination <= 0) {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
         }
 
-        Pageable pageable = PageRequest.of(pagination - 1, size);
-        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findByFromAccountId(getAccountCurrentUser().getAccountId(), pageable);
-        List<TransactionDto> transactions = transactionPage.getContent().stream()
-                .map(transaction -> new TransactionDto(
-                        transaction.getId(),
-                        transaction.getToBank() != null ? transaction.getToBank().getId() : null,
-                        transaction.getAmount(),
-                        transaction.getUpdatedAt(),
-                        transaction.getMessage()
-                ))
-                .collect(Collectors.toList());
+        Account account = accountRepository.getPaginatedTransactions(getAccountCurrentUser().getAccountId(), pagination, size, type);
 
-        return ApiResponse.<List<TransactionDto>>builder()
-                .data(transactions)
+        if (account == null) {
+            throw new NotFoundException("Account not found!");
+        }
+
+        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
+
+        return ApiResponse.<GetAccountTransactionsResponse>builder()
+                .data(accountTransactionsResponse)
                 .status(HttpStatus.OK.value())
                 .message("Account's transaction history found successfully!")
                 .build();
@@ -201,11 +190,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElse(null);
-
-        if (account == null) {
-            throw new NotFoundException("Account not found!");
-        }
+        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElseThrow(() -> new NotFoundException("Account not found!"));
 
 
         account.setBalance(account.getBalance() + request.getRechargeAmount());

@@ -19,8 +19,8 @@ public interface AccountService {
     ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size,
             Integer pagination, TransactionType type);
     // void deposit(UUID accountId, DepositRequest request);
-    ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size,
-                                                              Integer pagination);
+    ApiResponse<GetAccountTransactionsResponse> getCustomerTransactions(Integer size, Integer pagination, TransactionType type);
+
     ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request);
 
     ApiResponse rechargeAccount(RechargeAccountRequest request);

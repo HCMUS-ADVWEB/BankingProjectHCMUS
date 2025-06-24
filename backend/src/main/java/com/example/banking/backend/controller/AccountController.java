@@ -1,10 +1,7 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
-import com.example.banking.backend.dto.request.account.AccountInfoRequest;
-import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
-import com.example.banking.backend.dto.request.account.DepositRequest;
-import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
+import com.example.banking.backend.dto.request.account.*;
 import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
 import com.example.banking.backend.dto.response.account.*;
@@ -12,6 +9,9 @@ import com.example.banking.backend.dto.response.transaction.DepositResult;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.AccountService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,14 +39,14 @@ public class AccountController {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    @GetMapping("/{accountId}")
+    @PostMapping("/get-account-transactions")
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getAccountTransactions(
-            @PathVariable String accountId,
-            @RequestParam(required = false, defaultValue = "10") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer pn,
-            @RequestParam(required = false) TransactionType type
+            @RequestBody GetAccountTransactionsRequest request,
+            @Parameter(description = "Limit per page") @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @Parameter(description = "Page number")  @RequestParam(required = false, defaultValue = "1") Integer pn,
+            @Parameter(description = "Transaction type") @RequestParam(required = false) TransactionType type
     ) {
-        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(accountId, limit, pn, type);
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(request.getAccountNumber(), limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
@@ -68,8 +68,9 @@ public class AccountController {
     @GetMapping("/customer/transactions")
     public ResponseEntity<ApiResponse<GetAccountTransactionsResponse>> getCustomerTransaction(
             @RequestParam(required = false, defaultValue = "10") Integer limit,
-            @RequestParam(required = false, defaultValue = "1") Integer pn) {
-        ApiResponse apiResponse = accountService.getCustomerTransactions(limit, pn);
+            @RequestParam(required = false, defaultValue = "1") Integer pn,
+            @RequestParam(required = false) TransactionType type) {
+        ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getCustomerTransactions(limit, pn, type);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
