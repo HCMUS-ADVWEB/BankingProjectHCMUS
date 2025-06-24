@@ -12,6 +12,7 @@ import com.example.banking.backend.dto.response.transaction.DepositResult;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.AccountService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/accounts")
@@ -83,7 +85,7 @@ public class AccountController {
 
     @PostMapping("/account-info")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<ApiResponse<AccountInfoResult>> getAccountInfo(AccountInfoRequest request) {
+    public ResponseEntity<ApiResponse<AccountInfoResult>> getAccountInfo(@RequestBody AccountInfoRequest request) {
         return ResponseEntity.ok(ApiResponse.<AccountInfoResult>builder()
                 .status(HttpStatus.OK.value())
                 .message("Account info retrieved successfully")
@@ -92,19 +94,6 @@ public class AccountController {
 
     }
 
-    @PostMapping("/linked-banks/accounts")
-    public ResponseEntity<ApiResponse<AccountInfoResponse>> processAccountInfo(
-            @RequestBody AccountInfoRequest request,
-            @RequestHeader("Bank-Code") String sourceBankCode,
-            @RequestHeader("X-Timestamp") String timestamp,
-            @RequestHeader("X-Request-Hash") String receivedHmac,
-            @RequestHeader("X-Signature") String signature) throws Exception {
-        AccountInfoResponse response = accountService.processAccountInfo(request, sourceBankCode, timestamp, receivedHmac, signature);
-        return ResponseEntity.ok(ApiResponse.<AccountInfoResponse>builder()
-                .status(HttpStatus.OK.value())
-                .message("Account info processed successfully")
-                .data(response)
-                .build());
-    }
+
 
 }

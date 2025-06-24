@@ -1,12 +1,7 @@
 package com.example.banking.backend.config;
 
-import com.example.banking.backend.security.exception.CustomAccessDeniedHandler;
-import com.example.banking.backend.security.exception.CustomAuthenticationEntryPoint;
-import com.example.banking.backend.security.jwt.AuthTokenFilter;
-import com.example.banking.backend.security.service.UserDetailsServiceImpl;
-import com.example.banking.backend.util.CryptoUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.security.PrivateKey;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,10 +15,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.security.PrivateKey;
+import com.example.banking.backend.security.exception.CustomAccessDeniedHandler;
+import com.example.banking.backend.security.exception.CustomAuthenticationEntryPoint;
+import com.example.banking.backend.security.jwt.AuthTokenFilter;
+import com.example.banking.backend.security.service.UserDetailsServiceImpl;
+import com.example.banking.backend.util.CryptoUtils;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @RequiredArgsConstructor
@@ -39,10 +40,7 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenFilter authenticationJwtTokenFilter;
 
-    @Bean
-    public PrivateKey bankAPrivateKey() throws Exception {
-        return CryptoUtils.loadPrivateKey("keys/private_key.pem");
-    }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -65,11 +63,20 @@ public class SecurityConfig {
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/debts/**").permitAll()
+                )                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",                      
+                                "/ws/**",
+                                "/topic/**",
+                                "/queue/**",
+                                "/app/**",
+                                "/favicon.ico",
+                                "/api/linked-banks/**"
+                                ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

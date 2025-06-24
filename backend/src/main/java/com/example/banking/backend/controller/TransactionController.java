@@ -9,6 +9,7 @@ import com.example.banking.backend.dto.request.transaction.TransferRequest;
 import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @CrossOrigin(origins = "*")
@@ -89,24 +91,7 @@ public class TransactionController {
     }
 
 
-    @PostMapping("/external/deposit")
-    public ResponseEntity<ApiResponse<DepositResult>> receiveInterbankTransfer(
-            @RequestBody InterbankTransferRequest request,
-            @RequestHeader("Bank-Code") String sourceBankCode,
-            @RequestHeader("X-Timestamp") String timestamp,
-            @RequestHeader("X-Request-Hash") String receivedHmac,
-            @RequestHeader("X-Signature") String signature) throws Exception {
 
-        DepositResult depositResult = transactionService.externalDeposit(request, sourceBankCode,
-                timestamp, receivedHmac, signature);
-
-        return ResponseEntity.ok(ApiResponse.<DepositResult>builder()
-                .status(HttpStatus.OK.value())
-                .message("External deposit initiated successfully")
-                .data(depositResult)
-                .build());
-
-    }
 
 
 

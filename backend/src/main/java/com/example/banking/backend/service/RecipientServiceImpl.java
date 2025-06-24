@@ -1,9 +1,12 @@
 package com.example.banking.backend.service;
 
+import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
 import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
+import com.example.banking.backend.dto.request.recipient.UpdateRecipientRequest;
+import com.example.banking.backend.dto.response.account.AccountInfoResult;
 import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
 import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
@@ -38,6 +41,7 @@ public class RecipientServiceImpl implements RecipientService {
     BankRepository bankRepository;
     AccountRepository accountRepository;
     UserRepository userRepository;
+    AccountService accountService;
 
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
@@ -45,23 +49,10 @@ public class RecipientServiceImpl implements RecipientService {
     }
 
     @Override
-    public RecipientDtoRes updateRecipient(UUID recipientId, AddRecipientRequest request) {
+    public RecipientDtoRes updateRecipient(UUID recipientId, UpdateRecipientRequest request) {
         Recipient recipient = recipientRepository.findById(recipientId)
                 .orElseThrow(() -> new InvalidUserException("Recipient not found"));
-        User currentUser = getCurrentUser();
-        Bank bank = null;
-        accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
-        if (Objects.equals(request.getAccountNumber(), currentUser.getAccount().getAccountNumber())) {
-            throw new BadRequestException("You cannot update your own account as a recipient");
-        }
-        if (request.getBankCode() != null && !request.getBankCode().trim().isEmpty()) {
-            bank = bankRepository.findByBankCode(request.getBankCode()).orElse(null);
-        }
-        recipient.setUser(currentUser);
-        recipient.setRecipientAccountNumber(request.getAccountNumber() == null ? recipient.getRecipientAccountNumber() : request.getAccountNumber());
         recipient.setNickName(request.getNickName() == null ? recipient.getUser().getFullName() : request.getNickName());
-        recipient.setBank(bank);
         recipientRepository.save(recipient);
         return new RecipientDtoRes(
                 recipient.getId().toString(),
@@ -94,7 +85,7 @@ public class RecipientServiceImpl implements RecipientService {
 
     @Override
     @Transactional
-    public RecipientDtoRes addRecipient(AddRecipientRequest request) {
+    public RecipientDtoRes addRecipientInternal(AddRecipientRequest request) {
         Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
                 .orElseThrow(() -> new InvalidUserException("NOT FOUND THIS ACCOUNT"));
         recipientRepository.findByAccountNumber(request.getAccountNumber())
@@ -102,24 +93,57 @@ public class RecipientServiceImpl implements RecipientService {
                     throw new BadRequestException("Recipient with this account number already exists");
                 });
 
-        // Xử lý bank - có thể null
+        User currentUser = getCurrentUser();
+        Recipient recipient = new Recipient();
+        accountRepository.findByAccountNumber(currentUser.getAccount().getAccountNumber())
+                .orElseThrow(() -> new BadRequestException("CANNOT ADD YOUR OWN ACCOUNT AS A RECIPIENT"));
+
+        recipient.setUser(currentUser);
+        recipient.setRecipientAccountNumber(request.getAccountNumber());
+        recipient.setRecipientName(currentUser.getFullName());
+        recipient.setNickName(request.getNickName() == null ? account.getUser().getFullName() : request.getNickName());
+        recipient.setBank(null);
+        recipientRepository.save(recipient);
+        return new RecipientDtoRes(
+                recipient.getId().toString(),
+                recipient.getRecipientAccountNumber(),
+                recipient.getRecipientName(),
+                recipient.getNickName(),
+                recipient.getBank() == null ? null : recipient.getBank().getBankName()
+
+        );
+
+    }
+
+    @Override
+    @Transactional
+    public RecipientDtoRes addRecipientExternal(AddRecipientRequest request) {
+
+        recipientRepository.findByAccountNumber(request.getAccountNumber())
+                .ifPresent((existingRecipient) -> {
+                    if (existingRecipient.getBank().getBankCode().equals(request.getBankCode()))
+                        throw new BadRequestException("Recipient with this account number already exists");
+                });
         User currentUser = getCurrentUser();
         Recipient recipient = new Recipient();
 
         Bank bank = null;
-        accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
+
         if (Objects.equals(request.getAccountNumber(), currentUser.getAccount().getAccountNumber())) {
             throw new BadRequestException("You cannot update your own account as a recipient");
         }
         if (request.getBankCode() != null && !request.getBankCode().trim().isEmpty()) {
             bank = bankRepository.findByBankCode(request.getBankCode()).orElse(null);
         }
-
+        AccountInfoResult accountInfoResult =
+                accountService.getAccountInfo(new AccountInfoRequest(
+                        request.getAccountNumber(),
+                        request.getBankCode()
+                ));
         recipient.setUser(currentUser);
         recipient.setRecipientAccountNumber(request.getAccountNumber());
         recipient.setRecipientName(currentUser.getFullName());
-        recipient.setNickName(request.getNickName() == null ? account.getUser().getFullName() : request.getNickName());
+        recipient.setNickName(request.getNickName() == null ? accountInfoResult.getFullName() : request.getNickName());
         recipient.setBank(bank);
         recipientRepository.save(recipient);
         return new RecipientDtoRes(
@@ -132,6 +156,7 @@ public class RecipientServiceImpl implements RecipientService {
         );
 
     }
+
 
     @Override
     public void deleteRecipient(DeleteRecipientRequest request) {
@@ -172,7 +197,7 @@ public class RecipientServiceImpl implements RecipientService {
                 .collect(Collectors.toList());
     }
 
-    public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) {
+    /*public String getNameFromBankCodeAndAccountNumber(RecipientNameRequest request) {
         if (request.getBankCode() == null) {
             Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
                     .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
@@ -184,12 +209,8 @@ public class RecipientServiceImpl implements RecipientService {
                     .orElseThrow(() -> new BadRequestException("NOT FOUND THIS ACCOUNT"));
             return account.getUser().getFullName();
         }
-    }
+    }*/
 
-    @Override
-    public ExternalAccountDto returnRecipientForOtherBank(RequestToGetReciInfoFromOtherBank request) {
-        return null;
-    }
 
 
 }

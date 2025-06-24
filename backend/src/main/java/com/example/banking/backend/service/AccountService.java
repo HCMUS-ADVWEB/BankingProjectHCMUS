@@ -30,7 +30,7 @@ public interface AccountService {
     Boolean changePassword(ChangePasswordRequest request);
 
     public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
-                                                  String timestamp, String receivedHmac, String signature) throws Exception;
+                                                  String timestamp, String receivedHmac) throws Exception;
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request);
 

@@ -3,6 +3,7 @@ package com.example.banking.backend.controller;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
-import com.example.banking.backend.dto.request.debt.GetDebtPaymentOtpRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
@@ -28,6 +28,7 @@ import com.example.banking.backend.service.DebtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/debts")
@@ -81,8 +82,8 @@ public class DebtController {
         
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/request-otp")
-        public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody GetDebtPaymentOtpRequest request) {
-        debtService.requestOtpForPayDebt(request);
+        public ResponseEntity<ApiResponse<?>> requestPayDebtOtp() {
+        debtService.requestOtpForPayDebt();
         return ResponseEntity.ok(ApiResponse.builder()
                 .message("Email sent successfully!")
                 .status(HttpStatus.OK.value())

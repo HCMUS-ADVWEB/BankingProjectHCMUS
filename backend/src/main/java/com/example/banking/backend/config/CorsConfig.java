@@ -1,5 +1,7 @@
 package com.example.banking.backend.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -22,6 +24,7 @@ public class CorsConfig {
         corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/ws/**", corsConfig);
         source.registerCorsConfiguration("/**", corsConfig);
 
         return source;

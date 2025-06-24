@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import {
   Container,
@@ -41,7 +41,6 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 
-import { useAuth } from '../../contexts/AuthContext';
 import { useEmployee } from '../../contexts/EmployeeContext';
 
 // Sample history data
@@ -76,13 +75,12 @@ const depositHistoryData = [
 ];
 
 export default function DepositPage() {
-  const { state } = useAuth();
-  const {
-    depositAccount,
-    setDepositAccount,
-    handleDepositAccount,
-    loading,
-    error,
+  const { 
+    depositAccount, 
+    setDepositAccount, 
+    handleDepositAccount, 
+    loading, 
+    error, 
     success,
     formatVND,
     handleDepositAmountChange,
@@ -98,13 +96,19 @@ export default function DepositPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+
   // Handle success and error messages
   useEffect(() => {
     if (success) {
       setLocalSuccess(success);
       setSnackbarOpen(true);
       // Reset form after successful deposit
-      resetForm();
+      setDepositAccount({
+        accountId: '',
+        amount: '',
+        note: ''
+      });
+      setFormErrors({});
     }
   }, [success]);
 
@@ -203,7 +207,7 @@ export default function DepositPage() {
         </Snackbar>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid item size={{ xs: 12, md: 12 }}>
             <Paper
               elevation={3}
               sx={{
@@ -338,8 +342,8 @@ export default function DepositPage() {
               </Box>
             </Paper>
           </Grid>
-
-          <Grid item xs={12} md={6}>
+          
+          <Grid item  size={{ xs: 12, md: 12 }}>
             <Paper
               elevation={3}
               sx={{

@@ -4,6 +4,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { EmployeeProvider } from './contexts/EmployeeContext';
 import './styles/output.css';
 
@@ -12,12 +13,14 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <EmployeeProvider>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </EmployeeProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <EmployeeProvider>
+              <App />
+            </EmployeeProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import NotificationList from './NotificationList';
 import {
   Bell,
   Moon,
@@ -14,10 +16,17 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import ProfileModal from './ProfileModal';
 
-export default function MainHeader({ navigationItems = [] }) {
+export default function MainHeader({ navigationItems = [] }) {  
   const location = useLocation();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { state, logout } = useAuth();
+  const { state, logout } = useAuth();  
+  const { 
+    notifications = [], 
+    unreadCount = 0, 
+    loading = false, 
+    markAllAsRead = () => console.warn('markAllAsRead not available'),
+    markAsRead = () => console.warn('markAsRead not available')
+  } = useNotifications() || {};
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -39,16 +48,6 @@ export default function MainHeader({ navigationItems = [] }) {
     return breadcrumbs;
   };
   const breadcrumbs = generateBreadcrumb();
-
-  const notifications = [
-    {
-      id: 1,
-      title: 'Demo',
-      time: '2 min ago',
-      unread: false,
-    },
-  ];
-  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <>
@@ -113,17 +112,24 @@ export default function MainHeader({ navigationItems = [] }) {
           {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              disabled
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                
+                // Log current notification state when toggling
+                if (!showNotifications) {
+                  console.log('Opening notifications - Current count:', unreadCount);
+                  console.log('Current notifications:', notifications);
+                }
+              }}
               className={`p-2 ${
                 isDarkMode
                   ? 'text-gray-300 hover:text-white hover:bg-slate-700'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              } rounded-lg transition-colors relative disabled:opacity-50 disabled:cursor-not-allowed`}
+              } rounded-lg transition-colors relative`}
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                   {unreadCount}
                 </span>
               )}
@@ -137,6 +143,7 @@ export default function MainHeader({ navigationItems = [] }) {
                     ? 'bg-slate-800 border-slate-700'
                     : 'bg-white border-gray-200'
                 } rounded-lg shadow-lg border py-2 z-50`}
+                onClick={(e) => e.stopPropagation()}
               >
                 <div
                   className={`px-4 pt-1 pb-2.5 border-b ${
@@ -151,52 +158,13 @@ export default function MainHeader({ navigationItems = [] }) {
                     Notifications
                   </h3>
                 </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`px-4 py-3 hover:${
-                        isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
-                      } border-l-4 ${
-                        notification.unread
-                          ? isDarkMode
-                            ? 'border-l-emerald-500 bg-emerald-900/30'
-                            : 'border-l-blue-500 bg-blue-50/30'
-                          : 'border-l-transparent'
-                      }`}
-                    >
-                      <p
-                        className={`text-sm font-medium ${
-                          isDarkMode ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {notification.title}
-                      </p>
-                      <p
-                        className={`text-xs ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        } mt-1`}
-                      >
-                        {notification.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div
-                  className={`px-4 pt-2 pb-1 border-t ${
-                    isDarkMode ? 'border-slate-700' : 'border-gray-200'
-                  }`}
-                >
-                  <button
-                    className={`text-sm ${
-                      isDarkMode
-                        ? 'text-emerald-400 hover:text-emerald-300'
-                        : 'text-blue-600 hover:text-blue-800'
-                    }`}
-                  >
-                    View all notifications
-                  </button>
-                </div>
+                <NotificationList 
+                  notifications={notifications}
+                  loading={loading}
+                  markAsRead={markAsRead}
+                  markAllAsRead={markAllAsRead}
+                  isDarkMode={isDarkMode}
+                />
               </div>
             )}
           </div>

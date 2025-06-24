@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Container,
   Grid,
@@ -7,29 +8,6 @@ import {
   Typography,
   Box,
   Button,
-  IconButton,
-  Fab,
-  Tooltip,
-  ToggleButton,
-  ToggleButtonGroup,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
-  Checkbox,
-  FormControlLabel,
-  Switch,
-  Slider,
-  Radio,
-  RadioGroup,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Snackbar,
-  Alert,
   Table,
   TableBody,
   TableCell,
@@ -38,61 +16,11 @@ import {
   TableRow,
   TablePagination,
   Card,
-  CardHeader,
-  CardContent,
-  CardActions,
   Chip,
-  Avatar,
   Badge,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab,
-  LinearProgress,
-  CircularProgress,
-  Skeleton,
-  List,
-  ListItemText,
-  ListItemIcon,
-  ListItemButton,
-  Divider,
-  Breadcrumbs,
-  Link,
-  Menu,
-  Rating,
-  Stepper,
-  Step,
-  StepLabel,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
-  CardMedia,
+
 } from '@mui/material';
-import { BarChart, LineChart, PieChart, ScatterChart } from '@mui/x-charts';
-import {
-  TimelineDot,
-  TimelineConnector,
-  TimelineContent,
-  TimelineSeparator,
-  TimelineItem,
-  Timeline,
-} from '@mui/lab';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-  Search as SearchIcon,
-  ExpandMore as ExpandMoreIcon,
-  Home as HomeIcon,
-  Person as PersonIcon,
-  Settings as SettingsIcon,
-  ChevronRight as ChevronRightIcon,
-  UploadFile as UploadFileIcon,
-  Favorite as FavoriteIcon,
-} from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
+import {  LineChart, PieChart, ScatterChart } from '@mui/x-charts';
 
 // Sample data for sections
 const tableData = [
@@ -100,50 +28,17 @@ const tableData = [
   { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin' },
   { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'User' },
 ];
-const timelineData = [
-  { id: 1, time: '2025-06-14', event: 'Transaction #001 completed' },
-  { id: 2, time: '2025-06-13', event: 'Account verified' },
-];
 
 export default function EmployeeDashboard() {
   const { state } = useAuth();
   // State for interactive components
-  const [toggleValue, setToggleValue] = useState('left');
-  const [sliderValue, setSliderValue] = useState(30);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [tabValue, setTabValue] = useState(0);
-  const [menuAnchor, setMenuAnchor] = useState(null);
-  const [filterName, setFilterName] = useState('');
-  const [sortBy, setSortBy] = useState('name');
-  const [formData, setFormData] = useState({ name: '', dob: null, file: null });
-  const [formErrors, setFormErrors] = useState({ name: false });
-
   // Handlers for components
-  const handleToggleChange = (event, newValue) =>
-    newValue && setToggleValue(newValue);
-  const handleSliderChange = (event, newValue) => setSliderValue(newValue);
-  const handleDialogOpen = () => setDialogOpen(true);
-  const handleDialogClose = () => setDialogOpen(false);
-  const handleSnackbarOpen = () => setSnackbarOpen(true);
-  const handleSnackbarClose = () => setSnackbarOpen(false);
   const handleChangePage = (event, newPage) => setPage(newPage);
-  const filteredTableData = tableData
-    .filter((row) => row.name.toLowerCase().includes(filterName.toLowerCase()))
-    .sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-  const handleFormSubmit = () => {
-    if (!formData.name) {
-      setFormErrors({ ...formErrors, name: true });
-    } else {
-      setFormErrors({ ...formErrors, name: false });
-      console.log('Form submitted:', formData);
-    }
   };
 
   return (

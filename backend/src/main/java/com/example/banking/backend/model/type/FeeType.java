@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public enum FeeType {
     SENDER("SENDER"),
-    RECEIVER("");
+    RECEIVER("RECEIVER");
 
     private final String value;
 
@@ -15,15 +15,18 @@ public enum FeeType {
         this.value = value;
     }
 
-
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
 
     @JsonCreator
     public static FeeType fromValue(String value) {
         for (FeeType type : FeeType.values()) {
-            if (type.value.equals(value)) {
+            if (type.value.equalsIgnoreCase(value)) {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Fee Type is not valid " + value);
+        throw new IllegalArgumentException("Fee Type is not valid: " + value);
     }
 }
