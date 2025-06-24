@@ -20,11 +20,14 @@ import java.util.UUID;
 public class TransactionDto {
     @Schema(description = "Transaction's id",
             example = "c33af7e7-4bf1-4699-b4d6-0c42408a0247")
-    private UUID id;
+    private String id;
 
-    @Schema(description = "Transaction's bank id",
-            example = "a3447ac2-b51d-4c47-b178-06b2f1a77160")
-    private String bankId;
+    @Schema(description = "Transaction's bankcode , null is this bank ",
+            example = "VCB")
+    private String fromBankCode;
+    @Schema(description = "Transaction's bankcode, null is this bank ",
+            example = "FAK")
+    private String toBankCode;
 
     @Schema(description = "Transaction's amount of money",
             example = "100000")

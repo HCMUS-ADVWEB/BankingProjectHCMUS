@@ -73,9 +73,10 @@ public class TransactionController {
             @Parameter(description = "Get transactions from this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
             @Parameter(description = "Get transactions to this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
             @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
-            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page
-    ) {
-        // Fix: Sử dụng dấu gạch dưới thay vì dấu cách
+            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page ,
+            @Parameter(description = "Either our bank or other bank") String bankCode
+
+            ) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDateTime defaultEndDate = now.withHour(23).withMinute(59).withSecond(59);
         LocalDateTime defaultStartDate = now.minusDays(10).withHour(0).withMinute(0).withSecond(0);
@@ -87,7 +88,7 @@ public class TransactionController {
             endDate = defaultEndDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
 
-        List<TransactionDto> transactions = transactionService.getBankTransactions(startDate, endDate, limit, page);
+        List<TransactionDto> transactions = transactionService.getBankTransactions(startDate, endDate, limit, page, bankCode);
 
         return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
                 .status(HttpStatus.OK.value())
@@ -103,7 +104,9 @@ public class TransactionController {
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String endDate ,
+            @Parameter(description = "Either our bank or other bank") @RequestParam String bankCode
+
     ) {LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         if (startDate == null || startDate.trim().isEmpty()) {
@@ -115,7 +118,7 @@ public class TransactionController {
         }
 
         try {
-            BankTransactionStatsDto stats = transactionService.getBankTransactionStats(startDate, endDate);
+            BankTransactionStatsDto stats = transactionService.getBankTransactionStats(startDate, endDate , bankCode);
             return ResponseEntity.ok(ApiResponse.<BankTransactionStatsDto>builder()
                     .status(HttpStatus.OK.value())
                     .message("Bank transaction statistics retrieved successfully")

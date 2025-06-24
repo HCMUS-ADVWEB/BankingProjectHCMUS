@@ -422,13 +422,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page) {
+    public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page, String bankCode) {
         if (limit <= 0 || page <= 0) {
             throw new IllegalArgumentException("Limit and page must be positive integers");
         }
-
         int pageNumber = page - 1;
-
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
@@ -440,21 +438,21 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format. Use ISO format, e.g., 2025-06-24T00:00:00");
         }
-
         Pageable pageable = PageRequest.of(pageNumber, limit);
-
-        // Fix: Sử dụng dấu gạch dưới thay vì dấu cách
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
 
-        // Fix: Sử dụng repository method để filter trong database
-        Page<Transaction> transactionPage = transactionRepository.findByUpdatedAtBetween(
-                startInstant, endInstant, pageable);
+
+        Page<Transaction> transactionPage = bankCode == null ?
+                transactionRepository.findByUpdatedAtBetween(startInstant, endInstant, pageable)
+                : transactionRepository.findByUpdatedAtBetweenAndBankCode(
+                startInstant, endInstant, bankCode, pageable);
 
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
-                        transaction.getId(),
-                        transaction.getToBank() != null ? transaction.getToBank().getBankName() : "N/A",
+                        transaction.getId().toString(),
+                        transaction.getFromBank() == null ? null : transaction.getFromBank().getBankCode(),
+                        transaction.getToBank() != null ? transaction.getToBank().getBankName() : null,
                         transaction.getAmount(),
                         transaction.getUpdatedAt(),
                         transaction.getMessage()
@@ -463,7 +461,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate) {
+    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate , String bankCode) {
 
 
         LocalDateTime startDateTime;
@@ -482,15 +480,15 @@ public class TransactionServiceImpl implements TransactionService {
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
 
-        List<Transaction> transactions = transactionRepository.findByUpdatedAtBetween(
-                startInstant, endInstant);
+        List<Transaction> transactions = transactionRepository.findByBankCodeAndUpdatedAtBetween(
+                startInstant, endInstant , bankCode);
 
         long totalTransactions = transactions.size();
         double totalAmount = transactions.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime);
+        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime , bankCode);
     }
 
 

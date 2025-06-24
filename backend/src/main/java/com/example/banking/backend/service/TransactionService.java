@@ -18,9 +18,9 @@ public interface TransactionService {
 
     TransferResult externalTransfer(TransferExternalRequest request) throws Exception;
 
-    List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page);
+    List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page, String bankCode);
 
-    BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate);
+    BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate , String bankCode );
 
     DepositResult externalDeposit(InterbankTransferRequest request ,String sourceBankCode ,
                                   String timestamp, String receivedHmac , String signature) throws Exception;
