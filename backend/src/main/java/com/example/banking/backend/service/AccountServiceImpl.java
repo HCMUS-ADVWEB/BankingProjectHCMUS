@@ -27,6 +27,7 @@ import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
+import com.example.banking.backend.util.SignatureUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -298,7 +299,7 @@ public class AccountServiceImpl implements AccountService {
         String requestBody = objectMapper.writeValueAsString(request);
         String expectedHashInput = requestBody + timestamp + sourceBankCode + sourceBank.getSecretKey();
         String expectedHmac = CryptoUtils.generateHMAC(expectedHashInput, sourceBank.getSecretKey());
-
+        if (!SignatureUtil.isTimestampWithin5Minutes(timestamp)) throw new BadRequestException("Expired ,do it again");
         if (!expectedHmac.equals(receivedHmac)) {
             throw new BadRequestException("HMAC verification failed - packet integrity compromised");
         }

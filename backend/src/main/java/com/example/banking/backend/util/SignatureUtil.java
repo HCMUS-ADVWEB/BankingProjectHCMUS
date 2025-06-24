@@ -3,6 +3,10 @@ package com.example.banking.backend.util;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 
 import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
@@ -34,5 +38,22 @@ public class SignatureUtil {
         byte[] signature = signer.sign();
         String signatureBase64 = Base64.getEncoder().encodeToString(signature);
         return signatureBase64;
+    }
+    public static boolean isTimestampWithin5Minutes(String timestampStr) {
+        try {
+            long timestampMillis = Long.parseLong(timestampStr);
+            LocalDateTime dateTime = Instant.ofEpochMilli(timestampMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            LocalDateTime now = LocalDateTime.now();
+            Duration duration = Duration.between(dateTime, now).abs();
+
+            System.out.println("duration.toSeconds() " + duration.toSeconds());
+
+            return duration.toSeconds() <= 5 * 60 ;
+
+        } catch (NumberFormatException e) {
+            return false;
         }
+    }
 }
