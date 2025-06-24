@@ -31,18 +31,26 @@ const TransferFormStep = () => {
     handleRecipientChange,
     handleConfirm,
     loading,
+    error,
   } = useTransfer();
 
   return (
-    <>      
-      <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
+    <>        <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
         Transfer Details
       </Typography>
       <Divider sx={{ mb: 3 }} />
-
+      
+      {error && (
+        <Box sx={{ mb: 3 }}>
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
+        </Box>
+      )}
+      
       <Box 
         component="form" 
-        onSubmit={(e) => { e.preventDefault(); handleConfirm(); }}
+        onSubmit={(e) => { e.preventDefault(); }}
         sx={{ maxWidth: '600px', mx: 'auto' }}
       >
         <Grid container spacing={3} >
@@ -269,7 +277,7 @@ const TransferFormStep = () => {
           
           {/* Group 5: Confirm Button */}
           <Grid item xs={12}>            <Button
-              type="submit"
+              type="button"
               variant="contained"
               color="primary"
               fullWidth
@@ -277,6 +285,10 @@ const TransferFormStep = () => {
               startIcon={<SendIcon />}
               sx={{ py: 1.5, mt: 2, maxWidth: '500px' }}
               disabled={loading || !form.accountNumberReceiver || !form.amount}
+              onClick={() => {
+                console.log('Continue button clicked');
+                handleConfirm();
+              }}
             >
               Continue
             </Button>
