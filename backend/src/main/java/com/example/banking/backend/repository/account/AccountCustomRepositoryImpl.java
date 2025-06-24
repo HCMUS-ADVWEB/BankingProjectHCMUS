@@ -14,16 +14,16 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository{
     private EntityManager entityManager;
 
     @Override
-    public Account getPaginatedTransactions(String accountNumber, int page, int size, TransactionType type) {
+    public Account getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type) {
         // Fetch account with transactions
         Account account = entityManager.createQuery("""
                 SELECT a FROM Account a
                 LEFT JOIN FETCH a.transactionsAsSender
                 LEFT JOIN FETCH a.transactionsAsReceiver
-                WHERE a.accountNumber = :accountNumber
+                WHERE a.accountId = :accountId
                 
             """, Account.class)
-                .setParameter("accountNumber", accountNumber)
+                .setParameter("accountId", accountId)
                 .getSingleResult();
 
         page--;

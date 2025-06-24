@@ -3,6 +3,7 @@ package com.example.banking.backend.controller;
 import java.time.Instant;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

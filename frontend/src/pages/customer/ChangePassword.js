@@ -26,7 +26,8 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleRequestOtp = async () => {
     setLoading(true);
@@ -69,7 +70,10 @@ export default function ChangePasswordPage() {
 
   return (
     <CustomerLayout>
-      <Container maxWidth="xl" sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         {/* Header Section */}
         <Box
           sx={{
@@ -93,7 +97,8 @@ export default function ChangePasswordPage() {
             Change Password 🔒
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Securely update your password with OTP verification sent to your email.
+            Securely update your password with OTP verification sent to your
+            email.
           </Typography>
         </Box>
 
@@ -123,16 +128,27 @@ export default function ChangePasswordPage() {
           </Typography>
           <Divider sx={{ mt: 1, mb: 3 }} />
           {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 'shape.borderRadius' }}>
+            <Alert
+              severity="error"
+              sx={{ mb: 3, borderRadius: 'shape.borderRadius' }}
+            >
               {error}
             </Alert>
           )}
           {success && (
-            <Alert severity="success" sx={{ mb: 3, borderRadius: 'shape.borderRadius' }}>
+            <Alert
+              severity="success"
+              sx={{ mb: 3, borderRadius: 'shape.borderRadius' }}
+            >
               {success}
             </Alert>
           )}
-          <form onSubmit={(e) => { e.preventDefault(); handleRequestOtp(); }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRequestOtp();
+            }}
+          >
             <TextField
               label="Old Password"
               name="oldPassword"
@@ -165,7 +181,11 @@ export default function ChangePasswordPage() {
               disabled={loading || step === 2}
               sx={{ py: 1.5, fontWeight: 600 }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Send OTP'}
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Send OTP'
+              )}
             </Button>
           </form>
         </Box>

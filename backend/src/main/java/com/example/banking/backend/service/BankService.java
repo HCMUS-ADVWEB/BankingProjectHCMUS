@@ -5,10 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public interface BankSerivce {
-
-
+public interface BankService {
     List<BankDto> getBankInfo();
 
 }

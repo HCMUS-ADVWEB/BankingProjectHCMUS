@@ -1,11 +1,71 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+} from 'react';
 import { useAuth } from './AuthContext';
-import api from '../utils/api';
+import TransferService from '../services/TransferService';
+import { formatVND } from '../utils/constants';
 
-// Create Transfer Context
+const transferReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_FORM':
+      return { ...state, form: { ...state.form, ...action.payload } };
+    case 'SET_OTP':
+      return { ...state, otp: action.payload };
+    case 'SET_STEP':
+      return { ...state, step: action.payload };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
+    case 'SET_SUCCESS':
+      return { ...state, success: action.payload };
+    case 'SET_RESULT':
+      return { ...state, result: action.payload };
+    case 'SET_RECIPIENTS':
+      return { ...state, recipients: action.payload };
+    case 'SET_SAVE_RECIPIENT':
+      return {
+        ...state,
+        saveRecipient: { ...state.saveRecipient, ...action.payload },
+      };
+    case 'RESET_TRANSFER':
+      return {
+        ...state,
+        form: {
+          accountNumberReceiver: '',
+          amount: '',
+          message: '',
+          feeType: 'SENDER',
+          transferType: 'internal',
+          sourceAccountNumber: '',
+          bankId: '',
+          recipientName: '',
+        },
+        otp: '',
+        step: 1,
+        error: null,
+        success: null,
+        result: null,
+        saveRecipient: {
+          accountNumber: '',
+          bankName: '',
+          recipientName: '',
+          recipientNickname: '',
+        },
+      };
+    default:
+      return state;
+  }
+};
+
 const TransferContext = createContext();
 
-// Custom hook to use the Transfer context
 export const useTransfer = () => {
   const context = useContext(TransferContext);
   if (!context) {
@@ -14,44 +74,42 @@ export const useTransfer = () => {
   return context;
 };
 
-// Transfer Provider component
 export const TransferProvider = ({ children, initialAccountNumber }) => {
-  const { state } = useAuth();
-  const [form, setForm] = useState({
-    accountNumberReceiver: initialAccountNumber || '',
-    amount: '',
-    message: '',
-    feeType: 'SENDER',
-    transferType: 'internal',
-    sourceAccountNumber: '',
-    bankId: '',
-    recipientName: '',
-  });
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1); // 1: form, 2: confirm, 3: otp, 4: save recipient
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [result, setResult] = useState(null);
-  const [recipients, setRecipients] = useState([]);
-  const [saveRecipient, setSaveRecipient] = useState({
-    accountNumber: '',
-    bankName: '',
-    recipientName: '',
-    recipientNickname: '',
-  });
+  const { state: authState } = useAuth();
 
-  // Format currency input
+  const initialState = {
+    form: {
+      accountNumberReceiver: initialAccountNumber || '',
+      amount: '',
+      message: '',
+      feeType: 'SENDER',
+      transferType: 'internal',
+      sourceAccountNumber: '',
+      bankId: '',
+      recipientName: '',
+    },
+    otp: '',
+    step: 1, // 1: form, 2: confirm, 3: otp, 4: save recipient
+    loading: false,
+    error: null,
+    success: null,
+    result: null,
+    recipients: [],
+    saveRecipient: {
+      accountNumber: '',
+      bankName: '',
+      recipientName: '',
+      recipientNickname: '',
+    },
+  };
+  const [state, dispatch] = useReducer(transferReducer, initialState);
   const formatCurrency = (value) => {
     if (!value) return '';
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0,
-    }).format(value);
+    const numValue = Number(value);
+
+    return formatVND(numValue);
   };
 
-  // Remove currency formatting for processing
   const unformatCurrency = (value) => {
     if (!value) return '';
     return value.replace(/[^\d]/g, '');
@@ -60,243 +118,285 @@ export const TransferProvider = ({ children, initialAccountNumber }) => {
   // Fetch recipients
   const fetchRecipients = useCallback(async () => {
     try {
-      const res = await api.get('/api/recipients', { params: { limit: 20, page: 1 } });
-      setRecipients(res.data.data || []);
+      const response = await TransferService.getRecipients(20, 1);
+      dispatch({ type: 'SET_RECIPIENTS', payload: response.data || [] });
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || err.message,
+      });
     }
   }, []);
-
-  // Initialize by fetching recipients
-  React.useEffect(() => {
-    fetchRecipients();
-  }, [fetchRecipients]);
+  useEffect(() => {
+    if (authState.isAuthenticated && authState.user?.id) {
+      fetchRecipients();
+    }
+  }, [fetchRecipients, authState.isAuthenticated, authState.user?.id]);
 
   // Form handlers
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'amount') {
-      const unformattedValue = unformatCurrency(value);
-      if (unformattedValue < 0) return; // Prevent negative amount
-      setForm(prev => ({ ...prev, amount: unformattedValue }));
-    } else if (name === 'accountNumberReceiver') {
-      const selectedRecipient = recipients.find(
-        (rec) => rec.accountNumber === value,
-      );
-      setForm(prev => ({
-        ...prev,
-        accountNumberReceiver: value,
-        bankId: selectedRecipient?.bankName || prev.bankId,
-        recipientName: selectedRecipient?.recipientName || prev.recipientName,
-      }));
-    } else {
-      setForm(prev => ({ ...prev, [name]: value }));
-    }
-  }, [recipients]);
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
 
-  const handleRecipientChange = useCallback((e) => {
-    const value = e.target.value;
-    if (value === 'manual') {
-      setForm(prev => ({
-        ...prev,
-        accountNumberReceiver: '',
-        bankId: '',
-        recipientName: '',
-      }));
-    } else {
-      const selectedRecipient = recipients.find(
-        (rec) => rec.accountNumber === value,
-      );
-      setForm(prev => ({
-        ...prev,
-        accountNumberReceiver: value,
-        bankId: selectedRecipient?.bankName || '',
-        recipientName: selectedRecipient?.recipientName || '',
-      }));
-    }
-  }, [recipients]);
+      if (name === 'amount') {
+        const unformattedValue = unformatCurrency(value);
+        if (unformattedValue < 0) return;
+        dispatch({ type: 'SET_FORM', payload: { amount: unformattedValue } });
+      } else if (name === 'accountNumberReceiver') {
+        const selectedRecipient = state.recipients.find(
+          (rec) => rec.accountNumber === value,
+        );
+
+        dispatch({
+          type: 'SET_FORM',
+          payload: {
+            accountNumberReceiver: value,
+            bankId: selectedRecipient?.bankName || state.form.bankId,
+            recipientName:
+              selectedRecipient?.recipientName || state.form.recipientName,
+          },
+        });
+      } else {
+        dispatch({ type: 'SET_FORM', payload: { [name]: value } });
+      }
+    },
+    [state.recipients, state.form.bankId, state.form.recipientName],
+  );
+
+  const handleRecipientChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      if (value === 'manual') {
+        dispatch({
+          type: 'SET_FORM',
+          payload: {
+            accountNumberReceiver: '',
+            bankId: '',
+            recipientName: '',
+          },
+        });
+      } else {
+        const selectedRecipient = state.recipients.find(
+          (rec) => rec.accountNumber === value,
+        );
+        if (selectedRecipient) {
+          dispatch({
+            type: 'SET_FORM',
+            payload: {
+              accountNumberReceiver: selectedRecipient.accountNumber,
+              bankId: selectedRecipient.bankName,
+              recipientName: selectedRecipient.recipientName,
+            },
+          });
+        }
+      }
+    },
+    [state.recipients],
+  );
 
   const handleSaveRecipientChange = useCallback((e) => {
-    setSaveRecipient(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    dispatch({ type: 'SET_SAVE_RECIPIENT', payload: { [name]: value } });
   }, []);
+  // Validation and form submission
+  const validateForm = useCallback(() => {
+    const { accountNumberReceiver, amount, sourceAccountNumber, transferType } =
+      state.form;
 
-  // Process steps
-  const handleConfirm = useCallback(() => {
-    if (!form.accountNumberReceiver || !form.amount) {
-      setError('Please fill in all required fields.');
-      return;
+    if (!accountNumberReceiver) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: 'Receiver account number is required',
+      });
+      return false;
     }
-    if (parseFloat(form.amount) <= 0) {
-      setError('Amount must be greater than 0.');
-      return;
-    }
-    setError(null);
-    setStep(2); // Move to confirmation step
-  }, [form]);
 
+    if (!amount || amount <= 0) {
+      dispatch({ type: 'SET_ERROR', payload: 'Valid amount is required' });
+      return false;
+    }
+
+    if (transferType === 'external' && !sourceAccountNumber) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: 'Source account is required for external transfers',
+      });
+      return false;
+    }
+    dispatch({ type: 'CLEAR_ERROR' });
+    return true;
+  }, [state.form]);
+  const handleConfirm = useCallback(async () => {
+    // For internal transfers, set a default source account if not provided
+    if (
+      state.form.transferType === 'internal' &&
+      !state.form.sourceAccountNumber
+    ) {
+      dispatch({
+        type: 'SET_FORM',
+        payload: { sourceAccountNumber: 'DEFAULT_INTERNAL_ACCOUNT' },
+      });
+    }
+
+    if (!validateForm()) return;
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    try {
+      dispatch({ type: 'SET_STEP', payload: 2 });
+    } catch (err) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to validate form',
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [validateForm, state.form]);
   const handleRequestOtp = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await api.post('/api/otp', {
-        userId: state.user.id,
-        email: state.user.email,
-        otpType: 'TRANSFER',
-      });
-      setStep(3); // Move to OTP step
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-      setStep(1); // Go back to form on error
-    } finally {
-      setLoading(false);
-    }
-  }, [state.user]);
+    dispatch({ type: 'SET_LOADING', payload: true });
 
-  // Handle OTP verification and complete transfer
-  const handleVerifyOtp = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
-      const payload =
-        form.transferType === 'internal'
-          ? {
-            accountNumberReceiver: form.accountNumberReceiver,
-            amount: parseFloat(form.amount),
-            message: form.message,
-            feeType: form.feeType,
-            otp,
-          }
-          : {
-            sourceAccountNumber: form.sourceAccountNumber,
-            recipient: {
-              destinationAccountNumber: form.accountNumberReceiver,
-              reminiscent: form.recipientName,
-              fullName: form.recipientName,
-              bankId: form.bankId || 'othergroup0002',
-              isInternal: false,
-            },
-            transactionAmount: parseFloat(form.amount),
-            transactionNote: form.message,
-            transactionPayer: form.feeType,
-          };      const { data } = await api.post(
-        form.transferType === 'internal'
-          ? '/api/transactions/internal'
-          : '/api/transactions/external',
-        payload,      );
-      setResult(data.data);
-      setSuccess('Transfer successful!');
-      
-      // Always move to the complete step to show transaction result
-      setStep(4); // COMPLETE step
-      
-      // Check if recipient exists
-      const recipientExists = recipients.some(
-        (rec) => rec.accountNumber === form.accountNumberReceiver
+      await TransferService.requestOtp(
+        authState.user?.id,
+        authState.user?.email,
+        'TRANSFER',
       );
-      
-      // If recipient doesn't exist, we'll handle save recipient after showing result
-      if (!recipientExists) {
-        setSaveRecipient({
-          accountNumber: form.accountNumberReceiver,
-          bankName: form.bankId,
-          recipientName: form.recipientName,
-          recipientNickname: '',
-        });
-      }
+
+      dispatch({ type: 'SET_SUCCESS', payload: 'OTP sent to your email' });
+      dispatch({ type: 'SET_STEP', payload: 3 });
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'An error occurred during the transaction');
-      // Stay on OTP step to let user try again
-      setStep(3); // OTP step
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to request OTP',
+      });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [form, otp, recipients]);
-  const handleSaveRecipient = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  }, [authState.user]);
+  const handleVerifyOtp = useCallback(async () => {
+    if (!state.otp) {
+      dispatch({ type: 'SET_ERROR', payload: 'OTP is required' });
+      return;
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
     try {
-      await api.post('/api/recipients', {
-        accountNumber: saveRecipient.accountNumber,
-        bankName: saveRecipient.bankName || 'othergroup0002',
-        recipientName: saveRecipient.recipientName,
-        recipientNickname: saveRecipient.recipientNickname || saveRecipient.recipientName,
+      const payload = {
+        ...state.form,
+        otp: state.otp,
+        email: authState.user?.email,
+        userId: authState.user?.id,
+      };
+
+      const response =
+        state.form.transferType === 'internal'
+          ? await TransferService.internalTransfer(payload)
+          : await TransferService.externalTransfer(payload);
+
+      dispatch({ type: 'SET_RESULT', payload: response });
+      dispatch({ type: 'SET_SUCCESS', payload: 'Transfer successful' });
+
+      dispatch({ type: 'SET_STEP', payload: 4 });
+
+      dispatch({
+        type: 'SET_SAVE_RECIPIENT',
+        payload: {
+          accountNumber: state.form.accountNumberReceiver,
+          bankName: state.form.bankId,
+          recipientName: state.form.recipientName,
+          recipientNickname: '',
+        },
       });
-      setSuccess('Recipient saved successfully!');
-      setSaveRecipient({
-        accountNumber: '',
-        bankName: '',
-        recipientName: '',
-        recipientNickname: '',
-      });
-      // Refresh recipients list
-      fetchRecipients();
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to save recipient');
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Transfer failed',
+      });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [saveRecipient, fetchRecipients]);
-  // Reset the transfer form and state
+  }, [state.otp, state.form, authState.user]);
+
+  // Define resetTransfer first
   const resetTransfer = useCallback(() => {
-    setStep(1);
-    setForm({
-      accountNumberReceiver: '',
-      amount: '',
-      message: '',
-      feeType: 'SENDER',
-      transferType: 'internal',
-      sourceAccountNumber: '',
-      bankId: '',
-      recipientName: '',
-    });
-    setOtp('');
-    setError(null);
-    setSuccess(null);
-    setResult(null);
-    setSaveRecipient({
-      accountNumber: '',
-      bankName: '',
-      recipientName: '',
-      recipientNickname: '',
-    });
+    dispatch({ type: 'RESET_TRANSFER' });
   }, []);
 
-  // Set form from location state (if any)
+  const handleSaveRecipient = useCallback(async () => {
+    if (!state.saveRecipient.recipientNickname) {
+      dispatch({ type: 'SET_ERROR', payload: 'Nickname is required' });
+      return;
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    try {
+      await TransferService.saveRecipient({
+        accountNumber: state.saveRecipient.accountNumber,
+        bankName: state.saveRecipient.bankName,
+        recipientName: state.saveRecipient.recipientName,
+        nickname: state.saveRecipient.recipientNickname,
+      });
+
+      dispatch({
+        type: 'SET_SUCCESS',
+        payload: 'Recipient saved successfully',
+      });
+      fetchRecipients();
+      resetTransfer();
+    } catch (err) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to save recipient',
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [state.saveRecipient, fetchRecipients, resetTransfer]);
+
   const updateFormFromLocationState = useCallback((locationState) => {
     if (locationState?.accountNumberReceiver) {
-      setForm(prev => ({
-        ...prev,
-        accountNumberReceiver: locationState.accountNumberReceiver
-      }));
+      dispatch({
+        type: 'SET_FORM',
+        payload: { accountNumberReceiver: locationState.accountNumberReceiver },
+      });
     }
   }, []);
+
   const value = {
     // State
-    form,
-    setForm,
-    otp,
-    setOtp,
-    step,
-    setStep,
-    loading,
-    error,
-    setError,
-    success,
-    setSuccess,
-    result,
-    recipients,
-    saveRecipient,
-    setSaveRecipient,
-    state,
-    
+    form: state.form,
+    otp: state.otp,
+    step: state.step,
+    loading: state.loading,
+    error: state.error,
+    success: state.success,
+    result: state.result,
+    recipients: state.recipients,
+    saveRecipient: state.saveRecipient,
+    authState,
+
+    setForm: (formData) => dispatch({ type: 'SET_FORM', payload: formData }),
+    setOtp: (otp) => dispatch({ type: 'SET_OTP', payload: otp }),
+    setStep: (step) => dispatch({ type: 'SET_STEP', payload: step }),
+    setError: (error) => dispatch({ type: 'SET_ERROR', payload: error }),
+    setSuccess: (success) =>
+      dispatch({ type: 'SET_SUCCESS', payload: success }),
+    setSaveRecipient: (data) =>
+      dispatch({ type: 'SET_SAVE_RECIPIENT', payload: data }),
+
     // Methods
     formatCurrency,
+    formatVND,
     unformatCurrency,
     handleChange,
     handleRecipientChange,
     handleSaveRecipientChange,
-    handleConfirm,    handleRequestOtp,
+    handleConfirm,
+    handleRequestOtp,
     handleVerifyOtp,
     handleSaveRecipient,
     resetTransfer,

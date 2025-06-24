@@ -42,7 +42,7 @@ class WebSocketService {
         const sockJS = new SockJS(wsUrl, null, {
           transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
           timeout: 10000,
-          withCredentials: true
+          withCredentials: true,
         });
 
         // Set connection timeout
@@ -68,12 +68,12 @@ class WebSocketService {
             this.connected = true;
             this.retryCount = 0;
             clearTimeout(this.connectionTimeout);
-            
+
             // Resubscribe to all previous subscriptions
             this.subscriptions.forEach((callback, destination) => {
               this.subscribe(destination, callback).catch(console.error);
             });
-            
+
             resolve();
           },
           onStompError: (frame) => {
@@ -88,11 +88,10 @@ class WebSocketService {
           onWebSocketError: (error) => {
             console.error('WebSocket error:', error);
             this.handleConnectionError(error);
-          }
+          },
         });
 
         this.client.activate();
-
       } catch (error) {
         console.error('Connection error:', error);
         this.handleConnectionError(error);
@@ -102,7 +101,7 @@ class WebSocketService {
 
     return this.connectionPromise;
   }
-  
+
   handleConnectionError(error) {
     if (this.disconnecting) {
       return;
@@ -111,28 +110,28 @@ class WebSocketService {
     console.error('Connection error:', error);
     this.connected = false;
     this.connectionPromise = null;
-    
+
     if (this.connectionTimeout) {
       clearTimeout(this.connectionTimeout);
       this.connectionTimeout = null;
     }
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+
     // Clear all active subscriptions but keep the callbacks
     this.activeSubscriptions.clear();
-    
+
     // Attempt reconnection if not at max retries
     if (this.retryCount < this.maxRetries && !this.disconnecting) {
       const delay = Math.min(1000 * Math.pow(2, this.retryCount), 30000);
       this.retryCount++;
-      
+
       this.reconnectTimeout = setTimeout(() => {
         if (!this.disconnecting) {
-          this.connect().catch(err => {
+          this.connect().catch((err) => {
             console.error('Reconnection attempt failed:', err);
           });
         }
@@ -141,10 +140,10 @@ class WebSocketService {
       console.error('Max reconnection attempts reached');
     }
   }
-  
+
   disconnect() {
     this.disconnecting = true;
-    
+
     // Clear any pending reconnect
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
@@ -176,7 +175,7 @@ class WebSocketService {
     this.connected = false;
     this.connectionPromise = null;
     this.retryCount = 0;
-    
+
     // Reset disconnect flag after a short delay
     setTimeout(() => {
       this.disconnecting = false;
@@ -210,7 +209,7 @@ class WebSocketService {
       const subscription = this.client.subscribe(destination, (message) => {
         try {
           let payload;
-          
+
           // Handle both string and object message bodies
           if (typeof message.body === 'string') {
             try {
@@ -221,13 +220,13 @@ class WebSocketService {
           } else {
             payload = message.body;
           }
-          
+
           // Additional payload validation
           if (payload === null || payload === undefined) {
             console.warn('Received null or undefined payload');
             return;
           }
-          
+
           // Extract notification from Spring STOMP message format
           if (payload.body) {
             try {
@@ -236,7 +235,7 @@ class WebSocketService {
               payload = payload.body;
             }
           }
-          
+
           // Handle Spring's Message<byte[]> format
           if (payload.payload) {
             payload = payload.payload;
@@ -246,25 +245,27 @@ class WebSocketService {
           const currentCallback = this.subscriptions.get(destination);
           if (currentCallback) {
             // Force the callback execution into a Promise to handle async updates
-            Promise.resolve().then(() => {
-              try {
-                // If payload is a string, try to parse it again (sometimes double-encoded)
-                if (typeof payload === 'string') {
-                  try {
-                    const parsedPayload = JSON.parse(payload);
-                    currentCallback(parsedPayload);
-                  } catch (e) {
+            Promise.resolve()
+              .then(() => {
+                try {
+                  // If payload is a string, try to parse it again (sometimes double-encoded)
+                  if (typeof payload === 'string') {
+                    try {
+                      const parsedPayload = JSON.parse(payload);
+                      currentCallback(parsedPayload);
+                    } catch (e) {
+                      currentCallback(payload);
+                    }
+                  } else {
                     currentCallback(payload);
                   }
-                } else {
-                  currentCallback(payload);
+                } catch (callbackError) {
+                  console.error('Error in callback execution:', callbackError);
                 }
-              } catch (callbackError) {
-                console.error('Error in callback execution:', callbackError);
-              }
-            }).catch(error => {
-              console.error('Promise rejection in callback:', error);
-            });
+              })
+              .catch((error) => {
+                console.error('Promise rejection in callback:', error);
+              });
           }
         } catch (error) {
           console.error('Error processing message:', error);
@@ -273,7 +274,7 @@ class WebSocketService {
 
       // Store the active subscription
       this.activeSubscriptions.set(destination, subscription);
-      
+
       // Add unsubscribe handler
       const originalUnsubscribe = subscription.unsubscribe;
       subscription.unsubscribe = (...args) => {
@@ -304,7 +305,7 @@ class WebSocketService {
       if (this.activeSubscriptions.has(destination)) {
         // Update the callback for this destination to ensure it's current
         this.subscriptions.set(destination, callback);
-        
+
         const existingSubscription = this.activeSubscriptions.get(destination);
         return existingSubscription;
       }
@@ -316,7 +317,7 @@ class WebSocketService {
           console.error('Error in notification callback:', callbackError);
         }
       });
-      
+
       return subscription;
     } catch (err) {
       console.error('Subscription failed:', err);
@@ -326,12 +327,12 @@ class WebSocketService {
 
   handleSubscriptionError(destination, callback, error) {
     console.error(`Error subscribing to ${destination}:`, error);
-    
+
     // Keep the callback for potential future reconnection
     if (callback) {
       this.subscriptions.set(destination, callback);
     }
-    
+
     // Remove any existing subscription to this destination
     if (this.activeSubscriptions.has(destination)) {
       try {
@@ -377,7 +378,7 @@ class WebSocketService {
         atob(base64)
           .split('')
           .map((c) => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
-          .join('')
+          .join(''),
       );
 
       const payload = JSON.parse(jsonPayload);

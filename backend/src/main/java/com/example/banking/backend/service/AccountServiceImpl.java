@@ -11,7 +11,7 @@ import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.response.account.*;
 import com.example.banking.backend.dto.response.transaction.TransactionDto;
 import com.example.banking.backend.dto.response.user.UserDto;
-import com.example.banking.backend.exception.BadRequestException;
+import com.example.banking.backend.exception.*;
 import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.Bank;
@@ -27,6 +27,7 @@ import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
+import com.example.banking.backend.util.SignatureUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -65,15 +67,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
-        Account account = accountRepository.findByUserId(userId).orElse(null);
-
-        if (account == null) {
-            return ApiResponse.<GetAccountResponse>builder()
-                    .data(null)
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message("Account found successfully!")
-                    .build();
-        }
+        Account account = accountRepository.findByUserId(userId).orElseThrow(() -> new NotFoundException("Account not found"));
 
         GetAccountResponse accountResponse = AccountMapper.INSTANCE.accountToGetAccountResponse(account);
 
@@ -87,15 +81,9 @@ public class AccountServiceImpl implements AccountService {
     @Override
 
     public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type) {
-        Account account = accountRepository.getPaginatedTransactions(accountNumber, size, pagination, type);
+        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
-
-        if (account == null) {
-            return ApiResponse.<GetAccountTransactionsResponse>builder()
-                    .status(HttpStatus.NO_CONTENT.value())
-                    .message("Account not found!")
-                    .build();
-        }
+        Account accountTransaction = accountRepository.getPaginatedTransactions(account.getAccountId(), pagination, size, type);
 
         GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
 
@@ -108,29 +96,25 @@ public class AccountServiceImpl implements AccountService {
 
     Account getAccountCurrentUser() {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new RuntimeException("Please sign in first "));
+                .orElseThrow(() -> new InvalidUserException("Please switch account."));
     }
 
     @Override
-    public ApiResponse<List<TransactionDto>> getCustomerTransactions(Integer size, Integer pagination) {
+    public ApiResponse<GetAccountTransactionsResponse> getCustomerTransactions(Integer size, Integer pagination, TransactionType type) {
         if (size <= 0 || pagination <= 0) {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
         }
 
-        Pageable pageable = PageRequest.of(pagination - 1, size);
-        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findByFromAccountId(getAccountCurrentUser().getAccountId(), pageable);
-        List<TransactionDto> transactions = transactionPage.getContent().stream()
-                .map(transaction -> new TransactionDto(
-                        transaction.getId(),
-                        transaction.getToBank() != null ? transaction.getToBank().getId() : null,
-                        transaction.getAmount(),
-                        transaction.getUpdatedAt(),
-                        transaction.getMessage()
-                ))
-                .collect(Collectors.toList());
+        Account account = accountRepository.getPaginatedTransactions(getAccountCurrentUser().getAccountId(), pagination, size, type);
 
-        return ApiResponse.<List<TransactionDto>>builder()
-                .data(transactions)
+        if (account == null) {
+            throw new NotFoundException("Account not found!");
+        }
+
+        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
+
+        return ApiResponse.<GetAccountTransactionsResponse>builder()
+                .data(accountTransactionsResponse)
                 .status(HttpStatus.OK.value())
                 .message("Account's transaction history found successfully!")
                 .build();
@@ -143,11 +127,7 @@ public class AccountServiceImpl implements AccountService {
                 || accountRepository.findByUserPhone(request.getPhone()).isPresent()
                 || accountRepository.findByUserEmail(request.getEmail()).isPresent()) {
 
-            return ApiResponse.<CreateCustomerAccountResponse>builder()
-                    .data(null)
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message("Account already exists!")
-                    .build();
+            throw new ExistenceException("Account already exists!");
         }
 
         CreateUserRequest userRequest = CreateUserRequest.builder()
@@ -210,31 +190,21 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse rechargeAccount(RechargeAccountRequest request) {
-        Account account = accountRepository.findByAccountNumber(request.getAccountNumber()).orElse(null);
-
-        if (account == null) {
-            return ApiResponse.builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message("Account not found!")
-                    .build();
-        }
+    public void rechargeAccount(String accountNumber, Long rechargeAmount) {
+        Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
 
-        account.setBalance(account.getBalance() + request.getRechargeAmount());
+        account.setBalance(account.getBalance() + rechargeAmount);
 
         accountRepository.save(account);
 
-        return ApiResponse.builder()
-                .status(HttpStatus.OK.value())
-                .message("Account recharged successfully!")
-                .build();
+        return;
     }
 
     @Override
     public Double debitAccount(UUID userId, Double amount) {
         Account account = accountRepository.findByUserId(userId).orElseThrow(
-                () -> new RuntimeException("Account not found!"));
+                () -> new NotFoundException("Account not found!"));
 
         account.setBalance(account.getBalance() - amount);
 
@@ -245,25 +215,10 @@ public class AccountServiceImpl implements AccountService {
 
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new BadRequestException("NOT FOUND CURRENT USER"));
+                .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
     }
 
-    @Override
-    public Boolean changePassword(ChangePasswordRequest request) {
-        User user = getCurrentUser();
-        System.out.println("Old Password: " + request.getOldPassword());
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new BadRequestException("Old password is incorrect");
-        }
 
-        if (!otpService.validateOtp(user.getId(), OtpType.PASSWORD_CHANGE, request.getOtp())) {
-            throw new BadRequestException("OTP is not true , please try again");
-        }
-        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
-        user.setPassword(hashedPassword);
-        userRepository.save(user);
-        return true;
-    }
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request) {
         if (request == null)
@@ -271,16 +226,20 @@ public class AccountServiceImpl implements AccountService {
         //Internal
         if (request.getBankCode() == null || request.getBankCode().trim().isEmpty()) {
             Account sourceAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
-                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+                    .orElseThrow(() -> new NotFoundException("Account not found"));
+            Account userAccount = getCurrentUser().getAccount();
+            if (sourceAccount.getUser().getId() == userAccount.getUser().getId()) {
+                throw new BadRequestException("Cannot get account info of your own account");
+            }
             return new AccountInfoResult(sourceAccount.getAccountNumber(), sourceAccount.getUser().getFullName());
         } else {
             // External
 
             Account sourceAccount = accountRepository.findByUserId(getCurrentUser().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Source account not found"));
+                    .orElseThrow(() -> new NotFoundException("Source account not found"));
 
             Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
-                    .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
+                    .orElseThrow(() -> new NotFoundException("Destination bank not found"));
 
             String destinationApiUrl = destinationBank.getApiEndpoint();
             if (destinationApiUrl == null || destinationApiUrl.trim().isEmpty()) {
@@ -329,7 +288,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
+    public AccountInfoResult processAccountInfo(AccountInfoRequest request, String sourceBankCode,
                                                   String timestamp, String receivedHmac) throws Exception {
         if (request == null || request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
             throw new BadRequestException("Invalid request parameters");
@@ -340,13 +299,13 @@ public class AccountServiceImpl implements AccountService {
         String requestBody = objectMapper.writeValueAsString(request);
         String expectedHashInput = requestBody + timestamp + sourceBankCode + sourceBank.getSecretKey();
         String expectedHmac = CryptoUtils.generateHMAC(expectedHashInput, sourceBank.getSecretKey());
-
+        if (!SignatureUtil.isTimestampWithin5Minutes(timestamp)) throw new BadRequestException("Expired ,do it again");
         if (!expectedHmac.equals(receivedHmac)) {
             throw new BadRequestException("HMAC verification failed - packet integrity compromised");
         }
         Account account = accountRepository.findByAccountNumber(request.getAccountNumber())
-                .orElseThrow(() -> new BadRequestException("Account not found: " + request.getAccountNumber()));
-        return new AccountInfoResponse(
+                .orElseThrow(() -> new NotFoundException("Account not found: " + request.getAccountNumber()));
+        return new AccountInfoResult(
                 account.getAccountNumber(),
                 account.getUser().getFullName()
         );

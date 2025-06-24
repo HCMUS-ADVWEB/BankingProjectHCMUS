@@ -1,5 +1,19 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useReducer, useMemo } from 'react';
 import { createTheme } from '@mui/material/styles';
+
+// Theme reducer
+const themeReducer = (state, action) => {
+  switch (action.type) {
+    case 'TOGGLE_THEME':
+      return { ...state, isDarkMode: !state.isDarkMode };
+    case 'SET_DARK_MODE':
+      return { ...state, isDarkMode: true };
+    case 'SET_LIGHT_MODE':
+      return { ...state, isDarkMode: false };
+    default:
+      return state;
+  }
+};
 
 const darkTheme = createTheme({
   palette: {
@@ -1496,19 +1510,24 @@ const lightTheme = createTheme({
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [state, dispatch] = useReducer(themeReducer, { isDarkMode: true });
 
   const theme = useMemo(
-    () => (isDarkMode ? darkTheme : lightTheme),
-    [isDarkMode],
+    () => (state.isDarkMode ? darkTheme : lightTheme),
+    [state.isDarkMode],
   );
 
   const toggleTheme = () => {
-    setIsDarkMode((prev) => !prev);
+    dispatch({ type: 'TOGGLE_THEME' });
   };
-
   return (
-    <ThemeContext.Provider value={{ theme, isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ 
+      theme, 
+      isDarkMode: state.isDarkMode, 
+      toggleTheme,
+      setDarkMode: () => dispatch({ type: 'SET_DARK_MODE' }),
+      setLightMode: () => dispatch({ type: 'SET_LIGHT_MODE' })
+    }}>
       {children}
     </ThemeContext.Provider>
   );

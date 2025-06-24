@@ -1,7 +1,59 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useCallback,
+} from 'react';
 import { useAuth } from './AuthContext';
 import webSocketService from '../utils/webSocketService';
 import NotificationAPI from '../services/notificationApi';
+
+const notificationReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_NOTIFICATIONS':
+      return {
+        ...state,
+        notifications: action.payload,
+        unreadCount: action.payload.filter((n) => !n.read).length,
+      };
+    case 'ADD_NOTIFICATION':
+      return {
+        ...state,
+        notifications: [action.payload, ...state.notifications],
+        unreadCount: action.payload.read
+          ? state.unreadCount
+          : state.unreadCount + 1,
+      };
+    case 'MARK_ALL_READ':
+      return {
+        ...state,
+        notifications: state.notifications.map((n) => ({ ...n, read: true })),
+        unreadCount: 0,
+      };
+    case 'MARK_AS_READ':
+      const wasUnread = state.notifications.some(
+        (n) => n.id === action.payload && !n.read,
+      );
+      return {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.id === action.payload ? { ...n, read: true } : n,
+        ),
+        unreadCount: wasUnread
+          ? Math.max(0, state.unreadCount - 1)
+          : state.unreadCount,
+      };
+    case 'SET_CONNECTION_STATUS':
+      return { ...state, isConnecting: action.payload };
+    case 'SET_SUBSCRIPTION':
+      return { ...state, subscription: action.payload };
+    default:
+      return state;
+  }
+};
 
 const NotificationContext = createContext({
   notifications: [],
@@ -9,21 +61,20 @@ const NotificationContext = createContext({
   loading: false,
   markAllAsRead: () => {},
   markAsRead: () => {},
-  fetchNotifications: () => {}
+  fetchNotifications: () => {},
 });
 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
     console.warn('useNotifications must be used within a NotificationProvider');
-    // Return default values instead of undefined
     return {
       notifications: [],
       unreadCount: 0,
       loading: false,
       markAllAsRead: () => {},
       markAsRead: () => {},
-      fetchNotifications: () => {}
+      fetchNotifications: () => {},
     };
   }
   return context;
@@ -31,75 +82,65 @@ export const useNotifications = () => {
 
 export const NotificationProvider = ({ children }) => {
   const { state: authState, refreshToken } = useAuth();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [subscription, setSubscription] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
 
-  // Define fetchNotifications first before it's used in any other functions
+  const [state, dispatch] = useReducer(notificationReducer, {
+    notifications: [],
+    unreadCount: 0,
+    loading: true,
+    isConnecting: false,
+    subscription: null,
+  });
+
   const fetchNotifications = useCallback(async () => {
     if (!authState.isAuthenticated || !authState.user?.id) {
       return;
     }
 
     try {
-      setLoading(true);
+      dispatch({ type: 'SET_LOADING', payload: true });
       const response = await NotificationAPI.getNotifications(10, 1);
-      
+
       if (response && response.content) {
-        setNotifications(response.content);
-        setUnreadCount(response.content.filter((n) => !n.read).length);
+        dispatch({ type: 'SET_NOTIFICATIONS', payload: response.content });
       } else if (Array.isArray(response)) {
-        // Direct array of notifications
-        setNotifications(response);
-        setUnreadCount(response.filter((n) => !n.read).length);
+        dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
       } else {
         console.warn('Notification response format unexpected:', response);
-        setNotifications([]);
-        setUnreadCount(0);
+        dispatch({ type: 'SET_NOTIFICATIONS', payload: [] });
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      // Set defaults on error
-      setNotifications([]);
-      setUnreadCount(0);
+      dispatch({ type: 'SET_NOTIFICATIONS', payload: [] });
     } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [authState.isAuthenticated, authState.user?.id]);
 
   const handleNewNotification = useCallback((notification) => {
-    setNotifications(prev => [notification, ...prev]);
-    if (!notification.read) {
-      setUnreadCount(count => count + 1);
-    }
+    dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
   }, []);
 
   const setupWebSocket = useCallback(async () => {
     const ws = webSocketService;
-    
+
     try {
-      // If already connected with an active subscription, do nothing
-      if (ws.connected && subscription) {
+      if (ws.connected && state.subscription) {
         return () => {};
       }
 
-      // If we're in the process of connecting, avoid multiple connection attempts
-      if (isConnecting) {
+      if (state.isConnecting) {
         return () => {};
       }
 
-      setIsConnecting(true);
+      dispatch({ type: 'SET_CONNECTION_STATUS', payload: true });
 
-      // Clean up existing subscription if it exists
-      if (subscription) {
+      if (state.subscription) {
         try {
-          subscription.unsubscribe();
+          state.subscription.unsubscribe();
         } catch (e) {
           console.warn('Error cleaning up subscription:', e);
         }
-        setSubscription(null);
+        dispatch({ type: 'SET_SUBSCRIPTION', payload: null });
       }
 
       // Connect if not already connected
@@ -123,7 +164,7 @@ export const NotificationProvider = ({ children }) => {
         throw new Error('Failed to create subscription');
       }
 
-      setSubscription(sub);
+      dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
 
       return () => {
         if (sub) {
@@ -138,131 +179,126 @@ export const NotificationProvider = ({ children }) => {
       console.error('Error in WebSocket setup:', error);
       return () => {};
     } finally {
-      setIsConnecting(false);
+      dispatch({ type: 'SET_CONNECTION_STATUS', payload: false });
     }
-  }, [handleNewNotification, subscription, isConnecting]);
-
-  // Fetch notifications and setup WebSocket
+  }, [handleNewNotification, state.subscription, state.isConnecting]);
+  // Fetch notifications and setup WebSocket only when authenticated
   useEffect(() => {
+    if (!authState.isAuthenticated || !authState.user?.id) {
+      return;
+    }
+
     let cleanupFunc = () => {};
     let reconnectInterval = null;
 
     const setupNotifications = async () => {
-      if (!authState.isAuthenticated || !authState.user?.id) {
-        return;
-      }
-
       try {
-        // First fetch notifications without changing isConnecting state
         await fetchNotifications();
 
-        // Only setup WebSocket if we don't have an active subscription already
-        if (!subscription && !isConnecting) {
+        if (!state.subscription && !state.isConnecting) {
           const cleanup = await setupWebSocket();
           if (cleanup) {
             cleanupFunc = cleanup;
           }
         }
 
-        // Refresh token periodically to keep the WebSocket authenticated
-        reconnectInterval = setInterval(async () => {
-          if (webSocketService.connected && refreshToken) {
-            try {
-              const newToken = await refreshToken();
-              if (newToken) {
-                await webSocketService.updateToken(newToken);
+        reconnectInterval = setInterval(
+          async () => {
+            if (webSocketService.connected && refreshToken) {
+              try {
+                const newToken = await refreshToken();
+                if (newToken) {
+                  await webSocketService.updateToken(newToken);
+                }
+              } catch (error) {
+                console.error('Token refresh failed:', error);
               }
-            } catch (error) {
-              console.error('Token refresh failed:', error);
             }
-          }
-        }, 14 * 60 * 1000); // 14 minutes
+          },
+          14 * 60 * 1000,
+        );
       } catch (error) {
         console.error('Error in notification setup:', error);
       }
     };
 
-    // Run initial setup
     setupNotifications();
 
-    // Clean up on unmount
     return () => {
       if (cleanupFunc) {
         cleanupFunc();
       }
-      
+
       if (reconnectInterval) {
         clearInterval(reconnectInterval);
       }
     };
-  }, [authState.isAuthenticated, authState.user?.id, refreshToken, setupWebSocket, fetchNotifications, subscription, isConnecting]);
+  }, [
+    authState.isAuthenticated,
+    authState.user?.id,
+    refreshToken,
+    setupWebSocket,
+    fetchNotifications,
+    state.subscription,
+    state.isConnecting,
+  ]);
 
-  // Reconnect on window focus if connection is lost
   useEffect(() => {
     const checkConnection = () => {
-      if (!isConnecting && authState.isAuthenticated && !webSocketService.connected && !subscription) {
+      if (
+        !state.isConnecting &&
+        authState.isAuthenticated &&
+        !webSocketService.connected &&
+        !state.subscription
+      ) {
         setupWebSocket().catch(console.error);
       }
     };
 
     window.addEventListener('focus', checkConnection);
-    
+
     return () => {
       window.removeEventListener('focus', checkConnection);
     };
-  }, [authState.isAuthenticated, isConnecting, setupWebSocket, subscription]);
+  }, [
+    authState.isAuthenticated,
+    state.isConnecting,
+    setupWebSocket,
+    state.subscription,
+  ]);
 
   const markAllAsRead = async () => {
     try {
-      // Optimistically update UI first
-      setNotifications((prev) =>
-        prev.map((notification) => ({ ...notification, read: true }))
-      );
-      setUnreadCount(0);
-      
-      // Then call API
+      dispatch({ type: 'MARK_ALL_READ' });
+
       await NotificationAPI.markAllAsRead();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-      // Rollback changes on error
       fetchNotifications();
     }
   };
 
   const markAsRead = async (notificationId) => {
     try {
-      // Optimistically update UI
-      const wasUnread = notifications.some(n => n.id === notificationId && !n.read);
-      
-      setNotifications((prev) =>
-        prev.map((notification) =>
-          notification.id === notificationId
-            ? { ...notification, read: true }
-            : notification
-        )
-      );
-      
-      // Only decrease unread count if notification was actually unread
-      if (wasUnread) {
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-      }
-      
-      // Then call API
+      dispatch({ type: 'MARK_AS_READ', payload: notificationId });
+
       await NotificationAPI.markAsRead(notificationId);
     } catch (error) {
-      console.error(`Error marking notification ${notificationId} as read:`, error);
-      // Rollback changes on error
+      console.error(
+        `Error marking notification ${notificationId} as read:`,
+        error,
+      );
       fetchNotifications();
     }
   };
 
   const value = {
-    notifications,
-    unreadCount,
-    loading,
+    notifications: state.notifications,
+    unreadCount: state.unreadCount,
+    loading: state.loading,
     markAllAsRead,
     markAsRead,
-    fetchNotifications
+    fetchNotifications,
   };
 
   return (

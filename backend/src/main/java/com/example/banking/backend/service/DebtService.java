@@ -8,12 +8,13 @@ import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.DebtReminderListsResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
 import com.example.banking.backend.dto.response.debt.PayDebtResponse;
 import com.example.banking.backend.model.type.DebtStatusType;
 
 public interface DebtService {
-    ApiResponse<List<GetDebtReminderResponse>> getDebtReminders(DebtStatusType status, int limit, int page);
+    ApiResponse<DebtReminderListsResponse> getDebtReminderLists(DebtStatusType status, int limit, int page);
 
     ApiResponse<CreateDebtReminderResponse> createDebtReminder(CreateDebtReminderRequest request);
 

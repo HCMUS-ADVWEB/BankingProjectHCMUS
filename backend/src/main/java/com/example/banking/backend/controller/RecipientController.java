@@ -12,11 +12,15 @@ import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse
 import com.example.banking.backend.model.Recipient;
 import com.example.banking.backend.service.RecipientService;
 import com.example.banking.backend.service.RecipientServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +33,10 @@ import java.util.UUID;
 public class RecipientController {
     RecipientService recipientService;
 
-    @PostMapping()
+    @Operation(tags = "Recipient"
+            , summary = "[CUSTOMER] Add a recipient "
+            , description = "Customers add an internal or external recipient to their address book")
+    @PostMapping("")
     public ResponseEntity<ApiResponse<RecipientDtoRes>> addRecipient(
             @Valid @RequestBody AddRecipientRequest request) {
 
@@ -44,9 +51,14 @@ public class RecipientController {
                         .data(recipient)
                         .build());
     }
-
+    @Operation(tags = "Recipient"
+            , summary = "[CUSTOMER] Update an existing recipient "
+            , description = "Customers update an existing internal or external recipient information")
     @PutMapping("/{recipientId}")
     public ResponseEntity<ApiResponse<RecipientDtoRes>> updateRecipient(
+            @Parameter(description = "Id of the recipient that needs to be updated"
+                    , example = "b47af5f1-9412-4bf9-99b4-a1b0f8f71d4f"
+                    , required = true)
             @PathVariable String recipientId,
             @Valid @RequestBody UpdateRecipientRequest request) {
 
@@ -59,50 +71,41 @@ public class RecipientController {
                 .build());
 
     }
+    @Operation(tags = "Recipient"
+            , summary = "[CUSTOMER] Delete an existing recipient "
+            , description = "Customers delete an existing internal or external recipient out of their address book")
+    @DeleteMapping("/{recipientId}")
+    public ResponseEntity<ApiResponse> deleteRecipient(
+            @Parameter(description = "Id of the recipient that needs to be deleted"
+                    , example = "b47af5f1-9412-4bf9-99b4-a1b0f8f71d4f"
+                    , required = true)
+            @PathVariable String recipientId)
+    {
 
+        recipientService.deleteRecipient(recipientId);
 
-    @DeleteMapping("")
-    public ResponseEntity<ApiResponse<String>> deleteRecipient(@Valid @RequestBody DeleteRecipientRequest request) {
-
-        recipientService.deleteRecipient(request);
-
-        return ResponseEntity.ok(ApiResponse.<String>builder()
+        return ResponseEntity.ok(ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Recipient deleted successfully")
-                .data("Recipient removed")
                 .build());
 
     }
 
 
-    @GetMapping("/verify-recipient")
-    public ResponseEntity<ApiResponse<Boolean>> verifyRecipient(
-            @RequestParam String accountNumber,
-            @RequestParam String bankId) {
-
-        boolean isValid = recipientService.verifyRecipient(accountNumber, UUID.fromString(bankId));
-
-        return ResponseEntity.ok(ApiResponse.<Boolean>builder()
-                .status(HttpStatus.OK.value())
-                .message("Recipient verification completed")
-                .data(isValid)
-                .build());
-
-    }
-
+    @Operation(tags = "Recipient"
+            , summary = "[CUSTOMER] Get all recipients"
+            , description = "Customers get all recipients in their address book")
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page) {
+    public ResponseEntity<ApiResponse<List<RecipientDtoRes>>> getRecipients(
+            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page) {
 
-        List<RecipientDtoResponse> recipients = recipientService.getRecipients(limit, page);
-        return ResponseEntity.ok(ApiResponse.<List<RecipientDtoResponse>>builder()
+        List<RecipientDtoRes> recipients = recipientService.getRecipients(limit, page);
+        return ResponseEntity.ok(ApiResponse.<List<RecipientDtoRes>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Recipients retrieved successfully")
                 .data(recipients)
                 .build());
-
     }
-
-
 }

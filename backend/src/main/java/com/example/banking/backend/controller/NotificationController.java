@@ -1,6 +1,9 @@
 package com.example.banking.backend.controller;
 
 import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,11 +35,14 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    @Operation(tags = "Notification"
+            , summary = "[CUSTOMER] Get all notifications"
+            , description = "Customers get all of their notifications")
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page
+            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page
     ) {
         Page<NotificationResponse> notifications = notificationService.getAllNotifications(limit, page);
 
@@ -46,7 +52,10 @@ public class NotificationController {
                 .data(notifications)
                 .build());
     }
-    
+
+    @Operation(tags = "Notification"
+            , summary = "[CUSTOMER] Read all notifications"
+            , description = "Customers mark all of their notifications as read")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/read-all")
     public ResponseEntity<ApiResponse<Void>> markAllNotificationsAsRead() {
@@ -57,10 +66,16 @@ public class NotificationController {
                 .message("All notifications marked as read")
                 .build());
     }
-    
+
+    @Operation(tags = "Notification"
+            , summary = "[CUSTOMER] Read a notification"
+            , description = "Customers mark a notification as read")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/read/{id}")
-    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(@PathVariable("id") UUID notificationId) {
+    public ResponseEntity<ApiResponse<Void>> markNotificationAsRead(
+            @Parameter(description = "Notification's id"
+                    , example = "bb21f613-f49f-4d65-8327-1b249afff2d4")
+            @PathVariable("id") UUID notificationId) {
         notificationService.markNotificationAsRead(notificationId);
 
         return ResponseEntity.ok(ApiResponse.<Void>builder()
@@ -68,7 +83,11 @@ public class NotificationController {
                 .message("Notification marked as read")
                 .build());
     }
-    
+
+
+    @Operation(tags = "Notification"
+            , summary = "Add a new notification"
+            , description = "Add a new notification")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<Notification>> addNotification(
         @Validated @RequestBody AddNotificationRequest request) {

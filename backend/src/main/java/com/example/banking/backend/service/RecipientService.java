@@ -16,10 +16,9 @@ import java.util.UUID;
 
 @Service
 public interface RecipientService {
-    List<RecipientDtoResponse> getRecipients(int limit, int page);
+    List<RecipientDtoRes> getRecipients(int limit, int page);
     public RecipientDtoRes updateRecipient(UUID recipientId, UpdateRecipientRequest request);
-    public void deleteRecipient(DeleteRecipientRequest deleteRecipientRequest) ;
-    public boolean verifyRecipient(String accountNumber, UUID bankId) ;
+    public void deleteRecipient(String id) ;
     public RecipientDtoRes addRecipientExternal(AddRecipientRequest request);
     public RecipientDtoRes addRecipientInternal(AddRecipientRequest request);
 

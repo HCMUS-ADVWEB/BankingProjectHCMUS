@@ -1,19 +1,19 @@
 import api from '../utils/api';
 
-export const NotificationAPI = {  
+export const NotificationAPI = {
   getNotifications: async (limit = 10, page = 1) => {
     try {
-      console.log(`Calling GET /api/notifications?limit=${limit}&page=${page}`);
-      const response = await api.get(`/api/notifications?limit=${limit}&page=${page}`);
-      console.log('Raw API response:', response);
+      const response = await api.get(
+        `/api/notifications?limit=${limit}&page=${page}`,
+      );
 
       if (response.data && response.data.data) {
-        return response.data.data; 
+        return response.data.data;
       } else if (response.data) {
-        return response.data; 
+        return response.data;
       } else {
         console.warn('Unexpected API response format:', response);
-        return { content: [] }; 
+        return { content: [] };
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -34,16 +34,21 @@ export const NotificationAPI = {
       throw error;
     }
   },
-  
+
   markAsRead: async (notificationId) => {
     try {
-      const response = await api.put(`/api/notifications/read/${notificationId}`);
+      const response = await api.put(
+        `/api/notifications/read/${notificationId}`,
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error marking notification ${notificationId} as read:`, error);
+      console.error(
+        `Error marking notification ${notificationId} as read:`,
+        error,
+      );
       throw error;
     }
-  }
+  },
 };
 
 export default NotificationAPI;
