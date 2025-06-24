@@ -210,7 +210,7 @@ public class DebtServiceImpl implements DebtService {
         // Call TransactionService to process the transfer
         TransferResult transferResult = transactionService.internalTransfer(transferRequest);
 
-        if (!transferResult.isSuccess()) {
+        if (!transferResult.getSuccess()) {
             throw new BadRequestException("Failed to process debt payment: " + transferResult.getErrorMessage());
         }
 

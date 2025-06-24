@@ -55,7 +55,7 @@ public class RecipientServiceImpl implements RecipientService {
         recipient.setNickName(request.getNickName() == null ? recipient.getUser().getFullName() : request.getNickName());
         recipientRepository.save(recipient);
         return new RecipientDtoRes(
-                recipient.getId().toString(),
+                recipient.getId(),
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
@@ -89,7 +89,7 @@ public class RecipientServiceImpl implements RecipientService {
         recipient.setBank(null);
         recipientRepository.save(recipient);
         return new RecipientDtoRes(
-                recipient.getId().toString(),
+                recipient.getId(),
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
@@ -131,7 +131,7 @@ public class RecipientServiceImpl implements RecipientService {
         recipient.setBank(bank);
         recipientRepository.save(recipient);
         return new RecipientDtoRes(
-                recipient.getId().toString(),
+                recipient.getId(),
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
@@ -165,7 +165,7 @@ public class RecipientServiceImpl implements RecipientService {
 
 
     @Override
-    public List<RecipientDtoResponse> getRecipients(int limit, int page) {
+    public List<RecipientDtoRes> getRecipients(int limit, int page) {
         int pageNumber = page - 1;
         if (limit <= 0 || pageNumber < 0) {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
@@ -176,11 +176,10 @@ public class RecipientServiceImpl implements RecipientService {
         Page<Recipient> recipientPage = recipientRepository.findByUserId(currentUser.getId(), pageable);
 
         return recipientPage.getContent().stream()
-                .map(recipient -> new RecipientDtoResponse(
+                .map(recipient -> new RecipientDtoRes(
                         recipient.getId(),
                         recipient.getRecipientAccountNumber(),
                         recipient.getBank() == null ? null : recipient.getBank().getBankName(),
-                        recipient.getBank() == null ? null : recipient.getBank().getBankCode(),
                         recipient.getRecipientName(),
                         recipient.getNickName()
                 ))

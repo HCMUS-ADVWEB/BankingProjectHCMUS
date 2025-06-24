@@ -5,6 +5,7 @@ import com.example.banking.backend.dto.request.otp.OtpRequest;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.service.OtpService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,9 @@ public class OtpController {
 
     OtpService otpService;
 
+    @Operation(tags = "OTP"
+            , summary = "[CUSTOMER] Request an OTP"
+            , description = "Customers request an OTP sent to their email")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping
     public ApiResponse<Boolean> generateOtp(
@@ -37,10 +41,4 @@ public class OtpController {
                 .data(true)
                 .build();
     }
-
-
-
-
-
-
 }
