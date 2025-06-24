@@ -11,8 +11,8 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class TransactionDto {
-    private UUID id;
-    private UUID bankId;
+    private String id;
+    private String bankId;
     private double amount;
     private Instant transactionDate;
     private String message;

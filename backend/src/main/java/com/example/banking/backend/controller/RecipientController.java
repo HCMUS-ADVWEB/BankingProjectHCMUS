@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -61,10 +62,11 @@ public class RecipientController {
     }
 
 
-    @DeleteMapping("")
-    public ResponseEntity<ApiResponse<String>> deleteRecipient(@Valid @RequestBody DeleteRecipientRequest request) {
+    @DeleteMapping("/{recipientId}")
+    public ResponseEntity<ApiResponse<String>> deleteRecipient(@PathVariable String recipientId)
+    {
 
-        recipientService.deleteRecipient(request);
+        recipientService.deleteRecipient(recipientId);
 
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .status(HttpStatus.OK.value())
@@ -75,21 +77,8 @@ public class RecipientController {
     }
 
 
-    @GetMapping("/verify-recipient")
-    public ResponseEntity<ApiResponse<Boolean>> verifyRecipient(
-            @RequestParam String accountNumber,
-            @RequestParam String bankId) {
 
-        boolean isValid = recipientService.verifyRecipient(accountNumber, UUID.fromString(bankId));
-
-        return ResponseEntity.ok(ApiResponse.<Boolean>builder()
-                .status(HttpStatus.OK.value())
-                .message("Recipient verification completed")
-                .data(isValid)
-                .build());
-
-    }
-
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<RecipientDtoResponse>>> getRecipients(
             @RequestParam(defaultValue = "10") int limit,

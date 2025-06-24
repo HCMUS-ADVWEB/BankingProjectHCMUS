@@ -1,6 +1,7 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
+import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.user.UserDto;
@@ -10,6 +11,7 @@ import com.example.banking.backend.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -98,5 +100,13 @@ public class UserController {
                 .status(200)
                 .build();
         return ResponseEntity.status(200).body(apiResponse);
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .message("Change password successfully!")
+                .status(HttpStatus.OK.value())
+                .build());
     }
 }

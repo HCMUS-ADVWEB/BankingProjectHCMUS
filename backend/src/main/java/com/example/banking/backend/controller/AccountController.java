@@ -74,14 +74,7 @@ public class AccountController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-        accountService.changePassword(request);
-        return ResponseEntity.ok(ApiResponse.builder()
-                .message("Change password successfully!")
-                .status(HttpStatus.OK.value())
-                .build());
-    }
+
 
 
     @PostMapping("/account-info")

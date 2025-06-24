@@ -27,7 +27,6 @@ public interface AccountService {
 
     Double debitAccount(UUID accountId, Double amount);
 
-    Boolean changePassword(ChangePasswordRequest request);
 
     public AccountInfoResponse processAccountInfo(AccountInfoRequest request, String sourceBankCode,
                                                   String timestamp, String receivedHmac) throws Exception;

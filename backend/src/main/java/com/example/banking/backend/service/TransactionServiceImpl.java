@@ -39,6 +39,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,13 +100,11 @@ public class TransactionServiceImpl implements TransactionService {
 
             Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
                     .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
-
-            // Tạo transaction record
             Account accountCurrentUser = getAccountCurrentUser();
 
             try {
                 Transaction transaction = new Transaction();
-                transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+                transaction.setTransactionType(TransactionType.INTERBANK_TRANSFER);
                 transaction.setFromAccount(accountCurrentUser);
                 transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
                 transaction.setToAccountNumber(request.getReceiverAccountNumber());
@@ -288,6 +288,45 @@ public class TransactionServiceImpl implements TransactionService {
         );
     }
 
+    @Override
+    public InternalDepositResult internalDeposit(InternalDeposit internalDeposit) {
+        Account toAccount = getAccountFromNumber(internalDeposit.getAccountNumberReceiver());
+
+        if (toAccount == null) {
+            throw new BadRequestException("Receiver account not found");
+        }
+
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+        transaction.setFromAccount(null);
+        transaction.setFromAccountNumber(null);
+        transaction.setToAccountNumber(null);
+        transaction.setToAccount(toAccount);
+        transaction.setAmount(internalDeposit.getAmount());
+        transaction.setFee(0.0);
+        transaction.setFeeType(FeeType.SENDER); // Assuming sender pays the fee
+        transaction.setStatus(TransactionStatusType.COMPLETED);
+        transaction.setMessage("EMPLOYEE INTERNAL DEPOSIT");
+
+        // Set timestamps manually
+        Instant now = Instant.now();
+        transaction.setCreatedAt(now);
+        transaction.setUpdatedAt(now);
+        // Save transaction
+        var savedTransaction = transactionRepository.save(transaction);
+
+
+        toAccount.setBalance(toAccount.getBalance() + internalDeposit.getAmount());
+        accountRepository.save(toAccount);
+
+        // Update transaction status to COMPLETED
+        savedTransaction.setUpdatedAt(Instant.now());
+        savedTransaction = transactionRepository.save(savedTransaction);
+
+        return new InternalDepositResult(true);
+    }
+
 
     private double calculateFee(double amount, FeeType feeType) {
         return 0.0;
@@ -311,75 +350,72 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public TransferResult internalTransfer(TransferRequest request) {
-        try {
-
-            Account accountCurrentUser = getAccountCurrentUser();
-            Account toAccount = getAccountFromNumber(request.getAccountNumberReceiver());
-
-            if (toAccount == null) {
-                throw new BadRequestException("Receiver account not found");
-            }
-
-            // Kiểm tra số dư
-            double fee = calculateFee(request.getAmount(), request.getFeeType());
-            double totalAmount = request.getAmount() + fee;
-
-            if (accountCurrentUser.getBalance() < totalAmount) {
-                throw new BadRequestException("Insufficient balance");
-            }
-            Transaction transaction = new Transaction();
-            transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
-            transaction.setFromAccount(accountCurrentUser);
-            transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
-            transaction.setToAccountNumber(request.getAccountNumberReceiver());
-            transaction.setToAccount(toAccount);
-            transaction.setAmount(request.getAmount());
-            transaction.setFee(fee);
-            transaction.setFeeType(request.getFeeType());            
-            transaction.setStatus(TransactionStatusType.PENDING);
-            transaction.setMessage(request.getMessage());
-
-            // Set timestamps manually
-            Instant now = Instant.now();
-            transaction.setCreatedAt(now);
-            transaction.setUpdatedAt(now);
-            
-            // Validate OTP if provided
-            if (request.getOtp() != null && !request.getOtp().isEmpty()) {
-                otpService.validateOtp(
-                        getCurrentUser().getId(),
-                        OtpType.TRANSFER,
-                        request.getOtp());
-            }
-            
-            // Save transaction
-            var savedTransaction = transactionRepository.save(transaction);
-            
-            // Update account balances
-            accountCurrentUser.setBalance(accountCurrentUser.getBalance() - totalAmount);
-            accountRepository.save(accountCurrentUser);
-            
-            toAccount.setBalance(toAccount.getBalance() + request.getAmount());
-            accountRepository.save(toAccount);
-            
-            // Update transaction status to COMPLETED
-            savedTransaction.setStatus(TransactionStatusType.COMPLETED);
-            savedTransaction.setUpdatedAt(Instant.now());
-            savedTransaction = transactionRepository.save(savedTransaction);
-
-            return new TransferResult(
-                    true,
-                    savedTransaction.getId().toString(),
-                    request.getAmount(),
-                    fee,
-                    request.getMessage() != null ? request.getMessage() : "",
-                    null
-            );
 
 
-        } catch (Exception e) {
-            throw new RuntimeException("Server is busy, please try again later", e);
+        Account accountCurrentUser = getAccountCurrentUser();
+        Account toAccount = getAccountFromNumber(request.getAccountNumberReceiver());
+
+        if (toAccount == null) {
+            throw new BadRequestException("Receiver account not found");
         }
+
+        // Kiểm tra số dư
+        double fee = calculateFee(request.getAmount(), request.getFeeType());
+        double totalAmount = request.getAmount() + fee;
+
+        if (accountCurrentUser.getBalance() < totalAmount) {
+            throw new BadRequestException("Insufficient balance");
+        }
+        Transaction transaction = new Transaction();
+        transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+        transaction.setFromAccount(accountCurrentUser);
+        transaction.setFromAccountNumber(accountCurrentUser.getAccountNumber());
+        transaction.setToAccountNumber(request.getAccountNumberReceiver());
+        transaction.setToAccount(toAccount);
+        transaction.setAmount(request.getAmount());
+        transaction.setFee(fee);
+        transaction.setFeeType(request.getFeeType());
+        transaction.setStatus(TransactionStatusType.PENDING);
+        transaction.setMessage(request.getMessage());
+
+        // Set timestamps manually
+        Instant now = Instant.now();
+        transaction.setCreatedAt(now);
+        transaction.setUpdatedAt(now);
+
+        // Validate OTP if provided
+        if (request.getOtp() != null && !request.getOtp().isEmpty()) {
+            if (!otpService.validateOtp(
+                    getCurrentUser().getId(),
+                    OtpType.TRANSFER,
+                    request.getOtp())) throw new BadRequestException("Invalid OTP");
+        } else {
+            throw new BadRequestException("OTP is required for internal transfer");
+        }
+
+        // Save transaction
+        var savedTransaction = transactionRepository.save(transaction);
+
+        // Update account balances
+        accountCurrentUser.setBalance(accountCurrentUser.getBalance() - totalAmount);
+        accountRepository.save(accountCurrentUser);
+
+        toAccount.setBalance(toAccount.getBalance() + request.getAmount());
+        accountRepository.save(toAccount);
+
+        // Update transaction status to COMPLETED
+        savedTransaction.setStatus(TransactionStatusType.COMPLETED);
+        savedTransaction.setUpdatedAt(Instant.now());
+        savedTransaction = transactionRepository.save(savedTransaction);
+
+        return new TransferResult(
+                true,
+                savedTransaction.getId().toString(),
+                request.getAmount(),
+                fee,
+                request.getMessage() != null ? request.getMessage() : "",
+                null
+        );
     }
 
     @Override
@@ -393,24 +429,29 @@ public class TransactionServiceImpl implements TransactionService {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
-            startDateTime = LocalDateTime.parse(startDate + "T00:00:00");
-            endDateTime = LocalDateTime.parse(endDate + "T23:59:59");
+            startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             if (endDateTime.isBefore(startDateTime)) {
                 throw new IllegalArgumentException("End date must be after start date");
             }
         } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD, e.g., 2025-06-03");
+            throw new IllegalArgumentException("Invalid date format. Use ISO format, e.g., 2025-06-24T00:00:00");
         }
 
         Pageable pageable = PageRequest.of(pageNumber, limit);
 
-        Page<Transaction> transactionPage = (Page<Transaction>) transactionRepository.findAll(pageable)
-                .filter(t -> !t.getUpdatedAt().isBefore(Instant.from(startDateTime)) && !t.getUpdatedAt().isAfter(Instant.from(endDateTime)));
+        // Fix: Sử dụng dấu gạch dưới thay vì dấu cách
+        Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+        Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+
+        // Fix: Sử dụng repository method để filter trong database
+        Page<Transaction> transactionPage = transactionRepository.findByUpdatedAtBetween(
+                startInstant, endInstant, pageable);
 
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
-                        transaction.getId(),
-                        transaction.getToBank().getId(),
+                        transaction.getId().toString(),
+                        transaction.getToBank() != null ? transaction.getToBank().getBankName() : "N/A",
                         transaction.getAmount(),
                         transaction.getUpdatedAt(),
                         transaction.getMessage()
@@ -419,10 +460,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BankTransactionStatsDto getBankTransactionStats(UUID bankId, String startDate, String endDate) {
-        if (bankId == null) {
-            throw new IllegalArgumentException("Bank ID cannot be null");
-        }
+    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate) {
+
 
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
@@ -435,7 +474,13 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD, e.g., 2025-06-02");
         }
-        List<Transaction> transactions = transactionRepository.findByBankIdAndDateRange(bankId, startDateTime, endDateTime);
+
+        // Convert LocalDateTime sang Instant để tương thích với database
+        Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+        Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+
+        List<Transaction> transactions = transactionRepository.findByUpdatedAtBetween(
+                startInstant, endInstant);
 
         long totalTransactions = transactions.size();
         double totalAmount = transactions.stream()
@@ -444,5 +489,6 @@ public class TransactionServiceImpl implements TransactionService {
 
         return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime);
     }
+
 
 }
