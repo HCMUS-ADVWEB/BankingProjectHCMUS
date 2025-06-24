@@ -5,7 +5,10 @@ import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
 import com.example.banking.backend.dto.request.transaction.*;
 import com.example.banking.backend.dto.response.account.AccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
+import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.service.TransactionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +34,9 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-
+    @Operation(tags = "Transaction"
+            , summary = "[CUSTOMER] Make an internal transaction"
+            , description = "Customers transfer money to an internal account")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/internal")
     public ResponseEntity<ApiResponse<TransferResult>> internalTransfer(
@@ -44,6 +49,9 @@ public class TransactionController {
                 .build());
     }
 
+    @Operation(tags = "Transaction"
+            , summary = "[CUSTOMER] Make an external transaction"
+            , description = "Customers transfer money to an external account")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/external")
     public ResponseEntity<ApiResponse<TransferResult>> externalTransfer(
@@ -56,13 +64,16 @@ public class TransactionController {
                 .build());
     }
 
+    @Operation(tags = "Transaction"
+            , summary = "[ADMIN] Get all banks' transactions in a period of time"
+            , description = "Admin get all banks' transactions from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
-    public ResponseEntity<ApiResponse<?>> getBankTransactions(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "1") int page
+    public ResponseEntity<ApiResponse<List<TransactionDto>>> getBankTransactions(
+            @Parameter(description = "Get transactions from this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
+            @Parameter(description = "Get transactions to this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
+            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page
     ) {
         // Fix: Sử dụng dấu gạch dưới thay vì dấu cách
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -85,9 +96,12 @@ public class TransactionController {
                 .build());
     }
 
+    @Operation(tags = "Transaction"
+            , summary = "[ADMIN] Get all banks' transaction statistics in a period of time"
+            , description = "Admin get all banks' transaction statistics from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
-    public ResponseEntity<ApiResponse<?>> getBankTransactionStats(
+    public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ) {LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -108,20 +122,16 @@ public class TransactionController {
                     .data(stats)
                     .build());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.builder()
-                    .status(HttpStatus.BAD_REQUEST.value())
-                    .message(e.getMessage())
-                    .build());
+            throw new BadRequestException(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.builder()
-                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                            .message("An error occurred while retrieving statistics")
-                            .build());
+            throw new RuntimeException("An error occurred while retrieving statistics");
         }
 
     }
 
+    @Operation(tags = "Transaction"
+            , summary = "[EMPLOYEE] Recharge money to an internal account"
+            , description = "Employees recharge an amount of money to an internal account")
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/internal/deposit")

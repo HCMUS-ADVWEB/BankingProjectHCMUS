@@ -450,7 +450,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         return transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
-                        transaction.getId().toString(),
+                        transaction.getId(),
                         transaction.getToBank() != null ? transaction.getToBank().getBankName() : "N/A",
                         transaction.getAmount(),
                         transaction.getUpdatedAt(),
