@@ -14,7 +14,6 @@ import com.example.banking.backend.security.jwt.CustomContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
-@SecurityRequirement(name = "bearerAuth")
 @Controller
 @RequiredArgsConstructor
 public class WebSocketController {
