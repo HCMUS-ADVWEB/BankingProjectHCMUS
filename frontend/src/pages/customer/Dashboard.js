@@ -78,7 +78,10 @@ export default function CustomerDashboard() {
 
   return (
     <CustomerLayout>
-      <Container maxWidth="xl" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         {/* Header Section */}
         <Box
           sx={{
@@ -102,7 +105,8 @@ export default function CustomerDashboard() {
             Welcome, {state.user?.fullName || 'Customer'}! 👋
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Your dashboard provides a quick overview of your banking features and actions.
+            Your dashboard provides a quick overview of your banking features
+            and actions.
           </Typography>
         </Box>
 
@@ -142,7 +146,8 @@ export default function CustomerDashboard() {
                       <Tooltip title={action.tooltip}>
                         <Avatar
                           sx={{
-                            bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
+                            bgcolor:
+                              'linear-gradient(to right, #10b981, #06b6d4)',
                             color: 'white',
                             mr: 2,
                             width: 40,
