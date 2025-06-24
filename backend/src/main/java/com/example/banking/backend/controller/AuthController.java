@@ -24,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
 
     @Operation(tags = "Authorization"
-            , summary = "[UNAUTHORIZED] Log in"
+            , summary = "[PUBLIC] Log in"
             , description = "Unauthorized users log in into the system")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
@@ -38,7 +38,7 @@ public class AuthController {
     }
 
     @Operation(tags = "Authorization"
-            , summary = "[UNAUTHORIZED] Refresh new token after access token is expired"
+            , summary = "[PUBLIC] Refresh new token after access token is expired"
             , description = "Expired users request new access token")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @Operation(tags = "Authorization"
-            , summary = "[AUTHORIZED] Log out"
+            , summary = "[PROTECTED] Log out"
             , description = "Users log out of the system")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<LogoutResponse>> logout(@Parameter(description = "Account's refresh token")@RequestParam String refreshToken) {
@@ -66,7 +66,7 @@ public class AuthController {
     }
 
     @Operation(tags = "Authorization"
-            , summary = "[UNAUTHORIZED] Unauthorized users forgot their password"
+            , summary = "[PUBLIC] Unauthorized users forgot their password"
             , description = "Send OTP to unauthorized users' mail after they request to set new password")
     @PostMapping("/reset-password/request")
     public ResponseEntity<ApiResponse<?>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
@@ -78,7 +78,7 @@ public class AuthController {
     }
 
     @Operation(tags = "Authorization"
-            , summary = "[UNAUTHORIZED] Unauthorized users reset their password"
+            , summary = "[PUBLIC] Unauthorized users reset their password"
             , description = "Unauthorized users reset their password with given OTP code")
     @PostMapping("/reset-password/confirm")
     public ResponseEntity<ApiResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
