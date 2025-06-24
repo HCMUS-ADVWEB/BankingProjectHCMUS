@@ -1,9 +1,7 @@
 package com.example.banking.backend.dto.response.account;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.util.Map;
 
@@ -11,8 +9,16 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@Schema(name = "AccountInformation",
+        description = "Fetched account's information")
 public class AccountInfoResult {
+    @Schema(description = "Account number",
+            example = "5873906278933357")
     private String accountNumber;
+
+    @Schema(description = "Account's full name",
+            example = "Nguyễn Văn A")
     private String fullName;
 
 
