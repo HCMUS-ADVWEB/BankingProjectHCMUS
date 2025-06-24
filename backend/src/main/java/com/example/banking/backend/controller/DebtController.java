@@ -21,6 +21,7 @@ import com.example.banking.backend.dto.request.debt.CancelDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.CreateDebtReminderRequest;
 import com.example.banking.backend.dto.request.debt.PayDebtRequest;
 import com.example.banking.backend.dto.response.debt.CreateDebtReminderResponse;
+import com.example.banking.backend.dto.response.debt.DebtReminderListsResponse;
 import com.example.banking.backend.dto.response.debt.GetDebtReminderResponse;
 import com.example.banking.backend.model.type.DebtStatusType;
 import com.example.banking.backend.service.DebtService;
@@ -112,4 +113,15 @@ public class DebtController {
         }
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/lists")
+    public ResponseEntity<ApiResponse<DebtReminderListsResponse>> getDebtReminderLists(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "1") int page
+    ) {
+        DebtStatusType debtStatusType = status != null ? DebtStatusType.fromValue(status) : null;
+        ApiResponse<DebtReminderListsResponse> response = debtService.getDebtReminderLists(debtStatusType, limit, page);
+        return ResponseEntity.ok(response);
+    }
 }

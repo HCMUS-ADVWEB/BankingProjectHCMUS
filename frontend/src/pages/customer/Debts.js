@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import CustomerLayout from '../../layouts/CustomerLayout';
-import api from '../../utils/api';
+import { useDebt } from '../../contexts/DebtContext';
 import {
   CircularProgress,
   Alert,
@@ -21,12 +21,25 @@ import {
   Snackbar,
   Backdrop,
   TableSortLabel,
+  Tabs,
+  Tab,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  IconButton,
 } from '@mui/material';
 import {
   MonetizationOn as DebtIcon,
   Schedule as PendingIcon,
   CheckCircle as PaidIcon,
   Cancel as CancelledIcon,
+  Send as SentIcon,
+  Inbox as ReceivedIcon,
+  DeleteOutline as DeleteIcon,
+  Payment as PaymentIcon,
 } from '@mui/icons-material';
 
 const statusOptions = [
@@ -44,40 +57,49 @@ const statusConfig = {
 };
 
 export default function DebtsPage() {
-  const [debts, setDebts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { createdDebts, receivedDebts, loading, error, fetchDebtReminders, cancelDebtReminder, requestOtpForPayDebt, payDebtReminder } = useDebt();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [total, setTotal] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
   const [orderBy, setOrderBy] = useState('createdAt');
   const [order, setOrder] = useState('desc');
+  const [tabValue, setTabValue] = useState(0);
+  
+  // State for cancel dialog
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [selectedDebt, setSelectedDebt] = useState(null);
+  
+  // State for pay dialog
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [paymentMessage, setPaymentMessage] = useState('');
 
-  const fetchDebts = () => {
-    setLoading(true);
-    api.get('/api/debts', {
-      params: {
-        status: status || undefined,
-        limit: rowsPerPage,
-        page: page + 1,
-      },
-    })
-      .then(res => {
-        setDebts(res.data.data || []);
-        setTotal(res.data.data?.length || 0);
-        setError(null);
-      })
-      .catch(err => {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg);
-        setSnackbarOpen(true);
-      })
-      .finally(() => setLoading(false));
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
-  useEffect(() => { fetchDebts(); }, [status, page, rowsPerPage]);
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+    setPage(0);
+    fetchDebtReminders(e.target.value, rowsPerPage, 1);
+  };
+
+  const handlePageChange = (e, newPage) => {
+    setPage(newPage);
+    fetchDebtReminders(status, rowsPerPage, newPage + 1);
+  };
+
+  const handleRowsPerPageChange = (e) => {
+    const newRowsPerPage = parseInt(e.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
+    fetchDebtReminders(status, newRowsPerPage, 1);
+  };
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
@@ -98,7 +120,7 @@ export default function DebtsPage() {
   };
 
   // Sort debts
-  const getSortedDebts = () => {
+  const getSortedDebts = (debts) => {
     return [...debts].sort((a, b) => {
       const aValue = a[orderBy];
       const bValue = b[orderBy];
@@ -121,7 +143,46 @@ export default function DebtsPage() {
     });
   };
 
-  const sortedDebts = getSortedDebts();
+  const currentDebts = tabValue === 0 ? createdDebts : receivedDebts;
+  const sortedDebts = getSortedDebts(currentDebts);
+  // Add useEffect to explicitly fetch data when component mounts
+  React.useEffect(() => {
+    console.log('DebtsPage component mounted, fetching data...');
+    fetchDebtReminders(status, rowsPerPage, page + 1);
+  }, []); // Empty dependency array to run only on mount
+  
+  // Debug information
+  console.log('Debts.js state:', {
+    createdDebts,
+    receivedDebts,
+    loading,
+    error,
+    tabValue,
+    currentDebts,
+    sortedDebts
+  });
+
+  // Add useEffect to log when component updates
+  React.useEffect(() => {
+    console.log('DebtsPage component updated with data:', {
+      createdDebts: createdDebts.length,
+      receivedDebts: receivedDebts.length,
+      loading
+    });
+  }, [createdDebts, receivedDebts, loading]);
+
+  // Helper function to check for token directly
+  const hasToken = () => {
+    return !!localStorage.getItem('accessToken');
+  };
+
+  // Add useEffect to check for token and fetch data if needed
+  React.useEffect(() => {
+    if (hasToken() && createdDebts.length === 0 && receivedDebts.length === 0 && !loading) {
+      console.log('We have a token but no data - forcing a fetch...');
+      fetchDebtReminders(status, rowsPerPage, page + 1);
+    }
+  }, [createdDebts, receivedDebts, loading]);
 
   return (
     <CustomerLayout>
@@ -134,7 +195,7 @@ export default function DebtsPage() {
         </Backdrop>
 
         <Snackbar
-          open={snackbarOpen}
+          open={snackbarOpen || Boolean(error)}
           autoHideDuration={6000}
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -158,7 +219,7 @@ export default function DebtsPage() {
             select
             label="Status"
             value={status}
-            onChange={(e) => { setStatus(e.target.value); setPage(0); }}
+            onChange={handleStatusChange}
             size="small"
             sx={{ minWidth: 150 }}
           >
@@ -166,6 +227,30 @@ export default function DebtsPage() {
               <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
             ))}
           </TextField>
+        </Box>
+
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            aria-label="debt reminder tabs"
+            centered
+          >
+            <Tab 
+              icon={<SentIcon />} 
+              iconPosition="start" 
+              label="Created by Me" 
+              id="debt-tab-0" 
+              aria-controls="debt-tabpanel-0" 
+            />
+            <Tab 
+              icon={<ReceivedIcon />} 
+              iconPosition="start" 
+              label="Received" 
+              id="debt-tab-1" 
+              aria-controls="debt-tabpanel-1" 
+            />
+          </Tabs>
         </Box>
 
         <Paper
@@ -189,6 +274,9 @@ export default function DebtsPage() {
                       Created At
                     </TableSortLabel>
                   </TableCell>
+                  <TableCell>
+                    {tabValue === 0 ? 'Debtor' : 'Creator'}
+                  </TableCell>
                   <TableCell>Message</TableCell>
                   <TableCell>
                     <TableSortLabel
@@ -211,51 +299,62 @@ export default function DebtsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedDebts.map((debt) => (
-                  <TableRow key={debt.id} hover>
-                    <TableCell>
-                      {new Date(debt.createdAt).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </TableCell>
-                    <TableCell>{debt.message}</TableCell>
-                    <TableCell>
-                      <Typography
-                        sx={{
-                          color: 'primary.main',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {formatVND(debt.amount)}
+                {sortedDebts.length > 0 ? (
+                  sortedDebts.map((debt) => (
+                    <TableRow key={debt.id} hover>
+                      <TableCell>
+                        {new Date(debt.createdAt).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        {/* This would need to be updated with actual user info */}
+                        {tabValue === 0 ? debt.debtorId : debt.creatorId}
+                      </TableCell>
+                      <TableCell>{debt.message}</TableCell>
+                      <TableCell>
+                        <Typography
+                          sx={{
+                            color: 'primary.main',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {formatVND(debt.amount)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          icon={statusConfig[debt.status]?.icon}
+                          label={debt.status}
+                          color={statusConfig[debt.status]?.color || 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography variant="body1" sx={{ py: 2 }}>
+                        No debt reminders found
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={statusConfig[debt.status]?.icon}
-                        label={debt.status}
-                        color={statusConfig[debt.status]?.color || 'default'}
-                        size="small"
-                      />
-                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </TableContainer>
           <TablePagination
             component="div"
-            count={total}
+            count={currentDebts.length}
             page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
+            onPageChange={handlePageChange}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={e => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
+            onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPageOptions={[5, 10, 25, 50]}
           />
         </Paper>
