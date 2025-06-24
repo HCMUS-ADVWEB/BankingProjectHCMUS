@@ -76,6 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+
     public TransferResult externalTransfer(TransferExternalRequest request) throws Exception {
         try {
             if (request == null || request.getAmount() <= 0) {
@@ -236,10 +237,12 @@ public class TransactionServiceImpl implements TransactionService {
                 request.getSenderAccountNumber() == null || request.getReceiverAccountNumber() == null) {
             throw new BadRequestException("Invalid request parameters");
         }
+        if (!SignatureUtil.isTimestampWithin5Minutes(timestamp)) throw new BadRequestException("Expired ,do it again");
         Bank sourceBank = bankRepository.findByBankCode(sourceBankCode)
                 .orElseThrow(() -> new IllegalArgumentException("Source bank not found: " + sourceBankCode));
         Account destinationAccount = accountRepository.findByAccountNumber(request.getReceiverAccountNumber())
                 .orElse(null);
+
 
         if (destinationAccount == null) {
             throw new BadRequestException("Destination account not found: " + request.getReceiverAccountNumber());
