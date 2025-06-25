@@ -105,7 +105,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
             @Parameter(description = "Get transactions statistics from this date")@RequestParam(required = false) String startDate,
             @Parameter(description = "Get transactions statistics to this date")@RequestParam(required = false) String endDate ,
-            @Parameter(description = "Either our bank or other bank") @RequestParam String bankCode
+            @Parameter(description = "Either our bank or other bank") @RequestParam(required = false) String bankCode
 
     ) {LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
