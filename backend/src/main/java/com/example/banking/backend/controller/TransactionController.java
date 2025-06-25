@@ -98,8 +98,8 @@ public class TransactionController {
     }
 
     @Operation(tags = "Transaction"
-            , summary = "[ADMIN] Get all banks' transaction statistics in a period of time"
-            , description = "Admin get all banks' transaction statistics from start date to end date")
+            , summary = "[ADMIN] Get a banks' transaction statistics in a period of time"
+            , description = "Admin get a banks' transaction statistics from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
