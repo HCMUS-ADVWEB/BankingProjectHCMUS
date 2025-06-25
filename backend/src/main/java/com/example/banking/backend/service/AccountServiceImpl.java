@@ -288,8 +288,6 @@ public class AccountServiceImpl implements AccountService {
 
         userService.updateUser(user.getId(), updateUserRequest);
 
-        authService.logout(user.getRefreshToken().getId());
-
         return ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Closed account successfully")
