@@ -26,5 +26,10 @@ public class BankTransactionStatsDto {
     @Schema(description = "Statistics is to this date")
     private LocalDateTime endDate;
 
+    @Schema(description = "If null is our bank , " +
+            "if not null like VCB , " +
+            " that is statistic our bank with that bank ")
+    private String bankCode ;
+
 
 }

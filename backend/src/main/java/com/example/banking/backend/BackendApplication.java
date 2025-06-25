@@ -31,7 +31,7 @@ public class BackendApplication {
 
         // FAKE TRANSFER REQUEST AND ACCOUNT INFO REQUEST  ,DO NOT DELETE THIS CODE
 //        String secret_key = "fake_secret_key_hash";
-//        String timeStampeString = "1719192240000"; // Giả lập timestamp
+//        String timeStampeString = String.valueOf(Instant.now().minus(Duration.ofMinutes(5)).toEpochMilli());
 //        String BANK_CODE = "FAK";
 //        InterbankTransferRequest request = new InterbankTransferRequest("123456", "9704214212222", 0.2,
 //                "nhom 3");
