@@ -74,7 +74,7 @@ public class TransactionController {
             @Parameter(description = "Get transactions to this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
             @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
             @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page ,
-            @Parameter(description = "Either our bank or other bank") String bankCode
+            @Parameter(description = "Either our bank or other bank")@RequestParam(required = false) String bankCode
 
             ) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
