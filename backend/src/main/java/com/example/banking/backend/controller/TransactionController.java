@@ -76,11 +76,12 @@ public class TransactionController {
     ) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
-        if (startDate == null) {
-            startDate = now.minusDays(10).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        if (startDate == null || startDate.trim().isEmpty()) {
+            startDate = now.minusDays(10).format(DateTimeFormatter.ISO_LOCAL_DATE); // 30 ngày trước
         }
-        if (endDate == null) {
-            endDate = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+        if (endDate == null || endDate.trim().isEmpty()) {
+            endDate = now.format(DateTimeFormatter.ISO_LOCAL_DATE); // Hôm nay
         }
         BankTransactionDto transactions = transactionService.getBankTransactions(startDate, endDate, limit, page, bankCode);
 
