@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 @EnableFeignClients
 public class BackendApplication {
@@ -48,6 +50,7 @@ public class BackendApplication {
 //        System.out.println("✅ X-Request-Hash: " + hmac);
 //        System.out.println("✅ HMAC Account: " + hmac1);
 //        System.out.println("✅ X-Signature " + signatureBase64);
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SpringApplication.run(BackendApplication.class, args);
     }
 

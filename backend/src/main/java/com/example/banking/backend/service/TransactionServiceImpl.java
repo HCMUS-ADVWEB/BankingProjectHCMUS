@@ -458,12 +458,13 @@ public class TransactionServiceImpl implements TransactionService {
         return new BankTransactionDto(
                 transactionDtos,
                 transactionPage.getTotalPages(),
-                transactionPage.getNumber() + 1 ,
+                transactionPage.getNumber() + 1,
                 transactionPage.getSize(),
                 transactionPage.getNumberOfElements(),
                 (int) transactionPage.getTotalElements());
 
     }
+
     @Override
     public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate, String bankCode) {
 
@@ -479,8 +480,6 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD, e.g., 2025-06-02");
         }
-
-        // Convert LocalDateTime sang Instant để tương thích với database
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
 

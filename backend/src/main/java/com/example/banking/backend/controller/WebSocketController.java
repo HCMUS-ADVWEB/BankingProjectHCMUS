@@ -71,7 +71,6 @@ public class WebSocketController {
         try {
             String userId = CustomContextHolder.getCurrentUserId().toString();
             System.out.println("\n=== Sending Test Notification ===");
-
             Instant now = Instant.now();
             NotificationResponse notification = new NotificationResponse(
                     UUID.randomUUID(),
