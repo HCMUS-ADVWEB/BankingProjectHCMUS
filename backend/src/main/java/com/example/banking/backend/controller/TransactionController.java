@@ -75,16 +75,13 @@ public class TransactionController {
 
     ) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-        LocalDateTime defaultEndDate = now.withHour(23).withMinute(59).withSecond(59);
-        LocalDateTime defaultStartDate = now.minusDays(10).withHour(0).withMinute(0).withSecond(0);
 
         if (startDate == null) {
-            startDate = defaultStartDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            startDate = now.minusDays(10).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
         if (endDate == null) {
-            endDate = defaultEndDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            endDate = now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
-
         BankTransactionDto transactions = transactionService.getBankTransactions(startDate, endDate, limit, page, bankCode);
 
         return ResponseEntity.ok(ApiResponse.<BankTransactionDto>builder()

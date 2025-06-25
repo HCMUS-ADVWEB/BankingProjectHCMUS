@@ -428,8 +428,8 @@ public class TransactionServiceImpl implements TransactionService {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
-            startDateTime = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            endDateTime = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            startDateTime = LocalDateTime.parse(startDate + "T00:00:00"); // Bắt đầu ngày
+            endDateTime = LocalDateTime.parse(endDate + "T23:59:59");   // Kết thúc ngày
             if (endDateTime.isBefore(startDateTime)) {
                 throw new IllegalArgumentException("End date must be after start date");
             }
@@ -464,7 +464,6 @@ public class TransactionServiceImpl implements TransactionService {
                 (int) transactionPage.getTotalElements());
 
     }
-
     @Override
     public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate, String bankCode) {
 
