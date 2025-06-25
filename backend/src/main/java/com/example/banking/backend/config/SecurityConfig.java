@@ -1,7 +1,11 @@
 package com.example.banking.backend.config;
 
-import java.security.PrivateKey;
-
+import com.example.banking.backend.security.exception.CustomAccessDeniedHandler;
+import com.example.banking.backend.security.exception.CustomAuthenticationEntryPoint;
+import com.example.banking.backend.security.jwt.AuthTokenFilter;
+import com.example.banking.backend.security.service.UserDetailsServiceImpl;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,15 +21,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import com.example.banking.backend.security.exception.CustomAccessDeniedHandler;
-import com.example.banking.backend.security.exception.CustomAuthenticationEntryPoint;
-import com.example.banking.backend.security.jwt.AuthTokenFilter;
-import com.example.banking.backend.security.service.UserDetailsServiceImpl;
-import com.example.banking.backend.util.CryptoUtils;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -39,7 +34,6 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenFilter authenticationJwtTokenFilter;
-
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -63,20 +57,20 @@ public class SecurityConfig {
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
-                )                .authorizeHttpRequests(auth -> auth
+                ).authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**",
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html",                      
+                                "/swagger-ui.html",
                                 "/ws/**",
                                 "/topic/**",
                                 "/queue/**",
                                 "/app/**",
                                 "/favicon.ico",
                                 "/api/linked-banks/**"
-                                ).permitAll()
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

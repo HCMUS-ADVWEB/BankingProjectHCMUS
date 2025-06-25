@@ -11,7 +11,7 @@ import lombok.Setter;
 @Schema(description = "Request to send an OTP with this information")
 public class OtpRequest {
     @Schema(description = "OTP type shows what this OTP is used for",
-            example = "TRANSFER",
+            example = "[\"TRANSFER\", \"PASSWORD_RESET\", \"DEBT_PAYMENT\"]",
             requiredMode = Schema.RequiredMode.REQUIRED)
     String otpType;
 }

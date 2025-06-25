@@ -1,11 +1,13 @@
 package com.example.banking.backend.controller;
 
 import com.example.banking.backend.dto.ApiResponse;
-import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.*;
-import com.example.banking.backend.dto.response.account.AccountDto;
-import com.example.banking.backend.dto.response.transaction.*;
-import com.example.banking.backend.exception.BadRequestException;
+import com.example.banking.backend.dto.request.transaction.InternalDeposit;
+import com.example.banking.backend.dto.request.transaction.TransferExternalRequest;
+import com.example.banking.backend.dto.request.transaction.TransferRequest;
+import com.example.banking.backend.dto.response.transaction.BankTransactionStatsDto;
+import com.example.banking.backend.dto.response.transaction.InternalDepositResult;
+import com.example.banking.backend.dto.response.transaction.TransactionDto;
+import com.example.banking.backend.dto.response.transaction.TransferResult;
 import com.example.banking.backend.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,8 +24,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @Operation(tags = "Transaction"
+    @Operation(tags = "💱 Transaction"
             , summary = "[CUSTOMER] Make an internal transaction"
             , description = "Customers transfer money to an internal account")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -49,7 +49,7 @@ public class TransactionController {
                 .build());
     }
 
-    @Operation(tags = "Transaction"
+    @Operation(tags = "💱 Transaction"
             , summary = "[CUSTOMER] Make an external transaction"
             , description = "Customers transfer money to an external account")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -64,19 +64,19 @@ public class TransactionController {
                 .build());
     }
 
-    @Operation(tags = "Transaction"
+    @Operation(tags = "💱 Transaction"
             , summary = "[ADMIN] Get a bank's transactions in a period of time"
             , description = "Admin get a bank's transactions from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
     public ResponseEntity<ApiResponse<List<TransactionDto>>> getBankTransactions(
-            @Parameter(description = "Get transactions from this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
-            @Parameter(description = "Get transactions to this date")@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
-            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
-            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page ,
-            @Parameter(description = "Either our bank or other bank")@RequestParam(required = false) String bankCode
+            @Parameter(description = "Get transactions from this date") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
+            @Parameter(description = "Get transactions to this date") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
+            @Parameter(description = "Limit per page") @RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "Either our bank or other bank") @RequestParam(required = false) String bankCode
 
-            ) {
+    ) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDateTime defaultEndDate = now.withHour(23).withMinute(59).withSecond(59);
         LocalDateTime defaultStartDate = now.minusDays(10).withHour(0).withMinute(0).withSecond(0);
@@ -97,17 +97,18 @@ public class TransactionController {
                 .build());
     }
 
-    @Operation(tags = "Transaction"
+    @Operation(tags = "💱 Transaction"
             , summary = "[ADMIN] Get a banks' transaction statistics in a period of time"
             , description = "Admin get a banks' transaction statistics from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
-            @Parameter(description = "Get transactions statistics from this date")@RequestParam(required = false) String startDate,
-            @Parameter(description = "Get transactions statistics to this date")@RequestParam(required = false) String endDate ,
+            @Parameter(description = "Get transactions statistics from this date") @RequestParam(required = false) String startDate,
+            @Parameter(description = "Get transactions statistics to this date") @RequestParam(required = false) String endDate,
             @Parameter(description = "Either our bank or other bank") @RequestParam(required = false) String bankCode
 
-    ) {LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+    ) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         if (startDate == null || startDate.trim().isEmpty()) {
             startDate = now.minusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE); // 30 ngày trước
@@ -116,26 +117,17 @@ public class TransactionController {
         if (endDate == null || endDate.trim().isEmpty()) {
             endDate = now.format(DateTimeFormatter.ISO_LOCAL_DATE); // Hôm nay
         }
-
-        try {
-            BankTransactionStatsDto stats = transactionService.getBankTransactionStats(startDate, endDate , bankCode);
-            return ResponseEntity.ok(ApiResponse.<BankTransactionStatsDto>builder()
-                    .status(HttpStatus.OK.value())
-                    .message("Bank transaction statistics retrieved successfully")
-                    .data(stats)
-                    .build());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException(e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("An error occurred while retrieving statistics");
-        }
-
+        BankTransactionStatsDto stats = transactionService.getBankTransactionStats(startDate, endDate, bankCode);
+        return ResponseEntity.ok(ApiResponse.<BankTransactionStatsDto>builder()
+                .status(HttpStatus.OK.value())
+                .message("Bank transaction statistics retrieved successfully")
+                .data(stats)
+                .build());
     }
 
-    @Operation(tags = "Transaction"
+    @Operation(tags = "💱 Transaction"
             , summary = "[EMPLOYEE] Recharge money to an internal account"
             , description = "Employees recharge an amount of money to an internal account")
-
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping("/internal/deposit")
     public ResponseEntity<ApiResponse<InternalDepositResult>> internalDeposit(
@@ -147,6 +139,4 @@ public class TransactionController {
                 .data(result)
                 .build());
     }
-
-
 }

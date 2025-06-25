@@ -10,7 +10,7 @@ public class CustomContextHolder {
     public static UUID getCurrentUserId() {
         UserDetailsImpl userDetails =
                 (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userDetails != null ?  userDetails.getId() : null;
+        return userDetails != null ? userDetails.getId() : null;
     }
 
     public static String getCurrentUsername() {

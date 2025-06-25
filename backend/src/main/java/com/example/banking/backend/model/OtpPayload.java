@@ -3,7 +3,6 @@ package com.example.banking.backend.model;
 import lombok.*;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

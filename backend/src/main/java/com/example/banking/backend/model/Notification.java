@@ -1,19 +1,14 @@
 package com.example.banking.backend.model;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.hibernate.annotations.ColumnDefault;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter

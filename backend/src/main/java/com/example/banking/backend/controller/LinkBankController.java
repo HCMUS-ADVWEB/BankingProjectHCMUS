@@ -3,7 +3,6 @@ package com.example.banking.backend.controller;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
-import com.example.banking.backend.dto.response.account.AccountInfoResponse;
 import com.example.banking.backend.dto.response.account.AccountInfoResult;
 import com.example.banking.backend.dto.response.transaction.DepositResult;
 import com.example.banking.backend.service.AccountService;
@@ -24,8 +23,8 @@ public class LinkBankController {
     AccountService accountService;
     TransactionService transactionService;
 
-    @Operation(tags = "Linked Bank"
-            , summary = "Get FIN's account information"
+    @Operation(tags = "🏧 Linked Bank"
+            , summary = "[PUBLIC] Get FIN's account information"
             , description = "Other banks get a FIN's account information")
     @PostMapping("/accounts")
     public ResponseEntity<ApiResponse<AccountInfoResult>> processAccountInfo(
@@ -62,8 +61,8 @@ public class LinkBankController {
                 .build());
     }
 
-    @Operation(tags = "Linked Bank"
-            , summary = "Transfer money to FIN's account"
+    @Operation(tags = "🏧 Linked Bank"
+            , summary = "[PUBLIC] Transfer money to FIN's account"
             , description = "Other banks transfer money to a FIN's account")
     @PostMapping("/transfer")
     public ResponseEntity<ApiResponse<DepositResult>> receiveInterbankTransfer(
@@ -107,6 +106,5 @@ public class LinkBankController {
                 .message("External deposit initiated successfully")
                 .data(depositResult)
                 .build());
-
     }
 }
