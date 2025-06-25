@@ -25,8 +25,8 @@ public class BankController {
     private final BankService bankService;
 
     @Operation(tags = "Bank"
-            , summary = "[CUSTOMER] Get bank list"
-            , description = "Customers get bank list")
+            , summary = "[PROTECTED] Get bank list"
+            , description = "Users get bank list")
     @GetMapping
     public ResponseEntity<ApiResponse<List<BankDto>>> getBankInfo(
     ) {
