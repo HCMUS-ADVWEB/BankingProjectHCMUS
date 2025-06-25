@@ -1,4 +1,4 @@
-import api from '../../../utils/api';
+import api from '../../utils/api';
 // EmployeeService.js
 // Service for employee-related API calls
 

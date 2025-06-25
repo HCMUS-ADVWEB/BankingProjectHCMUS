@@ -5,7 +5,7 @@ import {
   useCallback,
   useMemo,
 } from 'react';
-import { EmployeeService } from '../../utils/services/employee/EmployeeService';
+import { EmployeeService } from '../../services/employee/EmployeeService';
 
 // Utility function to format VND
 export const formatVND = (amount) => {

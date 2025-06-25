@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { useAuth } from '../AuthContext';
-import TransactionService from '../../utils/services/customer/TransactionService';
+import TransactionService from '../../services/customer/TransactionService';
 
 const transactionReducer = (state, action) => {
   switch (action.type) {

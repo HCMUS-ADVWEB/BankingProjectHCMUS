@@ -1,4 +1,4 @@
-import api from '../../api';
+import api from '../../utils/api';
 // DebtService.js
 // Service for debt reminder-related API calls
 

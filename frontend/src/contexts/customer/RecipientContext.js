@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from 'react';
 import { useAuth } from '../AuthContext';
-import RecipientService from '../../utils/services/customer/RecipientService';
+import RecipientService from '../../services/customer/RecipientService';
 
 // Reducer to handle all recipient state updates
 const recipientReducer = (state, action) => {

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import DebtService from '../../utils/services/customer/DebtService';
+import DebtService from '../../services/customer/DebtService';
 import { useAuth } from '../AuthContext';
 
 const debtReducer = (state, action) => {
