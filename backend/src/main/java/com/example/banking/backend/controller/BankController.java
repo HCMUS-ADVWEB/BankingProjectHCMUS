@@ -18,7 +18,7 @@ import com.example.banking.backend.dto.ApiResponse;
 
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/api/bank")
+@RequestMapping("/api/banks")
 @AllArgsConstructor
 public class BankController {
 
@@ -27,7 +27,6 @@ public class BankController {
     @Operation(tags = "Bank"
             , summary = "[CUSTOMER] Get bank list"
             , description = "Customers get bank list")
-    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<BankDto>>> getBankInfo(
     ) {

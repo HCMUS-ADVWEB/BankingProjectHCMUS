@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -27,6 +28,25 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     Page<Transaction> findByUpdatedAtBetween(Instant startDate, Instant endDate, Pageable pageable);
     List<Transaction> findByUpdatedAtBetween(Instant startDate, Instant endDate);
-    List<Transaction> findByToBankIdAndUpdatedAtBetween(UUID toBankId, Instant startDate, Instant endDate);
+    @Query("""
+    SELECT t FROM Transaction t
+    WHERE t.updatedAt BETWEEN :startDate AND :endDate
+    AND (:bankCode IS NULL OR t.fromBank.bankCode = :bankCode OR t.toBank.bankCode = :bankCode)
+    """)
+    List<Transaction> findByBankCodeAndUpdatedAtBetween(
+            @Param("startDate") Instant startDate,
+            @Param("endDate") Instant endDate,
+            @Param("bankCode") String bankCode);
+
+    @Query("""
+    SELECT t FROM Transaction t
+    WHERE t.updatedAt BETWEEN :start AND :end
+    AND (:bankCode IS NULL OR t.fromBank.bankCode = :bankCode OR t.toBank.bankCode = :bankCode)
+    """)
+    Page<Transaction> findByUpdatedAtBetweenAndBankCode(
+            @Param("start") Instant start,
+            @Param("end") Instant end,
+            @Param("bankCode") String bankCode,
+            Pageable pageable);
 
 }
