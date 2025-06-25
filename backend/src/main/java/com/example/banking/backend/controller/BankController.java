@@ -1,7 +1,6 @@
 package com.example.banking.backend.controller;
 
-import java.util.List;
-
+import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.response.bank.BankDto;
 import com.example.banking.backend.service.BankService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,12 +8,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.banking.backend.dto.ApiResponse;
+import java.util.List;
 
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -24,9 +22,9 @@ public class BankController {
 
     private final BankService bankService;
 
-    @Operation(tags = "Bank"
-            , summary = "[CUSTOMER] Get bank list"
-            , description = "Customers get bank list")
+    @Operation(tags = "🏦 Bank"
+            , summary = "[PROTECTED] Get bank list"
+            , description = "Users get bank list")
     @GetMapping
     public ResponseEntity<ApiResponse<List<BankDto>>> getBankInfo(
     ) {
@@ -37,8 +35,4 @@ public class BankController {
                 .data(response)
                 .build());
     }
-
-
-
-
 }

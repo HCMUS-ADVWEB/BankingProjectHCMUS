@@ -14,6 +14,9 @@ import lombok.Setter;
 @Schema(name="Bank",
         description = "Bank's information")
 public class BankDto {
+    @Schema(description = "Bank's Id"
+           )
+    String id ;
     @Schema(description = "Bank's code",
             example = "FIN")
     String bankCode ;

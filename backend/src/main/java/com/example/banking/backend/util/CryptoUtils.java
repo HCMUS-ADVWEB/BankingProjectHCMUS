@@ -1,6 +1,7 @@
 package com.example.banking.backend.util;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.BufferedReader;
@@ -8,8 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.Signature;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.stream.Collectors;
@@ -19,7 +22,7 @@ public class CryptoUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    
+
     private static String readResourceAsString(String resourcePath) throws IOException {
         try (InputStream is = CryptoUtils.class.getClassLoader().getResourceAsStream(resourcePath)) {
             if (is == null) {

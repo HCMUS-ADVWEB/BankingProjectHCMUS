@@ -12,11 +12,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class BankServiceImpl implements BankService {
-    BankRepository bankRepository;
+    private final BankRepository bankRepository;
+
     @Override
     public List<BankDto> getBankInfo() {
         return bankRepository.findAll().stream()
-                .map(bank -> new BankDto(bank.getBankCode(), bank.getBankName()))
+                .map(bank -> new BankDto(bank.getId().toString(), bank.getBankCode(), bank.getBankName()))
                 .toList();
     }
 }

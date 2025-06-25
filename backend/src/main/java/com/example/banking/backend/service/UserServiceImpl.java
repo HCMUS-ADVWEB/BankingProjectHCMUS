@@ -150,12 +150,14 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.deleteById(userId);
     }
+
     User getCurrentUser() {
         return userRepository.findById(CustomContextHolder.getCurrentUserId())
                 .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
     }
+
     @Override
-    public Boolean changePassword(ChangePasswordRequest request) {
+    public void changePassword(ChangePasswordRequest request) {
         User user = getCurrentUser();
         System.out.println("Old Password: " + request.getOldPassword());
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
@@ -164,6 +166,5 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedPassword);
         userRepository.save(user);
-        return true;
     }
 }

@@ -1,8 +1,21 @@
 package com.example.banking.backend.service;
 
-import java.time.Instant;
-import java.util.UUID;
-
+import com.example.banking.backend.dto.request.auth.ForgotPasswordRequest;
+import com.example.banking.backend.dto.request.auth.LoginRequest;
+import com.example.banking.backend.dto.request.auth.RefreshTokenRequest;
+import com.example.banking.backend.dto.request.auth.ResetPasswordRequest;
+import com.example.banking.backend.dto.response.auth.LoginResponse;
+import com.example.banking.backend.dto.response.auth.LogoutResponse;
+import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
+import com.example.banking.backend.exception.*;
+import com.example.banking.backend.model.RefreshToken;
+import com.example.banking.backend.model.User;
+import com.example.banking.backend.model.type.OtpType;
+import com.example.banking.backend.repository.RefreshTokenRepository;
+import com.example.banking.backend.repository.UserRepository;
+import com.example.banking.backend.security.jwt.JwtUtils;
+import com.example.banking.backend.security.service.UserDetailsImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,28 +24,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.banking.backend.dto.request.auth.ForgotPasswordRequest;
-import com.example.banking.backend.dto.request.auth.LoginRequest;
-import com.example.banking.backend.dto.request.auth.RefreshTokenRequest;
-import com.example.banking.backend.dto.request.auth.ResetPasswordRequest;
-import com.example.banking.backend.dto.response.auth.LoginResponse;
-import com.example.banking.backend.dto.response.auth.LogoutResponse;
-import com.example.banking.backend.dto.response.auth.RefreshTokenResponse;
-import com.example.banking.backend.exception.BadRequestException;
-import com.example.banking.backend.exception.ExistenceException;
-import com.example.banking.backend.exception.InvalidOtpException;
-import com.example.banking.backend.exception.InvalidTokenException;
-import com.example.banking.backend.exception.InvalidUserException;
-import com.example.banking.backend.exception.ReCaptchaException;
-import com.example.banking.backend.model.RefreshToken;
-import com.example.banking.backend.model.User;
-import com.example.banking.backend.model.type.OtpType;
-import com.example.banking.backend.repository.RefreshTokenRepository;
-import com.example.banking.backend.repository.UserRepository;
-import com.example.banking.backend.security.jwt.JwtUtils;
-import com.example.banking.backend.security.service.UserDetailsImpl;
-
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         if (!captchaService.
-        verityCaptchaToken(request.getToken())) {
+                verityCaptchaToken(request.getToken())) {
             throw new ReCaptchaException("Fail reCAPTCHA!");
         }
 

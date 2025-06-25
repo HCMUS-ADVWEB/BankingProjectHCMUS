@@ -29,7 +29,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[PROTECTED] Get current user's information"
             , description = "Users get their own information")
     @GetMapping("/me")
@@ -44,7 +44,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[ADMIN] Get users' information"
             , description = "Admin gets users' information")
     @PreAuthorize("hasRole('ADMIN')")
@@ -66,7 +66,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[ADMIN] Get a user's information"
             , description = "Admin gets a user's information")
     @PreAuthorize("hasRole('ADMIN')")
@@ -85,7 +85,7 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[ADMIN] Create a new user"
             , description = "Admin creates a new user")
     @PreAuthorize("hasRole('ADMIN')")
@@ -100,7 +100,7 @@ public class UserController {
         return ResponseEntity.status(201).body(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[ADMIN] Update a user's information"
             , description = "Admin updates a user's information")
     @PreAuthorize("hasRole('ADMIN')")
@@ -120,29 +120,29 @@ public class UserController {
         return ResponseEntity.status(200).body(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[ADMIN] Delete a user's information"
             , description = "Admin deletes a user's information")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse> deleteUser(
+    public ResponseEntity<ApiResponse<?>> deleteUser(
             @Parameter(description = "Id of the user that needs to be deleted"
                     , example = "55ef5fb2-fa0f-4230-8639-809021096f28"
                     , required = true)
             @PathVariable String userId) {
         userService.deleteUser(UUID.fromString(userId));
-        ApiResponse apiResponse = ApiResponse.builder()
+        ApiResponse<?> apiResponse = ApiResponse.builder()
                 .message("Delete user successfully!")
                 .status(200)
                 .build();
         return ResponseEntity.status(200).body(apiResponse);
     }
 
-    @Operation(tags = "User"
+    @Operation(tags = "👤 User"
             , summary = "[PROTECTED] Change password"
             , description = "Current users change their password")
     @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<ApiResponse<?>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);
         return ResponseEntity.ok(ApiResponse.builder()
                 .message("Change password successfully!")

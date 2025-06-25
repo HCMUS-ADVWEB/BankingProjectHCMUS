@@ -1,20 +1,19 @@
 package com.example.banking.backend.util;
 
-import java.nio.charset.StandardCharsets;
-import java.security.*;
+import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Files;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.Signature;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
-
-import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @Component
 public class SignatureUtil {
@@ -39,6 +38,7 @@ public class SignatureUtil {
         String signatureBase64 = Base64.getEncoder().encodeToString(signature);
         return signatureBase64;
     }
+
     public static boolean isTimestampWithin5Minutes(String timestampStr) {
         try {
             long timestampMillis = Long.parseLong(timestampStr);
@@ -50,7 +50,7 @@ public class SignatureUtil {
 
             System.out.println("duration.toSeconds() " + duration.toSeconds());
 
-            return duration.toSeconds() <= 5 * 60 ;
+            return duration.toSeconds() <= 5 * 60;
 
         } catch (NumberFormatException e) {
             return false;

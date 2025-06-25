@@ -1,31 +1,26 @@
 package com.example.banking.backend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CaptchaServiceImpl implements CaptchaService {
 
-    @Value("${google.recaptcha.key.secret}")
-    private String googleRecaptchaSecretKey;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    @Value("${google.recaptcha.key.secret}")
+    private String googleRecaptchaSecretKey;
 
     public boolean verityCaptchaToken(String token) {
         if (token.equalsIgnoreCase("secret-token-to-test")) {

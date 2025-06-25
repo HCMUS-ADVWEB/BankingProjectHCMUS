@@ -17,7 +17,7 @@ public class TransferRequest {
     @NotNull(message = "Receiver's account number can not be null")
     @NotEmpty(message = "Receiver's account number can not be empty")
     @Schema(description = "Receiver's account number",
-            example = "ffbd86f8-7940-4bdd-a56b-e3498dd6ac51",
+            example = "5873176036289475",
             requiredMode = Schema.RequiredMode.REQUIRED)
     String accountNumberReceiver;
 

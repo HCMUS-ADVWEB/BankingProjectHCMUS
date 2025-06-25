@@ -15,11 +15,6 @@ public enum FeeType {
         this.value = value;
     }
 
-    @JsonValue
-    public String getValue() {
-        return value;
-    }
-
     @JsonCreator
     public static FeeType fromValue(String value) {
         for (FeeType type : FeeType.values()) {
@@ -28,5 +23,10 @@ public enum FeeType {
             }
         }
         throw new IllegalArgumentException("Fee Type is not valid: " + value);
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.banking.backend.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -16,12 +17,12 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(new Info()
-                        .title("Banking API")
+                        .title("Fintech HUB Banking API")
                         .version("1.0")
                         .description("API documentation for the banking system"))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(
-                        new io.swagger.v3.oas.models.Components()
+                        new Components()
                                 .addSecuritySchemes(securitySchemeName,
                                         new SecurityScheme()
                                                 .name(securitySchemeName)

@@ -1,33 +1,32 @@
 package com.example.banking.backend.service;
 
-import com.example.banking.backend.dto.request.auth.VerifyOtpRequest;
-import com.example.banking.backend.dto.request.transaction.ExternalDepositRequest;
+import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
+import com.example.banking.backend.dto.request.transaction.InternalDeposit;
+import com.example.banking.backend.dto.request.transaction.TransferExternalRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
-import com.example.banking.backend.dto.response.account.AccountDto;
-import com.example.banking.backend.dto.request.transaction.*;
-import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.exception.BadRequestException;
-import com.example.banking.backend.exception.InvalidUserException;
-import com.example.banking.backend.model.*;
+import com.example.banking.backend.model.Account;
+import com.example.banking.backend.model.Bank;
+import com.example.banking.backend.model.Transaction;
+import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.FeeType;
 import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionStatusType;
 import com.example.banking.backend.model.type.TransactionType;
-import com.example.banking.backend.repository.*;
+import com.example.banking.backend.repository.BankRepository;
+import com.example.banking.backend.repository.TransactionRepository;
+import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
 import com.example.banking.backend.util.CryptoUtils;
 import com.example.banking.backend.util.SignatureUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -35,14 +34,14 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,7 +52,6 @@ public class TransactionServiceImpl implements TransactionService {
     private AccountRepository accountRepository;
     private BankRepository bankRepository;
     private UserRepository userRepository;
-    private RecipientRepository recipientRepository;
     private final RestTemplate restTemplate;
     OtpService otpService;
 
@@ -461,7 +459,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate , String bankCode) {
+    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate, String bankCode) {
 
 
         LocalDateTime startDateTime;
@@ -480,15 +478,18 @@ public class TransactionServiceImpl implements TransactionService {
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
 
-        List<Transaction> transactions = transactionRepository.findByBankCodeAndUpdatedAtBetween(
-                startInstant, endInstant , bankCode);
+        List<Transaction> transactions = bankCode == null ?
+                transactionRepository.findByUpdatedAtBetween(
+                        startInstant, endInstant) :
+                transactionRepository.findByBankCodeAndUpdatedAtBetween(
+                        startInstant, endInstant, bankCode);
 
         long totalTransactions = transactions.size();
         double totalAmount = transactions.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime , bankCode);
+        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime, bankCode);
     }
 
 
