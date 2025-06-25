@@ -420,7 +420,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDto> getBankTransactions(String startDate, String endDate, int limit, int page, String bankCode) {
+    public BankTransactionDto getBankTransactions(String startDate, String endDate, int limit, int page, String bankCode) {
         if (limit <= 0 || page <= 0) {
             throw new IllegalArgumentException("Limit and page must be positive integers");
         }
@@ -439,14 +439,12 @@ public class TransactionServiceImpl implements TransactionService {
         Pageable pageable = PageRequest.of(pageNumber, limit);
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
-
-
         Page<Transaction> transactionPage = bankCode == null ?
                 transactionRepository.findByUpdatedAtBetween(startInstant, endInstant, pageable)
                 : transactionRepository.findByUpdatedAtBetweenAndBankCode(
                 startInstant, endInstant, bankCode, pageable);
 
-        return transactionPage.getContent().stream()
+        List<TransactionDto> transactionDtos = transactionPage.getContent().stream()
                 .map(transaction -> new TransactionDto(
                         transaction.getId().toString(),
                         transaction.getFromBank() == null ? null : transaction.getFromBank().getBankCode(),
@@ -456,6 +454,15 @@ public class TransactionServiceImpl implements TransactionService {
                         transaction.getMessage()
                 ))
                 .collect(Collectors.toList());
+
+        return new BankTransactionDto(
+                transactionDtos,
+                transactionPage.getTotalPages(),
+                transactionPage.getNumber() + 1 ,
+                transactionPage.getSize(),
+                transactionPage.getNumberOfElements(),
+                (int) transactionPage.getTotalElements());
+
     }
 
     @Override

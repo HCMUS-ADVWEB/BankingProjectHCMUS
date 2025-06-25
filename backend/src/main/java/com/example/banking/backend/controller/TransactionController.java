@@ -4,10 +4,7 @@ import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.transaction.InternalDeposit;
 import com.example.banking.backend.dto.request.transaction.TransferExternalRequest;
 import com.example.banking.backend.dto.request.transaction.TransferRequest;
-import com.example.banking.backend.dto.response.transaction.BankTransactionStatsDto;
-import com.example.banking.backend.dto.response.transaction.InternalDepositResult;
-import com.example.banking.backend.dto.response.transaction.TransactionDto;
-import com.example.banking.backend.dto.response.transaction.TransferResult;
+import com.example.banking.backend.dto.response.transaction.*;
 import com.example.banking.backend.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -69,7 +66,7 @@ public class TransactionController {
             , description = "Admin get a bank's transactions from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
-    public ResponseEntity<ApiResponse<List<TransactionDto>>> getBankTransactions(
+    public ResponseEntity<ApiResponse<BankTransactionDto>> getBankTransactions(
             @Parameter(description = "Get transactions from this date") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String startDate,
             @Parameter(description = "Get transactions to this date") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) String endDate,
             @Parameter(description = "Limit per page") @RequestParam(defaultValue = "10") int limit,
@@ -88,9 +85,9 @@ public class TransactionController {
             endDate = defaultEndDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
 
-        List<TransactionDto> transactions = transactionService.getBankTransactions(startDate, endDate, limit, page, bankCode);
+        BankTransactionDto transactions = transactionService.getBankTransactions(startDate, endDate, limit, page, bankCode);
 
-        return ResponseEntity.ok(ApiResponse.<List<TransactionDto>>builder()
+        return ResponseEntity.ok(ApiResponse.<BankTransactionDto>builder()
                 .status(HttpStatus.OK.value())
                 .message("Bank transactions retrieved successfully")
                 .data(transactions)
