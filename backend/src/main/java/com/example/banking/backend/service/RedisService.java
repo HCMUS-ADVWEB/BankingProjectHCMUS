@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface RedisService {
     void saveOtp(UUID userId, String email, String otp, OtpType purpose);
+
     Optional<OtpPayload> getOtp(UUID userId, OtpType purpose);
+
     void deleteOtp(UUID userId, OtpType purpose);
 }

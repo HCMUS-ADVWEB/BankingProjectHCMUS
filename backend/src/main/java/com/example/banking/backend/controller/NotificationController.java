@@ -1,31 +1,22 @@
 package com.example.banking.backend.controller;
 
-import java.util.UUID;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
 import com.example.banking.backend.dto.response.notification.NotificationResponse;
 import com.example.banking.backend.model.Notification;
 import com.example.banking.backend.service.NotificationService;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
@@ -35,14 +26,14 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @Operation(tags = "Notification"
+    @Operation(tags = "🔔 Notification"
             , summary = "[CUSTOMER] Get all notifications"
             , description = "Customers get all of their notifications")
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
-            @Parameter(description = "Limit per page")@RequestParam(defaultValue = "10") int limit,
-            @Parameter(description = "Page number")@RequestParam(defaultValue = "1") int page
+            @Parameter(description = "Limit per page") @RequestParam(defaultValue = "10") int limit,
+            @Parameter(description = "Page number") @RequestParam(defaultValue = "1") int page
     ) {
         Page<NotificationResponse> notifications = notificationService.getAllNotifications(limit, page);
 
@@ -53,7 +44,7 @@ public class NotificationController {
                 .build());
     }
 
-    @Operation(tags = "Notification"
+    @Operation(tags = "🔔 Notification"
             , summary = "[CUSTOMER] Read all notifications"
             , description = "Customers mark all of their notifications as read")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -67,7 +58,7 @@ public class NotificationController {
                 .build());
     }
 
-    @Operation(tags = "Notification"
+    @Operation(tags = "🔔 Notification"
             , summary = "[CUSTOMER] Read a notification"
             , description = "Customers mark a notification as read")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -84,21 +75,20 @@ public class NotificationController {
                 .build());
     }
 
-
-    @Operation(tags = "Notification"
-            , summary = "Add a new notification"
+    @Operation(tags = "🔔 Notification"
+            , summary = "[PROTECTED] Add a new notification"
             , description = "Add a new notification")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<Notification>> addNotification(
-        @Validated @RequestBody AddNotificationRequest request) {
-    Notification notification = notificationService.addNotification(request);
+            @Validated @RequestBody AddNotificationRequest request) {
+        Notification notification = notificationService.addNotification(request);
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(
-            ApiResponse.<Notification>builder()
-                    .status(HttpStatus.CREATED.value())
-                    .message("Notification created successfully")
-                    .data(notification)
-                    .build()
-    );
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                ApiResponse.<Notification>builder()
+                        .status(HttpStatus.CREATED.value())
+                        .message("Notification created successfully")
+                        .data(notification)
+                        .build()
+        );
     }
 }

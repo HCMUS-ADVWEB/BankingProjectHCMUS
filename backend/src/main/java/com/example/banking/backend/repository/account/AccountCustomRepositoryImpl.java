@@ -9,7 +9,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AccountCustomRepositoryImpl implements AccountCustomRepository{
+public class AccountCustomRepositoryImpl implements AccountCustomRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -17,12 +17,12 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository{
     public Account getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type) {
         // Fetch account with transactions
         Account account = entityManager.createQuery("""
-                SELECT a FROM Account a
-                LEFT JOIN FETCH a.transactionsAsSender
-                LEFT JOIN FETCH a.transactionsAsReceiver
-                WHERE a.accountId = :accountId
-                
-            """, Account.class)
+                            SELECT a FROM Account a
+                            LEFT JOIN FETCH a.transactionsAsSender
+                            LEFT JOIN FETCH a.transactionsAsReceiver
+                            WHERE a.accountId = :accountId
+                        
+                        """, Account.class)
                 .setParameter("accountId", accountId)
                 .getSingleResult();
 

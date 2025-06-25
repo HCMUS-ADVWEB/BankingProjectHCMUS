@@ -1,15 +1,21 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.config.BankCodeConfig;
+import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.AccountExternalRequest;
 import com.example.banking.backend.dto.request.account.AccountInfoRequest;
-import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
-import com.example.banking.backend.dto.response.account.*;
+import com.example.banking.backend.dto.response.account.AccountInfoResult;
+import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
+import com.example.banking.backend.dto.response.account.GetAccountResponse;
+import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
 import com.example.banking.backend.dto.response.user.UserDto;
-import com.example.banking.backend.exception.*;
+import com.example.banking.backend.exception.BadRequestException;
+import com.example.banking.backend.exception.ExistenceException;
+import com.example.banking.backend.exception.InvalidUserException;
+import com.example.banking.backend.exception.NotFoundException;
 import com.example.banking.backend.mapper.account.AccountMapper;
 import com.example.banking.backend.mapper.user.UserMapper;
 import com.example.banking.backend.model.Account;
@@ -19,7 +25,6 @@ import com.example.banking.backend.model.type.AccountType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.BankRepository;
-import com.example.banking.backend.repository.TransactionRepository;
 import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.repository.account.AccountRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
@@ -29,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,24 +41,55 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
     private final UserService userService;
     private final BankCodeConfig bankCodeConfig;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final OtpService otpService;
     private final RestTemplate restTemplate;
     private final BankRepository bankRepository;
-    private final TransactionRepository transactionRepository;
-    private final AuthService authService;
+
+    private Account getAccountCurrentUser() {
+        return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
+                .orElseThrow(() -> new InvalidUserException("Please switch account."));
+    }
+
+    private String generateAccountNumber(UUID accountId) {
+        String bankCode = bankCodeConfig.getBankCode();
+
+        String input = accountId.toString();
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(input.getBytes());
+
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashText = no.toString(10);
+
+            while (hashText.length() < 12) {
+                hashText = "0" + hashText;
+            }
+
+            String result = hashText.substring(0, 12);
+
+            return bankCode + result;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private User getCurrentUser() {
+        return userRepository.findById(Objects.requireNonNull(CustomContextHolder.getCurrentUserId()))
+                .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
+    }
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
@@ -70,7 +105,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-
     public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type) {
         Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
@@ -83,11 +117,6 @@ public class AccountServiceImpl implements AccountService {
                 .status(HttpStatus.OK.value())
                 .message("Account's transaction history found successfully!")
                 .build();
-    }
-
-    Account getAccountCurrentUser() {
-        return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new InvalidUserException("Please switch account."));
     }
 
     @Override
@@ -157,29 +186,6 @@ public class AccountServiceImpl implements AccountService {
                 .build();
     }
 
-    private String generateAccountNumber(UUID accountId) {
-        String bankCode = bankCodeConfig.getBankCode();
-
-        String input = accountId.toString();
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] messageDigest = md.digest(input.getBytes());
-
-            BigInteger no = new BigInteger(1, messageDigest);
-            String hashText = no.toString(10);
-
-            while (hashText.length() < 12) {
-                hashText = "0" + hashText;
-            }
-
-            String result = hashText.substring(0, 12);
-
-            return bankCode + result;
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public void rechargeAccount(String accountNumber, Long rechargeAmount) {
         Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
@@ -189,7 +195,6 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.save(account);
 
-        return;
     }
 
     @Override
@@ -204,13 +209,7 @@ public class AccountServiceImpl implements AccountService {
         return account.getBalance();
     }
 
-    User getCurrentUser() {
-        return userRepository.findById(CustomContextHolder.getCurrentUserId())
-                .orElseThrow(() -> new NotFoundException("NOT FOUND CURRENT USER"));
-    }
-
-
-
+    @Override
     public AccountInfoResult getAccountInfo(AccountInfoRequest request) {
         if (request == null)
             throw new BadRequestException("Invalid request parameters");
@@ -279,7 +278,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ApiResponse closeAccount() {
+    public ApiResponse<?> closeAccount() {
         User user = getCurrentUser();
 
         UpdateUserRequest updateUserRequest = UserMapper.INSTANCE.userToUpdateUserRequest(user);
@@ -296,12 +295,12 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountInfoResult processAccountInfo(AccountInfoRequest request, String sourceBankCode,
-                                                  String timestamp, String receivedHmac) throws Exception {
+                                                String timestamp, String receivedHmac) throws Exception {
         if (request == null || request.getAccountNumber() == null || request.getAccountNumber().trim().isEmpty()) {
             throw new BadRequestException("Invalid request parameters");
         }
         Bank sourceBank = bankRepository.findByBankCode(sourceBankCode)
-                .orElseThrow(() -> new IllegalArgumentException("Your bank is not linked to FIN" ));
+                .orElseThrow(() -> new IllegalArgumentException("Your bank is not linked to FIN"));
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(request);
         String expectedHashInput = requestBody + timestamp + sourceBankCode + sourceBank.getSecretKey();

@@ -1,33 +1,14 @@
 package com.example.banking.backend;
 
-import com.example.banking.backend.dto.request.account.AccountInfoRequest;
-import com.example.banking.backend.dto.request.transaction.InterbankTransferRequest;
-import com.example.banking.backend.util.CryptoUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 
 @SpringBootApplication
 @EnableFeignClients
 public class BackendApplication {
 
     public static void main(String[] args) throws Exception {
-
 
         // FAKE TRANSFER REQUEST AND ACCOUNT INFO REQUEST  ,DO NOT DELETE THIS CODE
 //        String secret_key = "fake_secret_key_hash";

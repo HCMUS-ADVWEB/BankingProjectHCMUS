@@ -1,6 +1,6 @@
 package com.example.banking.backend.security.exception;
+
 import com.example.banking.backend.dto.ApiResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
-  Optional<RefreshToken> findByIdAndExpiresAtAfter(UUID id, Instant date);
+    Optional<RefreshToken> findByIdAndExpiresAtAfter(UUID id, Instant date);
 }

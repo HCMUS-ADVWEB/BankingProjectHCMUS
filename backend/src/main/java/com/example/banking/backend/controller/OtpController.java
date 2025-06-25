@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/otp")
@@ -24,15 +22,12 @@ public class OtpController {
 
     OtpService otpService;
 
-    @Operation(tags = "OTP"
+    @Operation(tags = "📧 OTP"
             , summary = "[CUSTOMER] Request an OTP"
             , description = "Customers request an OTP sent to their email")
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping
-    public ApiResponse<Boolean> generateOtp(
-         @RequestBody OtpRequest otpRequest
-    ) {
-
+    public ApiResponse<Boolean> generateOtp(@RequestBody OtpRequest otpRequest) {
         otpService.generateAndSendOtp(CustomContextHolder.getCurrentUserId(),
                 OtpType.fromValue(otpRequest.getOtpType()));
         return ApiResponse.<Boolean>builder()

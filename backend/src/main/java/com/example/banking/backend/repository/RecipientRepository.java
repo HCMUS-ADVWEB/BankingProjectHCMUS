@@ -17,5 +17,6 @@ public interface RecipientRepository extends JpaRepository<Recipient, UUID> {
 
     @Query("SELECT r FROM Recipient r WHERE r.recipientAccountNumber = :accountNumber")
     Optional<Recipient> findByAccountNumber(String accountNumber);
+
     Page<Recipient> findByUserId(UUID userId, Pageable pageable);
 }

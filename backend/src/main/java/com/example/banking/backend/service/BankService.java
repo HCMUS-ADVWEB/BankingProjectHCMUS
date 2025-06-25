@@ -8,5 +8,4 @@ import java.util.List;
 @Service
 public interface BankService {
     List<BankDto> getBankInfo();
-
 }

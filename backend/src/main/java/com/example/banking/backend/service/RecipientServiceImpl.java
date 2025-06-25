@@ -1,15 +1,10 @@
 package com.example.banking.backend.service;
 
 import com.example.banking.backend.dto.request.account.AccountInfoRequest;
-import com.example.banking.backend.dto.request.account.RequestToGetReciInfoFromOtherBank;
 import com.example.banking.backend.dto.request.recipient.AddRecipientRequest;
-import com.example.banking.backend.dto.request.recipient.DeleteRecipientRequest;
-import com.example.banking.backend.dto.request.recipient.RecipientNameRequest;
 import com.example.banking.backend.dto.request.recipient.UpdateRecipientRequest;
 import com.example.banking.backend.dto.response.account.AccountInfoResult;
-import com.example.banking.backend.dto.response.account.ExternalAccountDto;
 import com.example.banking.backend.dto.response.recipients.RecipientDtoRes;
-import com.example.banking.backend.dto.response.transaction.RecipientDtoResponse;
 import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.InvalidUserException;
 import com.example.banking.backend.model.Account;
@@ -65,8 +60,6 @@ public class RecipientServiceImpl implements RecipientService {
 
     }
 
-
-
     @Override
     @Transactional
     public RecipientDtoRes addRecipientInternal(AddRecipientRequest request) {
@@ -94,9 +87,7 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientName(),
                 recipient.getNickName(),
                 recipient.getBank() == null ? null : recipient.getBank().getBankName()
-
         );
-
     }
 
     @Override
@@ -136,22 +127,19 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientName(),
                 recipient.getNickName(),
                 recipient.getBank() == null ? null : recipient.getBank().getBankName()
-
         );
 
     }
-
 
     @Override
     public void deleteRecipient(String id) {
         User currentUser = getCurrentUser();
         Recipient recipient = currentUser.getRecipients().stream()
-                .filter(r -> r.getRecipientName().toString().equals(id))
+                .filter(r -> r.getRecipientName().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new InvalidUserException("Recipient not found"));
         recipientRepository.delete(recipient);
     }
-
 
     Account getAccountCurrentUser() {
         return accountRepository.findByUserId(CustomContextHolder.getCurrentUserId())
@@ -162,7 +150,6 @@ public class RecipientServiceImpl implements RecipientService {
         return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new BadRequestException("ACCOUNT RECEIVER NOT FOUND"));
     }
-
 
     @Override
     public List<RecipientDtoRes> getRecipients(int limit, int page) {
@@ -199,7 +186,4 @@ public class RecipientServiceImpl implements RecipientService {
             return account.getUser().getFullName();
         }
     }*/
-
-
 }
-

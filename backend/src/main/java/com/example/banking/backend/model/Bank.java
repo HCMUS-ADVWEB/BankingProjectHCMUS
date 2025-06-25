@@ -70,5 +70,4 @@ public class Bank {
 
     @OneToMany(mappedBy = "toBank")
     private Set<Transaction> transactionsAsReceiver = new LinkedHashSet<>();
-
 }

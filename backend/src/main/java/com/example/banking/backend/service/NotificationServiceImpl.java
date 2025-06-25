@@ -1,14 +1,5 @@
 package com.example.banking.backend.service;
 
-import java.time.Instant;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
 import com.example.banking.backend.dto.response.notification.NotificationResponse;
 import com.example.banking.backend.model.Notification;
@@ -16,8 +7,15 @@ import com.example.banking.backend.model.User;
 import com.example.banking.backend.repository.NotificationRepository;
 import com.example.banking.backend.repository.UserRepository;
 import com.example.banking.backend.security.jwt.CustomContextHolder;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    
+
     @Override
     public Notification addNotification(AddNotificationRequest request) {
         Notification notification = new Notification();
@@ -34,11 +32,12 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setTitle(request.getTitle());
         notification.setContent(request.getContent());
         notification.setCreatedAt(Instant.now());
-        notification.setRead(false);        notification = notificationRepository.save(notification);
-        
+        notification.setRead(false);
+        notification = notificationRepository.save(notification);
+
         System.out.println("\n=== Sending Real-time Notification ===");
         System.out.println("User ID: " + request.getUserId());
-        
+
         NotificationResponse response = new NotificationResponse(
                 notification.getId(),
                 notification.getTitle(),
@@ -46,28 +45,28 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getCreatedAt(),
                 notification.isRead()
         );
-        
-        System.out.println("""
-            Notification details:
-              id=%s
-              title=%s
-              content=%s
-              createdAt=%s
-              read=%s
-            """.formatted(
-                response.getId(),
-                response.getTitle(),
-                response.getContent(),
-                response.getCreatedAt(),
-                response.isRead()
-            ));
+
+        System.out.printf(
+                """
+                        Notification details:
+                          id=%s
+                          title=%s
+                          content=%s
+                          createdAt=%s
+                          read=%s
+                        %n""", response.getId(),
+        response.getTitle(),
+        response.getContent(),
+        response.getCreatedAt(),
+        response.isRead()
+);
 
         try {            // Send to user-specific queue using UUID as the user identifier
             UUID userId = request.getUserId();
             messagingTemplate.convertAndSendToUser(
-                userId.toString(),
-                "/queue/notifications",
-                response
+                    userId.toString(),
+                    "/queue/notifications",
+                    response
             );
             System.out.println("\n=== WebSocket Message Sent ===");
             System.out.println("Destination details:");
@@ -84,9 +83,10 @@ public class NotificationServiceImpl implements NotificationService {
             e.printStackTrace();
             System.err.println();
         }
-        
+
         return notification;
     }
+
     @Override
     public Page<NotificationResponse> getAllNotifications(int limit, int page) {
         User user = getCurrentUser();
@@ -106,15 +106,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void markAllNotificationsAsRead() {
-            UUID userId = getCurrentUserId();
-            notificationRepository.markAllAsReadByUserId(userId);
+        UUID userId = getCurrentUserId();
+        notificationRepository.markAllAsReadByUserId(userId);
     }
-    
+
     @Override
     @Transactional
     public void markNotificationAsRead(UUID notificationId) {
         UUID userId = getCurrentUserId();
-        
+
         notificationRepository.markAsRead(notificationId, userId);
     }
 
@@ -128,24 +128,24 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setContent(content);
         notification.setCreatedAt(Instant.now());
         notification.setRead(false);
-        
+
         notification = notificationRepository.save(notification);
-        
+
         // Create response DTO
         NotificationResponse response = new NotificationResponse(
-            notification.getId(),
-            notification.getTitle(),
-            notification.getContent(),
-            notification.getCreatedAt(),
-            notification.isRead()
+                notification.getId(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.getCreatedAt(),
+                notification.isRead()
         );
-        
+
         // Send via WebSocket
         try {
             messagingTemplate.convertAndSendToUser(
-                userId.toString(),
-                "/queue/notifications",
-                response
+                    userId.toString(),
+                    "/queue/notifications",
+                    response
             );
             System.out.println("\n=== WebSocket Notification Sent ===");
             System.out.println("User ID: " + userId);
