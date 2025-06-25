@@ -17,7 +17,7 @@ public class BankServiceImpl implements BankService {
     @Override
     public List<BankDto> getBankInfo() {
         return bankRepository.findAll().stream()
-                .map(bank -> new BankDto(bank.getBankCode(), bank.getBankName()))
+                .map(bank -> new BankDto(bank.getId().toString() , bank.getBankCode(), bank.getBankName()))
                 .toList();
     }
 }
