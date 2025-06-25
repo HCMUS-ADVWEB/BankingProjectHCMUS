@@ -1,68 +1,20 @@
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  TablePagination,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
-  TextField,
-  CircularProgress,
-  Backdrop,
-  InputAdornment,
-  Select,
-  MenuItem,
-  Checkbox,
 } from "@mui/material";
-import {
-  Info,
-  Delete,
-  Visibility,
-  VisibilityOff
-} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../layouts/AdminLayout";
-import { useEffect, useState } from "react";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { useRef } from "react";
-import { AdminService } from '../../services/AdminService';
+import { useEffect, useRef } from "react";
+import { useEmployeeManagement, EmployeeManagementProvider } from '../../contexts/EmployeeManagementContext';
+import AddEmployeeDialog from "../../components/AddEmployeeDialog";
+import DeleteConfirmationDialog from "../../components/DeleteConfirmationDialog";
+import ErrorSuccessMessage from "../../components/ErrorSuccessMessage";
+import EmployeeTable from "../../components/EmployeeTable";
+import Loading from "../../components/Loading";
 
-
-
-export default function EmployeesPage() {
+function EmployeesContent() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(0);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
-  const [employees, setEmployees] = useState([]);
-  const [newEmployee, setNewEmployee] = useState({
-    username: "",
-    password: "",
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
-    dob: null,
-    role: "EMPLOYEE",
-    isActive: true
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  const rowsPerPage = 5;
-
   const usernameRef = useRef();
   const passwordRef = useRef();
   const fullNameRef = useRef();
@@ -71,156 +23,95 @@ export default function EmployeesPage() {
   const addressRef = useRef();
   const dobRef = useRef();
 
-  const fetchEmployees = async () => {
-    try {
-      setIsLoading(true);
-      const response = await AdminService.fetchEmployees();
-      const { data } = response;
-      setEmployees(data.filter(emp => emp.role !== 'CUSTOMER'));
-    } catch (error) {
-      setTimeout(fetchEmployees, 1000);
-      handleApiError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    // State
+    employees,
+    selectedEmployee,
+    newEmployee,
+    loading,
+    error,
+    success,
+    formErrors,
+    pagination,
+    dialogs,
+
+    // Employee operations
+    fetchEmployees,
+    createEmployee,
+    deleteEmployee,
+
+    // Form operations
+    validateNewEmployee,
+    updateNewEmployeeField,
+    updateNewEmployee,
+
+    // Pagination operations
+    handleChangePage,
+    getPaginatedEmployees,
+
+    // Dialog operations
+    openAddDialog,
+    closeAddDialog,
+    openDeleteDialog,
+    closeDeleteDialog,
+    togglePasswordVisibility,
+
+    // Utility functions
+    clearError,
+    clearSuccess,
+    clearFormErrors,
+  } = useEmployeeManagement();
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [fetchEmployees]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    updateNewEmployeeField(name, value);
   };
-
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setNewEmployee((prev) => ({ ...prev, [name]: value }));
-  setErrors((prev) => ({ ...prev, [name]: '' }));  // clear lỗi khi gõ lại
-};
-
 
   const handleAddEmployee = async () => {
-    try {
-      setIsLoading(true);
-      const payload = {
-        ...newEmployee,
-        dob: newEmployee.dob ? new Date(newEmployee.dob).toISOString() : null,
-      };
-      await AdminService.createEmployee(payload);
-      setNewEmployee({
-        username: "",
-        password: "",
-        fullName: "",
-        email: "",
-        phone: "",
-        address: "",
-        dob: null,
-        role: "EMPLOYEE",
-        isActive: true,
-      });
+    const result = await createEmployee();
+    if (result) {
       fetchEmployees();
-    } catch (error) {
-      handleApiError(error);
-    } finally {
-      setIsLoading(false);
-      setOpenAddDialog(false);
     }
   };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!newEmployee.fullName?.trim()) newErrors.fullName = 'Full name is required';
-    if (!newEmployee.email?.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(newEmployee.email)) newErrors.email = 'Email is invalid';
-
-    if (!newEmployee.phone?.trim()) newErrors.phone = 'Phone is required';
-    else if (!/^\d{10,11}$/.test(newEmployee.phone.replace(/\D/g, ''))) newErrors.phone = 'Phone must be 10-11 digits';
-
-    if (!newEmployee.address?.trim()) newErrors.address = 'Address is required';
-    if (!newEmployee.dob) newErrors.dob = 'Date of birth is required';
-
-    if (!newEmployee.username?.trim()) newErrors.username = 'Username is required';
-    else if (newEmployee.username.length < 5) newErrors.username = 'Username must be at least 5 characters';
-
-    if (!newEmployee.password?.trim()) newErrors.password = 'Password is required';
-    else if (newEmployee.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-
 
   const handleSubmit = () => {
-    if (validateForm()) {
+    const validation = validateNewEmployee();
+    if (validation.isValid) {
       handleAddEmployee();
-      setOpenAddDialog(false);
     }
   };
 
-
-  const handleEdit = (e, id) => {
+  const handleEdit = (e, emp) => {
     e.stopPropagation();
-    console.log("Move to employee:", id);
-    navigate(`/admin/employees/${id}`);
+    console.log("Move to employee:", emp.id);
+    navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } });
   };
 
-  const handleDeleteClick = (e, id) => {
+
+  const handleDeleteClick = (e, employee) => {
     e.stopPropagation();
-    setEmployeeToDelete(id);
-    setOpenDeleteDialog(true);
+    openDeleteDialog(employee);
   };
 
   const handleConfirmDelete = async () => {
-    try {
-      setIsLoading(true);
-      await AdminService.deleteEmployee(employeeToDelete);
-      setOpenDeleteDialog(false);
-      setEmployeeToDelete(null);
-      fetchEmployees();
-    } catch (error) {
-      handleApiError(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleApiError = (error) => {
-    if (error.response) {
-      const status = error.response.status;
-      const msg = error.response.data?.message;
-      const timestamp = error.response.data?.timestamp || new Date().toISOString();
-      console.error(`Error ${status}: ${msg} at ${timestamp}`);
-      if (status === 400) alert(msg);
-      else if (status === 500) alert('Internal server error');
-      else if (status === 401) {
-        alert('Unauthorized: Please log in again.');
-        window.location.href = '/auth/login';
+    if (selectedEmployee) {
+      const result = await deleteEmployee(selectedEmployee.id);
+      if (result) {
+        fetchEmployees();
       }
-    } else if (error.request) {
-      console.error('Network error or no response from server.');
-    } else {
-      console.error('Unexpected error:', error.message);
     }
   };
 
-
+  if (loading && !employees.length) {
+    return <Loading />;
+  }
 
   return (
     <AdminLayout>
-      <Backdrop
-        open={isLoading}
-        sx={{
-          color: "#90caf9",
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          bgcolor: "rgba(0,0,0,0.7)"
-        }}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-
       <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Typography variant="h4">
@@ -228,266 +119,53 @@ const handleInputChange = (e) => {
           </Typography>
           <Button
             variant="contained"
-            onClick={() => setOpenAddDialog(true)}
+            onClick={openAddDialog}
           >
             Add Employee
           </Button>
         </Box>
 
-        <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
-          <DialogTitle>Add New Employee</DialogTitle>
-          <DialogContent>
-            <TextField
-              inputRef={usernameRef}
-              margin="dense"
-              label="Username"
-              name="username"
-              value={newEmployee.username}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              required
-              error={Boolean(errors.username)}
-              helperText={errors.username}
-            />
-            <TextField
-              inputRef={passwordRef}
-              margin="dense"
-              label="Password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={newEmployee.password}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              required
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-              error={Boolean(errors.password)}
-              helperText={errors.password}
-            />
+        <ErrorSuccessMessage error={error} success={success} />
 
-            <TextField
-              inputRef={fullNameRef}
-              margin="dense"
-              label="Full Name"
-              name="fullName"
-              required
-              value={newEmployee.fullName}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              error={Boolean(errors.fullName)}
-              helperText={errors.fullName}
-            />
-            <TextField
-              inputRef={emailRef}
-              margin="dense"
-              label="Email"
-              name="email"
-              required
-              value={newEmployee.email}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              error={Boolean(errors.email)}
-              helperText={errors.email}
-            />
-            <TextField
-              inputRef={phoneRef}
-              margin="dense"
-              label="Phone"
-              name="phone"
-              required
-              value={newEmployee.phone}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              error={Boolean(errors.phone)}
-              helperText={errors.phone}
-            />
-            <TextField
-              inputRef={addressRef}
-              margin="dense"
-              label="Address"
-              name="address"
-              required
-              value={newEmployee.address}
-              onChange={handleInputChange}
-              fullWidth
-              variant="outlined"
-              error={Boolean(errors.address)}
-              helperText={errors.address}
-            />
+        <AddEmployeeDialog
+          open={dialogs.openAddDialog}
+          onClose={closeAddDialog}
+          onSubmit={handleSubmit}
+          newEmployee={newEmployee}
+          onFieldChange={updateNewEmployeeField}
+          onEmployeeUpdate={updateNewEmployee}
+          formErrors={formErrors}
+          showPassword={dialogs.showPassword}
+          onTogglePasswordVisibility={togglePasswordVisibility}
+        />
 
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Date of Birth"
-                format="dd-MM-yyyy"
-                value={newEmployee.dob}
-                required
-                onChange={(newValue) =>
-                  setNewEmployee({ ...newEmployee, dob: newValue })
-                }
-                renderInput={(params) => (
-                  <TextField
-                    inputRef={dobRef}
-                    {...params}
-                    margin="dense"
-                    fullWidth
-                    variant="outlined" />
-                )}
-                sx={{ my: 1 }}
-                error={Boolean(errors.dob)}
-                helperText={errors.dob}
-              />
-            </LocalizationProvider>
-            <Select
-              fullWidth
-              label="Role"
-              name="role"
-              required
-              variant="outlined"
-              value={newEmployee.role ? newEmployee.role : "EMPLOYEE"}
-              onChange={(e) =>
-                setNewEmployee({ ...newEmployee, role: e.target.value })
-              }
-              margin="dense"
-              sx={{ my: 1 }}
-            >
-              <MenuItem value="ADMIN">ADMIN</MenuItem>
-              <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
-            </Select>
+        <DeleteConfirmationDialog
+          open={dialogs.openDeleteDialog}
+          onClose={closeDeleteDialog}
+          onConfirm={handleConfirmDelete}
+          employeeName={selectedEmployee?.fullName}
+        />
 
-            <Box sx={{ display: "flex", alignItems: "center", mx: 1 }}>
-              <Typography sx={{ color: 'text.primary', fontWeight: "bold" }}>Active:</Typography>
-              <Checkbox
-                checked={newEmployee.isActive}
-                onChange={(e) =>
-                  setNewEmployee({ ...newEmployee, isActive: e.target.checked })
-                }
-              />
-            </Box>
-
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenAddDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              sx={{ bgcolor: "primary.main", color: "text.primary" }}
-            >
-              Add
-            </Button>
-
-          </DialogActions>
-        </Dialog>
-
-
-
-        <Dialog
-          open={openDeleteDialog}
-          onClose={() => setOpenDeleteDialog(false)}
-        >
-          <DialogTitle>
-            Confirm Delete
-          </DialogTitle>
-          <DialogContent>
-            Are you sure you want to delete employee <strong>{employeeToDelete}</strong>?
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setOpenDeleteDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => handleConfirmDelete()}
-              sx={{ color: "#f44336" }}
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-
-        <TableContainer component={Paper} sx={{ bgcolor: "#1e1e1e" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Username</TableCell>
-                <TableCell>Full Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {employees
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((emp) => (
-                  <TableRow
-                    key={emp.id}
-                    hover
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })}
-                  >
-                    <TableCell>{emp.username}</TableCell>
-                    <TableCell>{emp.fullName}</TableCell>
-                    <TableCell>{emp.email}</TableCell>
-                    <TableCell>{emp.phone}</TableCell>
-                    <TableCell>{emp.role}</TableCell>
-                    <TableCell>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleEdit(e, emp.id)}
-                      >
-                        <Info sx={{ color: "#90caf9" }} />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleDeleteClick(e, emp.id)}
-                      >
-                        <Delete sx={{ color: "#f44336" }} />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-            </TableBody>
-          </Table>
-
-          <TablePagination
-            component="div"
-            count={employees.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[rowsPerPage]}
-            sx={{
-              color: "#fff",
-              ".MuiTablePagination-toolbar": { bgcolor: "#1e1e1e" },
-              ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
-                color: "#fff",
-              },
-              ".MuiSvgIcon-root": { color: "#90caf9" },
-            }}
-          />
-
-        </TableContainer>
+        <EmployeeTable
+          employees={getPaginatedEmployees()}
+          onRowClick={(emp) => navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          pagination={{
+            ...pagination,
+            totalCount: employees.length
+          }}
+          onPageChange={handleChangePage}
+        />
       </Box>
     </AdminLayout>
+  );
+}
+
+export default function EmployeesPage() {
+  return (
+    <EmployeeManagementProvider>
+      <EmployeesContent />
+    </EmployeeManagementProvider>
   );
 }
