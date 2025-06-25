@@ -33,4 +33,6 @@ public interface AccountService {
 
     public AccountInfoResult getAccountInfo(AccountInfoRequest request);
 
+    public ApiResponse closeAccount();
+
 }

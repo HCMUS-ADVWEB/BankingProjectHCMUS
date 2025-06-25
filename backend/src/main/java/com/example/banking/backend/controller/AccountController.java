@@ -42,7 +42,7 @@ public class AccountController {
     public ResponseEntity<ApiResponse<GetAccountResponse>> getAccount() {
         UUID userId = CustomContextHolder.getCurrentUserId();
         ApiResponse<GetAccountResponse> apiResponse = accountService.getAccount(userId);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(tags = "Account"
@@ -57,7 +57,7 @@ public class AccountController {
             @Parameter(description = "Transaction type") @RequestParam(required = false) TransactionType type
     ) {
         ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getAccountTransactions(request.getAccountNumber(), limit, pn, type);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        return ResponseEntity.ok(apiResponse);
     }
 
     @Operation(tags = "Account"
@@ -67,7 +67,7 @@ public class AccountController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateCustomerAccountResponse>> createCustomerAccount(@RequestBody CreateCustomerRequest request) {
         ApiResponse<CreateCustomerAccountResponse> apiResponse = accountService.createCustomerAccount(request);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        return ResponseEntity.ok(apiResponse);
     }
 
     /*@PreAuthorize("hasRole('EMPLOYEE')")
@@ -88,7 +88,7 @@ public class AccountController {
             @Parameter(description = "Page number")@RequestParam(required = false, defaultValue = "1") Integer pn,
             @Parameter(description = "Transaction type")@RequestParam(required = false) TransactionType type) {
         ApiResponse<GetAccountTransactionsResponse> apiResponse = accountService.getCustomerTransactions(limit, pn, type);
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        return ResponseEntity.ok(apiResponse);
     }
 
 
@@ -114,5 +114,16 @@ public class AccountController {
                 .data(accountService.getAccountInfo(request))
                 .build());
 
+    }
+
+    @Operation(tags = "Account",
+            summary = "[CUSTOMER] Close current account",
+            description = "Customers close their own account")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @PostMapping("/close")
+    public ResponseEntity<ApiResponse> closeAccount() {
+        ApiResponse apiResponse = accountService.closeAccount();
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

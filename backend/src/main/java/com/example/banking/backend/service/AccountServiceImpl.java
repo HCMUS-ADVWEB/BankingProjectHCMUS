@@ -5,20 +5,17 @@ import com.example.banking.backend.dto.request.account.AccountExternalRequest;
 import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.ApiResponse;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
-import com.example.banking.backend.dto.request.account.RechargeAccountRequest;
-import com.example.banking.backend.dto.request.auth.ChangePasswordRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
+import com.example.banking.backend.dto.request.user.UpdateUserRequest;
 import com.example.banking.backend.dto.response.account.*;
-import com.example.banking.backend.dto.response.transaction.TransactionDto;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.exception.*;
 import com.example.banking.backend.mapper.account.AccountMapper;
+import com.example.banking.backend.mapper.user.UserMapper;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.Bank;
-import com.example.banking.backend.model.Transaction;
 import com.example.banking.backend.model.User;
 import com.example.banking.backend.model.type.AccountType;
-import com.example.banking.backend.model.type.OtpType;
 import com.example.banking.backend.model.type.TransactionType;
 import com.example.banking.backend.model.type.UserRoleType;
 import com.example.banking.backend.repository.BankRepository;
@@ -31,11 +28,7 @@ import com.example.banking.backend.util.SignatureUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -43,11 +36,8 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,6 +54,7 @@ public class AccountServiceImpl implements AccountService {
     private final RestTemplate restTemplate;
     private final BankRepository bankRepository;
     private final TransactionRepository transactionRepository;
+    private final AuthService authService;
 
     @Override
     public ApiResponse<GetAccountResponse> getAccount(UUID userId) {
@@ -285,6 +276,22 @@ public class AccountServiceImpl implements AccountService {
             }
         }
         return null;
+    }
+
+    @Override
+    public ApiResponse closeAccount() {
+        User user = getCurrentUser();
+
+        UpdateUserRequest updateUserRequest = UserMapper.INSTANCE.userToUpdateUserRequest(user);
+
+        updateUserRequest.setIsActive(false);
+
+        userService.updateUser(user.getId(), updateUserRequest);
+
+        return ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Closed account successfully")
+                .build();
     }
 
     @Override
