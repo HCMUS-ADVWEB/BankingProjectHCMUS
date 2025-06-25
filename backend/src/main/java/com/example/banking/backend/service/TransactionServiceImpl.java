@@ -461,7 +461,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate , String bankCode) {
+    public BankTransactionStatsDto getBankTransactionStats(String startDate, String endDate, String bankCode) {
 
 
         LocalDateTime startDateTime;
@@ -480,15 +480,18 @@ public class TransactionServiceImpl implements TransactionService {
         Instant startInstant = startDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Instant endInstant = endDateTime.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
 
-        List<Transaction> transactions = transactionRepository.findByBankCodeAndUpdatedAtBetween(
-                startInstant, endInstant , bankCode);
+        List<Transaction> transactions = bankCode == null ?
+                transactionRepository.findByUpdatedAtBetween(
+                startInstant, endInstant) :
+                transactionRepository.findByBankCodeAndUpdatedAtBetween(
+                        startInstant, endInstant, bankCode);
 
         long totalTransactions = transactions.size();
         double totalAmount = transactions.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime , bankCode);
+        return new BankTransactionStatsDto(totalTransactions, totalAmount, startDateTime, endDateTime, bankCode);
     }
 
 
