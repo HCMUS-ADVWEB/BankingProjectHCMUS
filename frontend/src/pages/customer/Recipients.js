@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import CustomerLayout from '../../layouts/CustomerLayout';
 import { useNavigate } from 'react-router-dom';
-import { useRecipient } from '../../contexts/RecipientContext';
+import { useRecipient } from '../../contexts/customer/RecipientContext';
 import AddRecipientDialog from '../../components/AddRecipientDialog';
 import {
   Box,

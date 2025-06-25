@@ -26,16 +26,16 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 
-import { useEmployee } from '../../contexts/EmployeeContext';
+import { useEmployee } from '../../contexts/employee/EmployeeContext';
 
 export default function AccountsPage() {
-  const { 
-    createAccount, 
-    setCreateAccount, 
-    handleCreateAccount, 
-    loading, 
-    error, 
-    success
+  const {
+    createAccount,
+    setCreateAccount,
+    handleCreateAccount,
+    loading,
+    error,
+    success,
   } = useEmployee();
 
   // Form validation state
@@ -54,7 +54,7 @@ export default function AccountsPage() {
       address: '',
       dateOfBirth: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
     });
     setFormErrors({});
   }, [setCreateAccount]);
@@ -83,21 +83,28 @@ export default function AccountsPage() {
   const validateForm = () => {
     const errors = {};
     // Basic validation
-    if (!createAccount.fullName?.trim()) errors.fullName = 'Full name is required';
+    if (!createAccount.fullName?.trim())
+      errors.fullName = 'Full name is required';
     if (!createAccount.email?.trim()) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(createAccount.email)) errors.email = 'Email is invalid';
+    else if (!/\S+@\S+\.\S+/.test(createAccount.email))
+      errors.email = 'Email is invalid';
 
     if (!createAccount.phone?.trim()) errors.phone = 'Phone is required';
-    else if (!/^\d{10,11}$/.test(createAccount.phone.replace(/\D/g, ''))) errors.phone = 'Phone must be 10-11 digits';
+    else if (!/^\d{10,11}$/.test(createAccount.phone.replace(/\D/g, '')))
+      errors.phone = 'Phone must be 10-11 digits';
 
     if (!createAccount.address?.trim()) errors.address = 'Address is required';
     if (!createAccount.dob) errors.dob = 'Date of birth is required';
 
-    if (!createAccount.username?.trim()) errors.username = 'Username is required';
-    else if (createAccount.username.length < 5) errors.username = 'Username must be at least 5 characters';
+    if (!createAccount.username?.trim())
+      errors.username = 'Username is required';
+    else if (createAccount.username.length < 5)
+      errors.username = 'Username must be at least 5 characters';
 
-    if (!createAccount.password?.trim()) errors.password = 'Password is required';
-    else if (createAccount.password.length < 8) errors.password = 'Password must be at least 8 characters';
+    if (!createAccount.password?.trim())
+      errors.password = 'Password is required';
+    else if (createAccount.password.length < 8)
+      errors.password = 'Password must be at least 8 characters';
 
     if (createAccount.password !== createAccount.passwordConfirmation)
       errors.passwordConfirmation = 'Passwords do not match';
@@ -126,7 +133,10 @@ export default function AccountsPage() {
 
   return (
     <EmployeeLayout>
-      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="false"
+        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
           open={loading}
@@ -150,7 +160,10 @@ export default function AccountsPage() {
         </Snackbar>
 
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 700, color: 'primary.main' }}
+          >
             Create User Account
           </Typography>
         </Box>
@@ -192,7 +205,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.fullName || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, fullName: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          fullName: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.fullName}
                       helperText={formErrors.fullName}
                       InputProps={{
@@ -212,7 +230,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.email || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.email}
                       helperText={formErrors.email}
                       InputProps={{
@@ -231,7 +254,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.phone || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, phone: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.phone}
                       helperText={formErrors.phone}
                       InputProps={{
@@ -250,7 +278,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.address || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          address: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.address}
                       helperText={formErrors.address}
                       InputProps={{
@@ -271,7 +304,12 @@ export default function AccountsPage() {
                       required
                       InputLabelProps={{ shrink: true }}
                       value={createAccount.dob || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, dob: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          dob: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.dob}
                       helperText={formErrors.dob}
                       InputProps={{
@@ -302,7 +340,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.username || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, username: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          username: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.username}
                       helperText={formErrors.username}
                       InputProps={{
@@ -322,7 +365,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.password || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, password: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          password: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.password}
                       helperText={formErrors.password}
                       InputProps={{
@@ -342,7 +390,12 @@ export default function AccountsPage() {
                       fullWidth
                       required
                       value={createAccount.passwordConfirmation || ''}
-                      onChange={e => setCreateAccount(prev => ({ ...prev, passwordConfirmation: e.target.value }))}
+                      onChange={(e) =>
+                        setCreateAccount((prev) => ({
+                          ...prev,
+                          passwordConfirmation: e.target.value,
+                        }))
+                      }
                       error={!!formErrors.passwordConfirmation}
                       helperText={formErrors.passwordConfirmation}
                       InputProps={{

@@ -1,6 +1,6 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { BASE_URL } from './constants';
+import { BASE_URL } from '../constants';
 
 class WebSocketService {
   constructor() {

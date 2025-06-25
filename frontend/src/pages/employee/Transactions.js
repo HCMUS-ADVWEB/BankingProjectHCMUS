@@ -32,7 +32,6 @@ import {
   FormControl,
   TablePagination,
   TableSortLabel,
-
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -46,8 +45,12 @@ import {
   AttachMoney as MoneyIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
-import { useEmployee } from '../../contexts/EmployeeContext';
-import { TRANSACTION_TYPES, TRANSACTION_TYPE_ICONS, STATUS_COLORS } from '../../utils/constants';
+import { useEmployee } from '../../contexts/employee/EmployeeContext';
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_ICONS,
+  STATUS_COLORS,
+} from '../../utils/constants';
 export default function TransactionsPage() {
   const {
     transactionAccountHistory,
@@ -119,8 +122,7 @@ export default function TransactionsPage() {
         maxAmount: amountRange.max || undefined,
       });
       resetFilters();
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   const resetFilters = () => {
@@ -152,12 +154,15 @@ export default function TransactionsPage() {
   };
 
   const getFilteredTransactions = () => {
-    let filtered = transactionAccountHistory.type === 'ALL'
-      ? transactions
-      : transactions.filter(tx => tx.transactionType === transactionAccountHistory.type);
+    let filtered =
+      transactionAccountHistory.type === 'ALL'
+        ? transactions
+        : transactions.filter(
+            (tx) => tx.transactionType === transactionAccountHistory.type,
+          );
 
     if (statusFilter !== 'ALL') {
-      filtered = filtered.filter(tx => tx.status === statusFilter);
+      filtered = filtered.filter((tx) => tx.status === statusFilter);
     }
 
     return filtered.sort((a, b) => {
@@ -209,8 +214,18 @@ export default function TransactionsPage() {
           </Alert>
         </Snackbar>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 700, color: 'primary.main' }}
+          >
             <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Transaction History
           </Typography>
@@ -232,7 +247,12 @@ export default function TransactionsPage() {
                 variant="outlined"
                 fullWidth
                 value={transactionAccountHistory.accountId || ''}
-                onChange={e => setTransactionAccountHistory(prev => ({ ...prev, accountId: e.target.value }))}
+                onChange={(e) =>
+                  setTransactionAccountHistory((prev) => ({
+                    ...prev,
+                    accountId: e.target.value,
+                  }))
+                }
                 error={!!formErrors.accountId}
                 helperText={formErrors.accountId}
                 InputProps={{
@@ -244,7 +264,12 @@ export default function TransactionsPage() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Grid
+              item
+              xs={12}
+              md={4}
+              sx={{ display: 'flex', alignItems: 'center' }}
+            >
               <Button
                 onClick={handleSearch}
                 color="primary"
@@ -254,7 +279,11 @@ export default function TransactionsPage() {
                 sx={{ mr: 1, height: 56 }}
                 fullWidth
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Search'}
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Search'
+                )}
               </Button>
 
               <Tooltip title="Advanced Filters">
@@ -270,8 +299,19 @@ export default function TransactionsPage() {
           </Grid>
 
           {advancedFilters && (
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, color: 'text.secondary' }}>
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: 'background.default',
+                borderRadius: 1,
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                gutterBottom
+                sx={{ fontWeight: 600, color: 'text.secondary' }}
+              >
                 Advanced Filters
               </Typography>
 
@@ -288,7 +328,12 @@ export default function TransactionsPage() {
                         fullWidth
                         InputLabelProps={{ shrink: true }}
                         value={dateRange.startDate}
-                        onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+                        onChange={(e) =>
+                          setDateRange({
+                            ...dateRange,
+                            startDate: e.target.value,
+                          })
+                        }
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -305,7 +350,12 @@ export default function TransactionsPage() {
                         fullWidth
                         InputLabelProps={{ shrink: true }}
                         value={dateRange.endDate}
-                        onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+                        onChange={(e) =>
+                          setDateRange({
+                            ...dateRange,
+                            endDate: e.target.value,
+                          })
+                        }
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -327,7 +377,11 @@ export default function TransactionsPage() {
                       <TextField
                         label="Min Amount"
                         fullWidth
-                        value={amountRange.min ? formatVND(Number(amountRange.min)) : ''}
+                        value={
+                          amountRange.min
+                            ? formatVND(Number(amountRange.min))
+                            : ''
+                        }
                         onChange={(e) => {
                           const raw = e.target.value.replace(/\D/g, '');
                           setAmountRange({ ...amountRange, min: raw });
@@ -345,7 +399,11 @@ export default function TransactionsPage() {
                       <TextField
                         label="Max Amount"
                         fullWidth
-                        value={amountRange.max ? formatVND(Number(amountRange.max)) : ''}
+                        value={
+                          amountRange.max
+                            ? formatVND(Number(amountRange.max))
+                            : ''
+                        }
                         onChange={(e) => {
                           const raw = e.target.value.replace(/\D/g, '');
                           setAmountRange({ ...amountRange, max: raw });
@@ -392,7 +450,11 @@ export default function TransactionsPage() {
               value={transactionAccountHistory.type}
               exclusive
               onChange={(e, newValue) => {
-                if (newValue) setTransactionAccountHistory(prev => ({ ...prev, type: newValue }));
+                if (newValue)
+                  setTransactionAccountHistory((prev) => ({
+                    ...prev,
+                    type: newValue,
+                  }));
               }}
               color="primary"
               sx={{ flexWrap: 'wrap' }}
@@ -402,8 +464,12 @@ export default function TransactionsPage() {
                   <FilterIcon sx={{ mr: 1 }} /> All Types
                 </Box>
               </ToggleButton>
-              {TRANSACTION_TYPES.map(type => (
-                <ToggleButton key={type.value} value={type.value} sx={{ py: 1, px: 2 }}>
+              {TRANSACTION_TYPES.map((type) => (
+                <ToggleButton
+                  key={type.value}
+                  value={type.value}
+                  sx={{ py: 1, px: 2 }}
+                >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {TRANSACTION_TYPE_ICONS[type.value] || <ReceiptIcon />}
                     <Box sx={{ ml: 1 }}>{type.label}</Box>
@@ -415,7 +481,14 @@ export default function TransactionsPage() {
 
           <Divider sx={{ my: 3 }} />
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Transaction Results
               {filteredTransactions.length > 0 && (
@@ -430,7 +503,10 @@ export default function TransactionsPage() {
 
             <Box>
               <Tooltip title="Refresh">
-                <IconButton onClick={handleSearch} disabled={!transactionAccountHistory.accountId}>
+                <IconButton
+                  onClick={handleSearch}
+                  disabled={!transactionAccountHistory.accountId}
+                >
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
@@ -509,66 +585,81 @@ export default function TransactionsPage() {
                 {!loading && filteredTransactions.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                      {transactionAccountHistory.accountId ?
-                        'No transactions found with the current filters' :
-                        'Enter an account ID and click Search to view transactions'}
+                      {transactionAccountHistory.accountId
+                        ? 'No transactions found with the current filters'
+                        : 'Enter an account ID and click Search to view transactions'}
                     </TableCell>
                   </TableRow>
                 )}
 
-                {!loading && filteredTransactions
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((tx) => (
-                    <TableRow
-                      key={tx.id}
-                      hover
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': { bgcolor: 'action.hover' },
-                      }}
-                    >
-                      <TableCell>
-                        <Tooltip title="Transaction ID">
-                          <span>{tx.id?.substring(0, 8)}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>
-                        <Chip                        
-                          icon={TRANSACTION_TYPE_ICONS[tx.transactionType] || <ReceiptIcon />}
-                          label={tx.transactionType?.replace('_', ' ')}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip title={tx.fromBankId ? `Bank: ${tx.fromBankId}` : 'Internal Account'}>
-                          <span>{tx.fromAccountNumber || '—'}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip title={tx.toBankId ? `Bank: ${tx.toBankId}` : 'Internal Account'}>
-                          <span>{tx.toAccountNumber || '—'}</span>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'medium' }}>
-                        {formatVND(tx.amount)} ₫
-                      </TableCell>
-                      <TableCell>
-                        {formatVND(tx.fee)} ₫
-                      </TableCell>
-                      <TableCell>
-                        <Chip                   
-                          label={tx.status}
-                          size="small"
-                          color={STATUS_COLORS[tx.status] || 'default'}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(tx.createdAt).toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                {!loading &&
+                  filteredTransactions
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((tx) => (
+                      <TableRow
+                        key={tx.id}
+                        hover
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: 'action.hover' },
+                        }}
+                      >
+                        <TableCell>
+                          <Tooltip title="Transaction ID">
+                            <span>{tx.id?.substring(0, 8)}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={
+                              TRANSACTION_TYPE_ICONS[tx.transactionType] || (
+                                <ReceiptIcon />
+                              )
+                            }
+                            label={tx.transactionType?.replace('_', ' ')}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip
+                            title={
+                              tx.fromBankId
+                                ? `Bank: ${tx.fromBankId}`
+                                : 'Internal Account'
+                            }
+                          >
+                            <span>{tx.fromAccountNumber || '—'}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip
+                            title={
+                              tx.toBankId
+                                ? `Bank: ${tx.toBankId}`
+                                : 'Internal Account'
+                            }
+                          >
+                            <span>{tx.toAccountNumber || '—'}</span>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 'medium' }}>
+                          {formatVND(tx.amount)} ₫
+                        </TableCell>
+                        <TableCell>{formatVND(tx.fee)} ₫</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={tx.status}
+                            size="small"
+                            color={STATUS_COLORS[tx.status] || 'default'}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(tx.createdAt).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -584,7 +675,14 @@ export default function TransactionsPage() {
           />
 
           {filteredTransactions.length > 0 && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+            <Box
+              sx={{
+                mt: 2,
+                p: 2,
+                bgcolor: 'background.default',
+                borderRadius: 2,
+              }}
+            >
               <Typography variant="subtitle2" gutterBottom>
                 Transaction Summary
               </Typography>
@@ -596,7 +694,13 @@ export default function TransactionsPage() {
                         Total Amount
                       </Typography>
                       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {formatVND(filteredTransactions.reduce((sum, tx) => sum + Number(tx.amount), 0))} ₫
+                        {formatVND(
+                          filteredTransactions.reduce(
+                            (sum, tx) => sum + Number(tx.amount),
+                            0,
+                          ),
+                        )}{' '}
+                        ₫
                       </Typography>
                     </CardContent>
                   </Card>
@@ -608,7 +712,13 @@ export default function TransactionsPage() {
                         Total Fees
                       </Typography>
                       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {formatVND(filteredTransactions.reduce((sum, tx) => sum + Number(tx.fee), 0))} ₫
+                        {formatVND(
+                          filteredTransactions.reduce(
+                            (sum, tx) => sum + Number(tx.fee),
+                            0,
+                          ),
+                        )}{' '}
+                        ₫
                       </Typography>
                     </CardContent>
                   </Card>
@@ -619,8 +729,15 @@ export default function TransactionsPage() {
                       <Typography variant="caption" color="text.secondary">
                         Completed
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                        {filteredTransactions.filter(tx => tx.status === 'COMPLETED').length}
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 'bold', color: 'success.main' }}
+                      >
+                        {
+                          filteredTransactions.filter(
+                            (tx) => tx.status === 'COMPLETED',
+                          ).length
+                        }
                       </Typography>
                     </CardContent>
                   </Card>
@@ -631,8 +748,15 @@ export default function TransactionsPage() {
                       <Typography variant="caption" color="text.secondary">
                         Pending/Failed
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
-                        {filteredTransactions.filter(tx => tx.status !== 'COMPLETED').length}
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 'bold', color: 'warning.main' }}
+                      >
+                        {
+                          filteredTransactions.filter(
+                            (tx) => tx.status !== 'COMPLETED',
+                          ).length
+                        }
                       </Typography>
                     </CardContent>
                   </Card>

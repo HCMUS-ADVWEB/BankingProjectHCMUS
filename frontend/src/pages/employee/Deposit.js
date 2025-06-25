@@ -41,7 +41,7 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 
-import { useEmployee } from '../../contexts/EmployeeContext';
+import { useEmployee } from '../../contexts/employee/EmployeeContext';
 
 // Sample history data
 const depositHistoryData = [
@@ -75,12 +75,12 @@ const depositHistoryData = [
 ];
 
 export default function DepositPage() {
-  const { 
-    depositAccount, 
-    setDepositAccount, 
-    handleDepositAccount, 
-    loading, 
-    error, 
+  const {
+    depositAccount,
+    setDepositAccount,
+    handleDepositAccount,
+    loading,
+    error,
     success,
     formatVND,
     handleDepositAmountChange,
@@ -96,7 +96,6 @@ export default function DepositPage() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-
   // Handle success and error messages
   useEffect(() => {
     if (success) {
@@ -106,7 +105,7 @@ export default function DepositPage() {
       setDepositAccount({
         accountId: '',
         amount: '',
-        note: ''
+        note: '',
       });
       setFormErrors({});
     }
@@ -123,7 +122,9 @@ export default function DepositPage() {
     const errors = {};
 
     if (!depositAccount.accountId?.trim()) {
-      errors.accountId = isUsingUsername ? 'Username is required' : 'Account number is required';
+      errors.accountId = isUsingUsername
+        ? 'Username is required'
+        : 'Account number is required';
     }
 
     if (!depositAccount.amount || parseInt(depositAccount.amount) <= 0) {
@@ -150,7 +151,6 @@ export default function DepositPage() {
         note: depositAccount.note || 'Deposit',
       };
       setDepositHistory([newDeposit, ...depositHistory]);
-
     } catch (err) {
       // Error handled by useEffect
     }
@@ -182,7 +182,10 @@ export default function DepositPage() {
 
   return (
     <EmployeeLayout>
-      <Container maxWidth="false" sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Container
+        maxWidth="false"
+        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
           open={loading}
@@ -220,16 +223,28 @@ export default function DepositPage() {
               <Typography
                 variant="h5"
                 gutterBottom
-                sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center' }}
+                sx={{
+                  fontWeight: 700,
+                  color: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
                 <MoneyIcon sx={{ mr: 1 }} /> Deposit Funds
               </Typography>
 
               <Divider sx={{ my: 2 }} />
 
-              <Card variant="outlined" sx={{ mb: 3, bgcolor: 'background.default' }}>
+              <Card
+                variant="outlined"
+                sx={{ mb: 3, bgcolor: 'background.default' }}
+              >
                 <CardContent>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
                     Deposit Method
                   </Typography>
                   <FormControlLabel
@@ -240,10 +255,21 @@ export default function DepositPage() {
                         color="primary"
                       />
                     }
-                    label={isUsingUsername ? 'Using Username' : 'Using Account Number'}
+                    label={
+                      isUsingUsername
+                        ? 'Using Username'
+                        : 'Using Account Number'
+                    }
                   />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    <InfoIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    <InfoIcon
+                      fontSize="small"
+                      sx={{ verticalAlign: 'middle', mr: 0.5 }}
+                    />
                     {isUsingUsername
                       ? 'Deposit using customer username for easier identification'
                       : 'Deposit using account number for direct account access'}
@@ -259,7 +285,12 @@ export default function DepositPage() {
                     required
                     fullWidth
                     value={depositAccount.accountId || ''}
-                    onChange={e => setDepositAccount(prev => ({ ...prev, accountId: e.target.value }))}
+                    onChange={(e) =>
+                      setDepositAccount((prev) => ({
+                        ...prev,
+                        accountId: e.target.value,
+                      }))
+                    }
                     error={!!formErrors.accountId}
                     helperText={formErrors.accountId}
                     InputProps={{
@@ -277,7 +308,11 @@ export default function DepositPage() {
                     variant="outlined"
                     required
                     fullWidth
-                    value={depositAccount.amount ? formatVND(Number(depositAccount.amount)) : ''}
+                    value={
+                      depositAccount.amount
+                        ? formatVND(Number(depositAccount.amount))
+                        : ''
+                    }
                     onChange={handleDepositAmountChange}
                     error={!!formErrors.amount}
                     helperText={formErrors.amount}
@@ -308,10 +343,18 @@ export default function DepositPage() {
                     multiline
                     rows={2}
                     value={depositAccount.note || ''}
-                    onChange={e => setDepositAccount(prev => ({ ...prev, note: e.target.value }))}
+                    onChange={(e) =>
+                      setDepositAccount((prev) => ({
+                        ...prev,
+                        note: e.target.value,
+                      }))
+                    }
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                        <InputAdornment
+                          position="start"
+                          sx={{ alignSelf: 'flex-start', mt: 1.5 }}
+                        >
                           <ReceiptIcon />
                         </InputAdornment>
                       ),
@@ -342,8 +385,8 @@ export default function DepositPage() {
               </Box>
             </Paper>
           </Grid>
-          
-          <Grid item  size={{ xs: 12, md: 12 }}>
+
+          <Grid item size={{ xs: 12, md: 12 }}>
             <Paper
               elevation={3}
               sx={{
@@ -356,14 +399,23 @@ export default function DepositPage() {
               <Typography
                 variant="h5"
                 gutterBottom
-                sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center' }}
+                sx={{
+                  fontWeight: 700,
+                  color: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
               >
                 <HistoryIcon sx={{ mr: 1 }} /> Recent Deposits
               </Typography>
 
               <Divider sx={{ my: 2 }} />
 
-              <TableContainer component={Paper} elevation={0} sx={{ mt: 2, borderRadius: 2 }}>
+              <TableContainer
+                component={Paper}
+                elevation={0}
+                sx={{ mt: 2, borderRadius: 2 }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: 'primary.light' }}>
@@ -384,25 +436,40 @@ export default function DepositPage() {
                       </TableRow>
                     ) : (
                       depositHistory
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .slice(
+                          page * rowsPerPage,
+                          page * rowsPerPage + rowsPerPage,
+                        )
                         .map((deposit) => (
                           <TableRow key={deposit.id} hover>
                             <TableCell>{deposit.id}</TableCell>
                             <TableCell>
-                              <Tooltip title={deposit.accountType === 'username' ? 'Username' : 'Account Number'}>
+                              <Tooltip
+                                title={
+                                  deposit.accountType === 'username'
+                                    ? 'Username'
+                                    : 'Account Number'
+                                }
+                              >
                                 <span>{deposit.accountId}</span>
                               </Tooltip>
                             </TableCell>
                             <TableCell>
                               <Chip
                                 size="small"
-                                label={deposit.accountType === 'username' ? 'Username' : 'Account #'}
-                                color={deposit.accountType === 'username' ? 'info' : 'secondary'}
+                                label={
+                                  deposit.accountType === 'username'
+                                    ? 'Username'
+                                    : 'Account #'
+                                }
+                                color={
+                                  deposit.accountType === 'username'
+                                    ? 'info'
+                                    : 'secondary'
+                                }
                               />
                             </TableCell>
-                            <TableCell>
-                              {formatVND(deposit.amount)} ₫
-                            </TableCell>
+                            <TableCell>{formatVND(deposit.amount)} ₫</TableCell>
                             <TableCell>
                               {new Date(deposit.date).toLocaleString()}
                             </TableCell>
@@ -410,7 +477,11 @@ export default function DepositPage() {
                               <Chip
                                 size="small"
                                 label={deposit.status}
-                                color={deposit.status === 'Success' ? 'success' : 'error'}
+                                color={
+                                  deposit.status === 'Success'
+                                    ? 'success'
+                                    : 'error'
+                                }
                               />
                             </TableCell>
                           </TableRow>

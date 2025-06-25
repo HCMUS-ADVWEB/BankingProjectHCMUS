@@ -5,9 +5,9 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { useAuth } from './AuthContext';
-import TransferService from '../services/TransferService';
-import { formatVND } from '../utils/constants';
+import { useAuth } from '../AuthContext';
+import TransferService from '../../utils/services/customer/TransferService';
+import { formatVND } from '../../utils/constants';
 
 const transferReducer = (state, action) => {
   switch (action.type) {

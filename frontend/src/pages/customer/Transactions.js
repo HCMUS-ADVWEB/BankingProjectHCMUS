@@ -20,7 +20,7 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import { History as HistoryIcon } from '@mui/icons-material';
-import { useTransaction } from '../../contexts/TransactionContext';
+import { useTransaction } from '../../contexts/customer/TransactionContext';
 import { formatVND } from '../../utils/constants';
 // Transaction type icons mapping
 

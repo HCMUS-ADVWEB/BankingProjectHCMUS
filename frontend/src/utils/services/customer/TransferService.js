@@ -1,4 +1,4 @@
-import api from '../api';
+import api from '../../api';
 // TransferService.js
 // Service for money transfer-related API calls
 

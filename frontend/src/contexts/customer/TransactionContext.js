@@ -5,8 +5,8 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { useAuth } from './AuthContext';
-import TransactionService from '../services/TransactionService';
+import { useAuth } from '../AuthContext';
+import TransactionService from '../../utils/services/customer/TransactionService';
 
 const transactionReducer = (state, action) => {
   switch (action.type) {

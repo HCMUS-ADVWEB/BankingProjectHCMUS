@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import DebtService from '../services/DebtService';
-import { useAuth } from './AuthContext';
+import DebtService from '../../utils/services/customer/DebtService';
+import { useAuth } from '../AuthContext';
 
 const debtReducer = (state, action) => {
   switch (action.type) {
