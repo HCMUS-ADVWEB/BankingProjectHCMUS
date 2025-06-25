@@ -6,8 +6,8 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
-import webSocketService from '../services/webSocketService';
-import NotificationAPI from '../services/notificationApi';
+import webSocketService from '../services/WebSocketService';
+import notificationService from '../services/NotificationService';
 
 const notificationReducer = (state, action) => {
   switch (action.type) {
@@ -95,10 +95,9 @@ export const NotificationProvider = ({ children }) => {
     if (!authState.isAuthenticated || !authState.user?.id) {
       return;
     }
-
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await NotificationAPI.getNotifications(10, 1);
+      const response = await notificationService.getNotifications(10, 1);
 
       if (response && response.content) {
         dispatch({ type: 'SET_NOTIFICATIONS', payload: response.content });
@@ -266,23 +265,21 @@ export const NotificationProvider = ({ children }) => {
     setupWebSocket,
     state.subscription,
   ]);
-
   const markAllAsRead = async () => {
     try {
       dispatch({ type: 'MARK_ALL_READ' });
 
-      await NotificationAPI.markAllAsRead();
+      await notificationService.markAllAsRead();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       fetchNotifications();
     }
   };
-
   const markAsRead = async (notificationId) => {
     try {
       dispatch({ type: 'MARK_AS_READ', payload: notificationId });
 
-      await NotificationAPI.markAsRead(notificationId);
+      await notificationService.markAsRead(notificationId);
     } catch (error) {
       console.error(
         `Error marking notification ${notificationId} as read:`,
