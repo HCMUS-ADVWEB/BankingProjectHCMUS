@@ -65,8 +65,8 @@ public class TransactionController {
     }
 
     @Operation(tags = "Transaction"
-            , summary = "[ADMIN] Get all banks' transactions in a period of time"
-            , description = "Admin get all banks' transactions from start date to end date")
+            , summary = "[ADMIN] Get a bank's transactions in a period of time"
+            , description = "Admin get a bank's transactions from start date to end date")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions")
     public ResponseEntity<ApiResponse<List<TransactionDto>>> getBankTransactions(
@@ -103,8 +103,8 @@ public class TransactionController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/bank-transactions/statistics")
     public ResponseEntity<ApiResponse<BankTransactionStatsDto>> getBankTransactionStats(
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate ,
+            @Parameter(description = "Get transactions statistics from this date")@RequestParam(required = false) String startDate,
+            @Parameter(description = "Get transactions statistics to this date")@RequestParam(required = false) String endDate ,
             @Parameter(description = "Either our bank or other bank") @RequestParam String bankCode
 
     ) {LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
