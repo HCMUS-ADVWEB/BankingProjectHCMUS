@@ -41,20 +41,24 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByUpdatedAtBetween(Instant startDate, Instant endDate);
 
     @Query("""
-            SELECT t FROM Transaction t
-            WHERE t.updatedAt BETWEEN :startDate AND :endDate
-            AND (:bankCode IS NULL OR t.fromBank.bankCode = :bankCode OR t.toBank.bankCode = :bankCode)
-            """)
+    SELECT t FROM Transaction t
+    LEFT JOIN t.fromBank fb
+    LEFT JOIN t.toBank tb
+    WHERE t.updatedAt BETWEEN :startDate AND :endDate
+      AND (fb.bankCode = :bankCode OR tb.bankCode = :bankCode)
+""")
     List<Transaction> findByBankCodeAndUpdatedAtBetween(
             @Param("startDate") Instant startDate,
             @Param("endDate") Instant endDate,
             @Param("bankCode") String bankCode);
 
-    @Query("""
-            SELECT t FROM Transaction t
-            WHERE t.updatedAt BETWEEN :start AND :end
-            AND (:bankCode IS NULL OR t.fromBank.bankCode = :bankCode OR t.toBank.bankCode = :bankCode)
-            """)
+        @Query("""
+        SELECT t FROM Transaction t
+        LEFT JOIN t.fromBank fb
+        LEFT JOIN t.toBank tb
+        WHERE t.updatedAt BETWEEN :start AND :end
+          AND (fb.bankCode = :bankCode OR tb.bankCode = :bankCode)
+    """)
     Page<Transaction> findByUpdatedAtBetweenAndBankCode(
             @Param("start") Instant start,
             @Param("end") Instant end,
