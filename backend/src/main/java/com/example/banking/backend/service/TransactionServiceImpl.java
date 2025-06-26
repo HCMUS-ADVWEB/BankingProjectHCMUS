@@ -296,8 +296,6 @@ public class TransactionServiceImpl implements TransactionService {
         if (toAccount == null) {
             throw new BadRequestException("Receiver account not found");
         }
-
-
         Transaction transaction = new Transaction();
         transaction.setTransactionType(TransactionType.DEPOSIT);
         transaction.setFromAccount(null);
