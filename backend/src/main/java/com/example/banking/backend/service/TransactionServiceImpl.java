@@ -110,6 +110,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setToAccount(null);
                 transaction.setAmount(request.getAmount());
                 transaction.setFee(fee);
+                transaction.setToBank(destinationBank);
                 transaction.setFeeType(FeeType.fromValue(request.getFeeType()));
                 transaction.setStatus(TransactionStatusType.PENDING);
                 transaction.setMessage(request.getContent());
