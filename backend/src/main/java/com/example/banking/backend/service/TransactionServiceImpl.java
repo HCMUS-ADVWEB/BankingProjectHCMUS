@@ -68,7 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setToAccount(null); // Không biết account object của ngân hàng khác
         transaction.setAmount(request.getAmount());
         transaction.setFee(fee);
-        transaction.setFeeType(FeeType.SENDER); // Giả sử phí do người gửi trả);
+        transaction.setFeeType(FeeType.fromValue(request.getFeeType())); // Giả sử phí do người gửi trả);
         transaction.setMessage(request.getContent() != null ? request.getContent() : "");
         transaction.setStatus(TransactionStatusType.PENDING);
         return transaction;
@@ -110,7 +110,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setToAccount(null);
                 transaction.setAmount(request.getAmount());
                 transaction.setFee(fee);
-                transaction.setFeeType(FeeType.SENDER);
+                transaction.setFeeType(FeeType.fromValue(request.getFeeType()));
                 transaction.setStatus(TransactionStatusType.PENDING);
                 transaction.setMessage(request.getContent());
                 Instant now = Instant.now();
@@ -296,13 +296,11 @@ public class TransactionServiceImpl implements TransactionService {
         if (toAccount == null) {
             throw new BadRequestException("Receiver account not found");
         }
-
-
         Transaction transaction = new Transaction();
-        transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+        transaction.setTransactionType(TransactionType.DEPOSIT);
         transaction.setFromAccount(null);
         transaction.setFromAccountNumber(null);
-        transaction.setToAccountNumber(null);
+        transaction.setToAccountNumber(toAccount.getAccountNumber());
         transaction.setToAccount(toAccount);
         transaction.setAmount(internalDeposit.getAmount());
         transaction.setFee(0.0);

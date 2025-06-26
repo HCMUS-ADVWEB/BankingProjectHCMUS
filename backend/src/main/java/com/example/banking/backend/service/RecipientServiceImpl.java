@@ -54,8 +54,10 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
-                recipient.getBank() == null ? null : recipient.getBank().getBankName()
-        );
+                recipient.getBank() == null ? null : recipient.getBank().getBankName() ,
+                recipient.getBank() == null ? null : recipient.getBank().getBankCode()
+
+                );
 
 
     }
@@ -86,7 +88,8 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
-                recipient.getBank() == null ? null : recipient.getBank().getBankName()
+                recipient.getBank() == null ? null : recipient.getBank().getBankName() ,
+                recipient.getBank() == null ? null : recipient.getBank().getBankCode()
         );
     }
 
@@ -126,7 +129,9 @@ public class RecipientServiceImpl implements RecipientService {
                 recipient.getRecipientAccountNumber(),
                 recipient.getRecipientName(),
                 recipient.getNickName(),
-                recipient.getBank() == null ? null : recipient.getBank().getBankName()
+                recipient.getBank() == null ? null : recipient.getBank().getBankName() ,
+                recipient.getBank() == null ? null : recipient.getBank().getBankCode()
+
         );
 
     }
@@ -135,7 +140,7 @@ public class RecipientServiceImpl implements RecipientService {
     public void deleteRecipient(String id) {
         User currentUser = getCurrentUser();
         Recipient recipient = currentUser.getRecipients().stream()
-                .filter(r -> r.getRecipientName().equals(id))
+                .filter(r -> r.getId().toString().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new InvalidUserException("Recipient not found"));
         recipientRepository.delete(recipient);
@@ -166,9 +171,14 @@ public class RecipientServiceImpl implements RecipientService {
                 .map(recipient -> new RecipientDtoRes(
                         recipient.getId(),
                         recipient.getRecipientAccountNumber(),
-                        recipient.getBank() == null ? null : recipient.getBank().getBankName(),
                         recipient.getRecipientName(),
-                        recipient.getNickName()
+                        recipient.getNickName(),
+                        recipient.getBank() == null ? null : recipient.getBank().getBankName() ,
+                        recipient.getBank() == null ? null : recipient.getBank().getBankCode()
+
+
+
+
                 ))
                 .collect(Collectors.toList());
     }
