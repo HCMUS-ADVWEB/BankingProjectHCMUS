@@ -22,20 +22,20 @@ import {
   Select,
   MenuItem,
   Checkbox,
-} from "@mui/material";
+} from '@mui/material';
 import {
   Info,
   Delete,
   Visibility,
-  VisibilityOff
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import AdminLayout from "../../layouts/AdminLayout";
-import { useEffect, useState } from "react";
-import api from "../../utils/api";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { useRef } from "react";
+  VisibilityOff,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import AdminLayout from '../../layouts/AdminLayout';
+import { useEffect, useState } from 'react';
+import api from '../../utils/api';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useRef } from 'react';
 
 
 export default function EmployeesPage() {
@@ -45,15 +45,15 @@ export default function EmployeesPage() {
   const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [newEmployee, setNewEmployee] = useState({
-    username: "",
-    password: "",
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "",
+    username: '',
+    password: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
     dob: null,
-    role: "EMPLOYEE",
-    isActive: true
+    role: 'EMPLOYEE',
+    isActive: true,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,7 +71,7 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/api/users");
+      const response = await api.get('/api/users');
       const { data, message, timestamp } = response.data;
       setEmployees(data.filter(emp => emp.role !== 'CUSTOMER'));
     } catch (error) {
@@ -123,22 +123,22 @@ export default function EmployeesPage() {
         dob: newEmployee.dob ? new Date(newEmployee.dob).toISOString() : null,
       };
 
-      await api.post("/api/users", payload);
+      await api.post('/api/users', payload);
 
       setNewEmployee({
-        username: "",
-        password: "",
-        fullName: "",
-        email: "",
-        phone: "",
-        address: "",
+        username: '',
+        password: '',
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
         dob: null,
-        role: "EMPLOYEE",
+        role: 'EMPLOYEE',
         isActive: true,
       });
       fetchEmployees();
     } catch (error) {
-      console.error("Failed to add employee", error);
+      console.error('Failed to add employee', error);
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
@@ -168,7 +168,7 @@ export default function EmployeesPage() {
 
   const isFormValid = () => {
     const {
-      username, password, fullName, email, phone, address, dob
+      username, password, fullName, email, phone, address, dob,
     } = newEmployee;
     return (
       username.trim() &&
@@ -205,7 +205,7 @@ export default function EmployeesPage() {
 
   const handleEdit = (e, id) => {
     e.stopPropagation();
-    console.log("Move to employee:", id);
+    console.log('Move to employee:', id);
     navigate(`/admin/employees/${id}`);
   };
 
@@ -223,7 +223,7 @@ export default function EmployeesPage() {
       setEmployeeToDelete(null);
       fetchEmployees(); // reload danh sách
     } catch (error) {
-      console.error("Failed to delete employee", error);
+      console.error('Failed to delete employee', error);
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
@@ -256,16 +256,16 @@ export default function EmployeesPage() {
       <Backdrop
         open={isLoading}
         sx={{
-          color: "#90caf9",
+          color: '#90caf9',
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          bgcolor: "rgba(0,0,0,0.7)"
+          bgcolor: 'rgba(0,0,0,0.7)',
         }}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4">
             Employee List
           </Typography>
@@ -296,7 +296,7 @@ export default function EmployeesPage() {
               margin="dense"
               label="Password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               value={newEmployee.password}
               onChange={handleInputChange}
               fullWidth
@@ -312,7 +312,7 @@ export default function EmployeesPage() {
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
             />
 
@@ -387,7 +387,7 @@ export default function EmployeesPage() {
               name="role"
               required
               variant="outlined"
-              value={newEmployee.role ? newEmployee.role : "EMPLOYEE"}
+              value={newEmployee.role ? newEmployee.role : 'EMPLOYEE'}
               onChange={(e) =>
                 setNewEmployee({ ...newEmployee, role: e.target.value })
               }
@@ -398,8 +398,8 @@ export default function EmployeesPage() {
               <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
             </Select>
 
-            <Box sx={{ display: "flex", alignItems: "center", mx: 1 }}>
-              <Typography sx={{ color: 'text.primary', fontWeight: "bold" }}>Active:</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
+              <Typography sx={{ color: 'text.primary', fontWeight: 'bold' }}>Active:</Typography>
               <Checkbox
                 checked={newEmployee.isActive}
                 onChange={(e) =>
@@ -416,7 +416,7 @@ export default function EmployeesPage() {
             <Button
               onClick={handleSubmit}
               disabled={!isFormValid()}
-              sx={{ bgcolor: "primary.main", color: "text.primary" }}
+              sx={{ bgcolor: 'primary.main', color: 'text.primary' }}
             >
               Add
             </Button>
@@ -444,7 +444,7 @@ export default function EmployeesPage() {
             </Button>
             <Button
               onClick={() => handleConfirmDelete()}
-              sx={{ color: "#f44336" }}
+              sx={{ color: '#f44336' }}
             >
               Delete
             </Button>
@@ -452,7 +452,7 @@ export default function EmployeesPage() {
         </Dialog>
 
 
-        <TableContainer component={Paper} sx={{ bgcolor: "#1e1e1e" }}>
+        <TableContainer component={Paper} sx={{ bgcolor: '#1e1e1e' }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -471,7 +471,7 @@ export default function EmployeesPage() {
                   <TableRow
                     key={emp.id}
                     hover
-                    sx={{ cursor: "pointer" }}
+                    sx={{ cursor: 'pointer' }}
                     onClick={() => navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })}
                   >
                     <TableCell>{emp.username}</TableCell>
@@ -484,13 +484,13 @@ export default function EmployeesPage() {
                         size="small"
                         onClick={(e) => handleEdit(e, emp.id)}
                       >
-                        <Info sx={{ color: "#90caf9" }} />
+                        <Info sx={{ color: '#90caf9' }} />
                       </IconButton>
                       <IconButton
                         size="small"
                         onClick={(e) => handleDeleteClick(e, emp.id)}
                       >
-                        <Delete sx={{ color: "#f44336" }} />
+                        <Delete sx={{ color: '#f44336' }} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -507,12 +507,12 @@ export default function EmployeesPage() {
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[rowsPerPage]}
             sx={{
-              color: "#fff",
-              ".MuiTablePagination-toolbar": { bgcolor: "#1e1e1e" },
-              ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
-                color: "#fff",
+              color: '#fff',
+              '.MuiTablePagination-toolbar': { bgcolor: '#1e1e1e' },
+              '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                color: '#fff',
               },
-              ".MuiSvgIcon-root": { color: "#90caf9" },
+              '.MuiSvgIcon-root': { color: '#90caf9' },
             }}
           />
 

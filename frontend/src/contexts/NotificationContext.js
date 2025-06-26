@@ -6,8 +6,8 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
-import webSocketService from '../services/webSocketService';
-import NotificationAPI from '../services/notificationApi';
+import webSocketService from '../services/WebSocketService';
+import NotificationAPI from '../services/NotificationApi';
 
 const notificationReducer = (state, action) => {
   switch (action.type) {
