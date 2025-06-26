@@ -153,7 +153,7 @@ export default function TransactionsPage() {
   };
 
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({ ...prev, [filterType]: value }));
+    setFilters((prev) => ({ ...prev, [filterType]: value }));
     setPage(0);
   };
 
@@ -224,39 +224,51 @@ export default function TransactionsPage() {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'INTERNAL_TRANSFER': return '#10b981'; // Green
-      case 'INTERBANK_TRANSFER': return '#06b6d4'; // Blue
-      case 'DEPOSIT': return '#f59e0b'; // Yellow
-      case 'DEBT_PAYMENT': return '#ef4444'; // Red
-      default: return '#9ca3af'; // Default gray
+      case 'INTERNAL_TRANSFER':
+        return '#10b981'; // Green
+      case 'INTERBANK_TRANSFER':
+        return '#06b6d4'; // Blue
+      case 'DEPOSIT':
+        return '#f59e0b'; // Yellow
+      case 'DEBT_PAYMENT':
+        return '#ef4444'; // Red
+      default:
+        return '#9ca3af'; // Default gray
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'PENDING': return '#f59e0b'; // Yellow
-      case 'COMPLETED': return '#10b981'; // Green
-      case 'FAILED': return '#ef4444'; // Red
-      case 'CANCELLED': return '#8b5cf6'; // Purple
-      default: return '#9ca3af'; // Default gray
+      case 'PENDING':
+        return '#f59e0b'; // Yellow
+      case 'COMPLETED':
+        return '#10b981'; // Green
+      case 'FAILED':
+        return '#ef4444'; // Red
+      case 'CANCELLED':
+        return '#8b5cf6'; // Purple
+      default:
+        return '#9ca3af'; // Default gray
     }
   };
 
   const getRoleColor = (role) => {
-    return role === 'SENDER' ?  '#10b981' : '#06b6d4'; // Green for sender, Blue for receiver
+    return role === 'SENDER' ? '#10b981' : '#06b6d4'; // Green for sender, Blue for receiver
   };
 
   const formatAccountNumber = (accountNumber) => {
     if (!accountNumber) return 'N/A';
-    return (accountNumber.length > 8 ?
-      `${accountNumber.slice(0, 4)}...${accountNumber.slice(-4)}` :
-      accountNumber);
+    return accountNumber.length > 8
+      ? `${accountNumber.slice(0, 4)}...${accountNumber.slice(-4)}`
+      : accountNumber;
   };
 
   const isFilterActive = () => {
-    return filters.role !== 'ALL' ||
-           filters.status !== 'ALL' ||
-           filters.bank !== 'ALL';
+    return (
+      filters.role !== 'ALL' ||
+      filters.status !== 'ALL' ||
+      filters.bank !== 'ALL'
+    );
   };
 
   return (
@@ -348,7 +360,14 @@ export default function TransactionsPage() {
             },
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3,
+            }}
+          >
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Search Transactions
             </Typography>
@@ -360,7 +379,9 @@ export default function TransactionsPage() {
                     bgcolor: isFilterActive() ? 'primary.main' : 'transparent',
                     color: isFilterActive() ? 'white' : 'text.primary',
                     '&:hover': {
-                      bgcolor: isFilterActive() ? 'primary.dark' : 'action.hover',
+                      bgcolor: isFilterActive()
+                        ? 'primary.dark'
+                        : 'action.hover',
                     },
                   }}
                 >
@@ -368,10 +389,7 @@ export default function TransactionsPage() {
                 </IconButton>
               </Tooltip>
               <Tooltip title="Clear All">
-                <IconButton
-                  onClick={handleResetForm}
-                  color="secondary"
-                >
+                <IconButton onClick={handleResetForm} color="secondary">
                   <ClearIcon />
                 </IconButton>
               </Tooltip>
@@ -428,7 +446,9 @@ export default function TransactionsPage() {
                     <InputLabel>Role</InputLabel>
                     <Select
                       value={filters.role}
-                      onChange={(e) => handleFilterChange('role', e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange('role', e.target.value)
+                      }
                       label="Role"
                     >
                       {transactionRoles.map((role) => (
@@ -444,7 +464,9 @@ export default function TransactionsPage() {
                     <InputLabel>Status</InputLabel>
                     <Select
                       value={filters.status}
-                      onChange={(e) => handleFilterChange('status', e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange('status', e.target.value)
+                      }
                       label="Status"
                     >
                       {transactionStatuses.map((status) => (
@@ -460,11 +482,15 @@ export default function TransactionsPage() {
                     <InputLabel>Bank</InputLabel>
                     <Select
                       value={filters.bank}
-                      onChange={(e) => handleFilterChange('bank', e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange('bank', e.target.value)
+                      }
                       label="Bank"
                     >
                       <MenuItem value="ALL">All Banks</MenuItem>
-                      <MenuItem value={null}>Fintech Hub (FIN - System)</MenuItem>
+                      <MenuItem value={null}>
+                        Fintech Hub (FIN - System)
+                      </MenuItem>
                       {banks.map((bank) => (
                         <MenuItem key={bank.id} value={bank.id}>
                           {bank.bankName} ({bank.bankCode})
@@ -480,10 +506,17 @@ export default function TransactionsPage() {
                       format="DD/MM/YYYY"
                       value={filters.dateFrom ? dayjs(filters.dateFrom) : null}
                       onChange={(newValue) =>
-                        handleFilterChange('dateFrom', newValue ? newValue.format('YYYY-MM-DD') : null)
+                        handleFilterChange(
+                          'dateFrom',
+                          newValue ? newValue.format('YYYY-MM-DD') : null,
+                        )
                       }
                       slotProps={{
-                        textField: { variant: 'outlined', fullWidth: true, size: 'medium' },
+                        textField: {
+                          variant: 'outlined',
+                          fullWidth: true,
+                          size: 'medium',
+                        },
                       }}
                     />
                   </LocalizationProvider>
@@ -495,10 +528,17 @@ export default function TransactionsPage() {
                       format="DD/MM/YYYY"
                       value={filters.dateTo ? dayjs(filters.dateTo) : null}
                       onChange={(newValue) =>
-                        handleFilterChange('dateTo', newValue ? newValue.format('YYYY-MM-DD') : null)
+                        handleFilterChange(
+                          'dateTo',
+                          newValue ? newValue.format('YYYY-MM-DD') : null,
+                        )
                       }
                       slotProps={{
-                        textField: { variant: 'outlined', fullWidth: true, size: 'medium' },
+                        textField: {
+                          variant: 'outlined',
+                          fullWidth: true,
+                          size: 'medium',
+                        },
                       }}
                     />
                   </LocalizationProvider>
@@ -507,16 +547,22 @@ export default function TransactionsPage() {
             </Box>
           </Collapse>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}
+          >
             <Button
               onClick={handleSearch}
               color="primary"
               variant="contained"
               disabled={loading}
-              startIcon={loading ? <CircularProgress size={16} /> : <SearchIcon />}
+              startIcon={
+                loading ? <CircularProgress size={16} /> : <SearchIcon />
+              }
               sx={{
                 bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
-                '&:hover': { bgcolor: 'linear-gradient(to right, #0a8f63, #0590a8)' },
+                '&:hover': {
+                  bgcolor: 'linear-gradient(to right, #0a8f63, #0590a8)',
+                },
                 minWidth: 140,
               }}
             >
@@ -542,7 +588,13 @@ export default function TransactionsPage() {
           >
             {/* Results Header */}
             <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Transaction Results
@@ -552,7 +604,9 @@ export default function TransactionsPage() {
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Tooltip title={`${sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}`}>
+                  <Tooltip
+                    title={`${sortOrder === 'desc' ? 'Newest First' : 'Oldest First'}`}
+                  >
                     <IconButton
                       onClick={toggleSortOrder}
                       sx={{
@@ -561,7 +615,11 @@ export default function TransactionsPage() {
                         '&:hover': { bgcolor: 'primary.dark' },
                       }}
                     >
-                      {sortOrder === 'desc' ? <ArrowDownwardIcon /> : <ArrowUpwardIcon />}
+                      {sortOrder === 'desc' ? (
+                        <ArrowDownwardIcon />
+                      ) : (
+                        <ArrowUpwardIcon />
+                      )}
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -583,14 +641,62 @@ export default function TransactionsPage() {
                   <Table stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>ID</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', textAlign: 'center' }}>Type</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', textAlign: 'center' }}>Role</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>From</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>To</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper' }}>Amount</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', textAlign: 'center' }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 600, bgcolor: 'background.paper', textAlign: 'right' }}>Date</TableCell>
+                        <TableCell
+                          sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
+                        >
+                          ID
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            bgcolor: 'background.paper',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Type
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            bgcolor: 'background.paper',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Role
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
+                        >
+                          From
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
+                        >
+                          To
+                        </TableCell>
+                        <TableCell
+                          sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
+                        >
+                          Amount
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            bgcolor: 'background.paper',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Status
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            bgcolor: 'background.paper',
+                            textAlign: 'right',
+                          }}
+                        >
+                          Date
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -603,7 +709,10 @@ export default function TransactionsPage() {
                         >
                           <TableCell>
                             <Tooltip title={tx.id}>
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontFamily: 'monospace' }}
+                              >
                                 {tx.id.slice(0, 5)}...
                               </Typography>
                             </Tooltip>
@@ -613,32 +722,59 @@ export default function TransactionsPage() {
                               size="small"
                               variant="outlined"
                               label={getTypeLabel(tx.transactionType)}
-                              sx={{ borderColor: getTypeColor(tx.transactionType), color: getTypeColor(tx.transactionType) }}
+                              sx={{
+                                borderColor: getTypeColor(tx.transactionType),
+                                color: getTypeColor(tx.transactionType),
+                              }}
                             />
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
                             <Chip
                               label={getTypeLabel(tx.role)}
                               size="small"
-                              sx={{ background: getRoleColor(tx.role), color: 'white', fontWeight: 600 }}
+                              sx={{
+                                background: getRoleColor(tx.role),
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
                             />
                           </TableCell>
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                {formatAccountNumber(tx.fromAccountNumber)} {(tx.fromAccountNumber === form.accountNumber && !tx.fromBankId) ? ' (Self)' : ''}
+                              <Typography
+                                variant="body2"
+                                sx={{ fontFamily: 'monospace' }}
+                              >
+                                {formatAccountNumber(tx.fromAccountNumber)}{' '}
+                                {tx.fromAccountNumber === form.accountNumber &&
+                                !tx.fromBankId
+                                  ? ' (Self)'
+                                  : ''}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
                                 {getBankName(tx.fromBankId)}
                               </Typography>
                             </Box>
                           </TableCell>
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                                {formatAccountNumber(tx.toAccountNumber)} {(tx.toAccountNumber === form.accountNumber && !tx.toBankId) ? ' (Self)' : ''}
+                              <Typography
+                                variant="body2"
+                                sx={{ fontFamily: 'monospace' }}
+                              >
+                                {formatAccountNumber(tx.toAccountNumber)}{' '}
+                                {tx.toAccountNumber === form.accountNumber &&
+                                !tx.toBankId
+                                  ? ' (Self)'
+                                  : ''}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
                                 {getBankName(tx.toBankId)}
                               </Typography>
                             </Box>
@@ -648,25 +784,40 @@ export default function TransactionsPage() {
                               variant="body2"
                               sx={{
                                 fontWeight: 600,
-                                color: tx.role === 'SENDER' ? 'error.main' : 'success.main',
+                                color:
+                                  tx.role === 'SENDER'
+                                    ? 'error.main'
+                                    : 'success.main',
                               }}
                             >
-                              {tx.role === 'SENDER' ? <ArrowDownwardIcon fontSize="small" /> : <ArrowUpwardIcon fontSize="small" />}{formatVND(tx.amount)}
+                              {tx.role === 'SENDER' ? (
+                                <ArrowDownwardIcon fontSize="small" />
+                              ) : (
+                                <ArrowUpwardIcon fontSize="small" />
+                              )}
+                              {formatVND(tx.amount)}
                             </Typography>
                           </TableCell>
                           <TableCell sx={{ textAlign: 'center' }}>
                             <Chip
                               label={tx.status}
                               size="small"
-                              sx={{ background: getStatusColor(tx.status), color: 'white', fontWeight: 600}}
+                              sx={{
+                                background: getStatusColor(tx.status),
+                                color: 'white',
+                                fontWeight: 600,
+                              }}
                             />
                           </TableCell>
-                          <TableCell  sx={{ textAlign: 'right' }}>
+                          <TableCell sx={{ textAlign: 'right' }}>
                             <Box>
                               <Typography variant="body2">
                                 {dayjs(tx.updatedAt).format('DD/MM/YYYY')}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
                                 {dayjs(tx.updatedAt).format('HH:mm:ss')}
                               </Typography>
                             </Box>

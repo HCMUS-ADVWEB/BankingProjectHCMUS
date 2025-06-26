@@ -189,7 +189,7 @@ export default function TransferPage() {
         sx={{
           width: '100%',
           height: '100%',
-          minHeight: 'calc(100vh - 64px)' /* Adjust based on header height */,
+          minHeight: 'calc(100vh - 64px)',
           bgcolor: 'background.default',
           py: 4,
           display: 'flex',

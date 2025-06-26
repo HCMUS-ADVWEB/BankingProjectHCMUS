@@ -54,7 +54,9 @@ const EmployeeDetailContext = createContext();
 export const useEmployeeDetail = () => {
   const context = useContext(EmployeeDetailContext);
   if (!context) {
-    throw new Error('useEmployeeDetail must be used within an EmployeeDetailProvider');
+    throw new Error(
+      'useEmployeeDetail must be used within an EmployeeDetailProvider',
+    );
   }
   return context;
 };
@@ -70,7 +72,8 @@ export const EmployeeDetailProvider = ({ children }) => {
     if (error.response) {
       const status = error.response.status;
       const msg = error.response.data?.message;
-      const timestamp = error.response.data?.timestamp || new Date().toISOString();
+      const timestamp =
+        error.response.data?.timestamp || new Date().toISOString();
 
       console.error(`Error ${status}: ${msg} at ${timestamp}`);
       errorMessage = msg || `HTTP ${status} Error`;
@@ -101,30 +104,33 @@ export const EmployeeDetailProvider = ({ children }) => {
   }, []);
 
   // Fetch employee by ID
-  const fetchEmployee = useCallback(async (employeeId) => {
-    if (!employeeId) {
-      dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
-      return null;
-    }
+  const fetchEmployee = useCallback(
+    async (employeeId) => {
+      if (!employeeId) {
+        dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
+        return null;
+      }
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
 
-    try {
-      const response = await AdminService.fetchEmployeeById(employeeId);
-      const employee = response.data;
+      try {
+        const response = await AdminService.fetchEmployeeById(employeeId);
+        const employee = response.data;
 
-      dispatch({ type: 'SET_EMPLOYEE', payload: employee });
-      dispatch({ type: 'SET_EDITED_EMPLOYEE', payload: { ...employee } });
+        dispatch({ type: 'SET_EMPLOYEE', payload: employee });
+        dispatch({ type: 'SET_EDITED_EMPLOYEE', payload: { ...employee } });
 
-      return employee;
-    } catch (error) {
-      handleApiError(error);
-      return null;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError]);
+        return employee;
+      } catch (error) {
+        handleApiError(error);
+        return null;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError],
+  );
 
   // Initialize employee data (can be from props or fetch)
   const initializeEmployee = useCallback((employee) => {
@@ -136,73 +142,79 @@ export const EmployeeDetailProvider = ({ children }) => {
   }, []);
 
   // Update employee
-  const updateEmployee = useCallback(async (employeeId, updateData) => {
-    if (!employeeId) {
-      dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
-      return false;
-    }
-
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
-
-    try {
-      const payload = {
-        ...updateData,
-        dob: updateData.dob ? new Date(updateData.dob).toISOString() : null,
-      };
-
-      await AdminService.updateEmployee(employeeId, payload);
-
-      const updatedEmployee = {
-        ...updateData,
-        id: employeeId,
-        updatedAt: new Date().toISOString(),
-      };
-
-      dispatch({ type: 'SET_EMPLOYEE', payload: updatedEmployee });
-      dispatch({ type: 'SET_EDIT_MODE', payload: false });
-
-      // Update auth context if editing current user
-      if (authState.user && authState.user.id === employeeId) {
-        const profileUpdate = {
-          ...updatedEmployee,
-          role: updatedEmployee.role.toLowerCase(),
-        };
-        await updateProfile(profileUpdate);
+  const updateEmployee = useCallback(
+    async (employeeId, updateData) => {
+      if (!employeeId) {
+        dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
+        return false;
       }
 
-      setSuccessWithTimeout('Employee updated successfully!');
-      return true;
-    } catch (error) {
-      handleApiError(error);
-      return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError, setSuccessWithTimeout, authState.user, updateProfile]);
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      try {
+        const payload = {
+          ...updateData,
+          dob: updateData.dob ? new Date(updateData.dob).toISOString() : null,
+        };
+
+        await AdminService.updateEmployee(employeeId, payload);
+
+        const updatedEmployee = {
+          ...updateData,
+          id: employeeId,
+          updatedAt: new Date().toISOString(),
+        };
+
+        dispatch({ type: 'SET_EMPLOYEE', payload: updatedEmployee });
+        dispatch({ type: 'SET_EDIT_MODE', payload: false });
+
+        // Update auth context if editing current user
+        if (authState.user && authState.user.id === employeeId) {
+          const profileUpdate = {
+            ...updatedEmployee,
+            role: updatedEmployee.role.toLowerCase(),
+          };
+          await updateProfile(profileUpdate);
+        }
+
+        setSuccessWithTimeout('Employee updated successfully!');
+        return true;
+      } catch (error) {
+        handleApiError(error);
+        return false;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError, setSuccessWithTimeout, authState.user, updateProfile],
+  );
 
   // Delete employee
-  const deleteEmployee = useCallback(async (employeeId) => {
-    if (!employeeId) {
-      dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
-      return false;
-    }
+  const deleteEmployee = useCallback(
+    async (employeeId) => {
+      if (!employeeId) {
+        dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
+        return false;
+      }
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
 
-    try {
-      await AdminService.deleteEmployee(employeeId);
-      setSuccessWithTimeout('Employee deleted successfully!');
-      return true;
-    } catch (error) {
-      handleApiError(error);
-      return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-      dispatch({ type: 'SET_DELETE_DIALOG', payload: false });
-    }
-  }, [handleApiError, setSuccessWithTimeout]);
+      try {
+        await AdminService.deleteEmployee(employeeId);
+        setSuccessWithTimeout('Employee deleted successfully!');
+        return true;
+      } catch (error) {
+        handleApiError(error);
+        return false;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_DELETE_DIALOG', payload: false });
+      }
+    },
+    [handleApiError, setSuccessWithTimeout],
+  );
 
   // Edit mode handlers
   const enableEditMode = useCallback(() => {
@@ -227,16 +239,19 @@ export const EmployeeDetailProvider = ({ children }) => {
   }, [state.employee?.id, state.editedEmployee, updateEmployee]);
 
   // Form field handlers
-  const updateEditedEmployeeField = useCallback((field, value) => {
-    dispatch({
-      type: 'UPDATE_EDITED_EMPLOYEE',
-      payload: { [field]: value },
-    });
-    // Clear field-specific error if exists
-    if (state.error) {
-      dispatch({ type: 'CLEAR_ERROR' });
-    }
-  }, [state.error]);
+  const updateEditedEmployeeField = useCallback(
+    (field, value) => {
+      dispatch({
+        type: 'UPDATE_EDITED_EMPLOYEE',
+        payload: { [field]: value },
+      });
+      // Clear field-specific error if exists
+      if (state.error) {
+        dispatch({ type: 'CLEAR_ERROR' });
+      }
+    },
+    [state.error],
+  );
 
   const updateEditedEmployee = useCallback((updates) => {
     dispatch({ type: 'UPDATE_EDITED_EMPLOYEE', payload: updates });
@@ -250,7 +265,6 @@ export const EmployeeDetailProvider = ({ children }) => {
   const hideDeleteDialog = useCallback(() => {
     dispatch({ type: 'SET_DELETE_DIALOG', payload: false });
   }, []);
-
 
   // Validation helpers
   const validateEmployeeData = useCallback((employeeData) => {
@@ -338,7 +352,6 @@ export const EmployeeDetailProvider = ({ children }) => {
     clearSuccess,
     handleApiError,
   };
-
 
   return (
     <EmployeeDetailContext.Provider value={contextValue}>

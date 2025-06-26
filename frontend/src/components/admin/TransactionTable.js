@@ -42,7 +42,10 @@ function TransactionTable({ transactions }) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} sx={{ color: 'text.secondary', textAlign: 'center' }}>
+              <TableCell
+                colSpan={5}
+                sx={{ color: 'text.secondary', textAlign: 'center' }}
+              >
                 No transactions found.
               </TableCell>
             </TableRow>

@@ -74,6 +74,7 @@ export default function TransactionsPage() {
         {/* Header Section */}
         <Box
           sx={{
+            height: '100%',
             mb: 6,
             p: 4,
             borderRadius: 'shape.borderRadius',

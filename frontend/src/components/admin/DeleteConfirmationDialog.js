@@ -14,21 +14,15 @@ export default function DeleteConfirmationDialog({
 }) {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>
-                Confirm Delete
-      </DialogTitle>
+      <DialogTitle>Confirm Delete</DialogTitle>
       <DialogContent>
-                Are you sure you want to delete employee <strong>{employeeName}</strong>?
+        Are you sure you want to delete employee <strong>{employeeName}</strong>
+        ?
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>
-                    Cancel
-        </Button>
-        <Button
-          onClick={onConfirm}
-          sx={{ color: '#f44336' }}
-        >
-                    Delete
+        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onConfirm} sx={{ color: '#f44336' }}>
+          Delete
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,14 +1,6 @@
 import api from '../../utils/api';
-// TransferService.js
-// Service for money transfer-related API calls
 
 const TransferService = {
-  /**
-   * Fetch recipient list for transfers
-   * @param {number} limit - Number of items per page
-   * @param {number} page - Page number (1-based)
-   * @returns {Promise} Promise containing the recipients data
-   */
   async getRecipients(limit = 20, page = 1) {
     return api
       .get('/api/recipients', {
@@ -21,13 +13,6 @@ const TransferService = {
       });
   },
 
-  /**
-   * Request OTP for transaction
-   * @param {string} userId - User ID
-   * @param {string} email - User email
-   * @param {string} otpType - Type of OTP (e.g., 'TRANSFER')
-   * @returns {Promise} Promise containing the OTP request result
-   */
   async requestOtp(userId, email, otpType = 'TRANSFER') {
     return api
       .post('/api/otp', {
@@ -42,11 +27,6 @@ const TransferService = {
       });
   },
 
-  /**
-   * Perform internal transfer (within the same bank)
-   * @param {Object} transferData - Transfer data
-   * @returns {Promise} Promise containing the transfer result
-   */
   async internalTransfer(transferData) {
     return api
       .post('/api/transactions/internal', transferData)
@@ -57,11 +37,6 @@ const TransferService = {
       });
   },
 
-  /**
-   * Perform external transfer (to another bank)
-   * @param {Object} transferData - Transfer data
-   * @returns {Promise} Promise containing the transfer result
-   */
   async externalTransfer(transferData) {
     return api
       .post('/api/transactions/external', transferData)
@@ -72,11 +47,6 @@ const TransferService = {
       });
   },
 
-  /**
-   * Save a new recipient
-   * @param {Object} recipientData - Recipient data
-   * @returns {Promise} Promise containing the save recipient result
-   */
   async saveRecipient(recipientData) {
     return api
       .post('/api/recipients', recipientData)

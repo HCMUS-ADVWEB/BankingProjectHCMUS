@@ -22,7 +22,8 @@ const transactionReducer = (state, action) => {
     case 'SET_STATISTICS':
       return {
         ...state,
-        statistics: action.payload };
+        statistics: action.payload,
+      };
     case 'RESET_STATE':
       return { ...initialState };
     default:
@@ -60,7 +61,8 @@ export const TransactionProvider = ({ children }) => {
     if (error.response) {
       const status = error.response.status;
       const msg = error.response.data?.message;
-      const timestamp = error.response.data?.timestamp || new Date().toISOString();
+      const timestamp =
+        error.response.data?.timestamp || new Date().toISOString();
       console.error(`Error ${status}: ${msg} at ${timestamp}`);
       errorMessage = msg || `HTTP ${status} Error`;
     } else if (error.request) {
@@ -89,45 +91,51 @@ export const TransactionProvider = ({ children }) => {
     }
   }, [handleApiError]);
 
-  const fetchTransactions = useCallback(async (params) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
-    try {
-      const response = await AdminService.fetchBankTransactions(params);
-      dispatch({
-        type: 'SET_TRANSACTIONS',
-        payload: {
-          data: response.data,
-          page: params.page,
-          limit: params.limit,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-      return [];
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError]);
+  const fetchTransactions = useCallback(
+    async (params) => {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+      try {
+        const response = await AdminService.fetchBankTransactions(params);
+        dispatch({
+          type: 'SET_TRANSACTIONS',
+          payload: {
+            data: response.data,
+            page: params.page,
+            limit: params.limit,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        handleApiError(error);
+        return [];
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError],
+  );
 
-  const fetchStatistics = useCallback(async (params) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
-    try {
-      const response = await AdminService.fetchTransactionStatistics(params);
-      dispatch({
-        type: 'SET_STATISTICS',
-        payload: response.data,
-      });
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-      return null;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError]);
+  const fetchStatistics = useCallback(
+    async (params) => {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+      try {
+        const response = await AdminService.fetchTransactionStatistics(params);
+        dispatch({
+          type: 'SET_STATISTICS',
+          payload: response.data,
+        });
+        return response.data;
+      } catch (error) {
+        handleApiError(error);
+        return null;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError],
+  );
 
   const resetState = useCallback(() => {
     dispatch({ type: 'RESET_STATE' });

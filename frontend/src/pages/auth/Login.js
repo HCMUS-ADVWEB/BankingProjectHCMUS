@@ -109,7 +109,6 @@ export default function LoginPage() {
             }
           }
         }, 500);
-
       } catch (error) {
         // On login failure, reset reCAPTCHA after a delay
         setTimeout(() => {
@@ -118,7 +117,10 @@ export default function LoginPage() {
               recaptchaRef.current.reset();
               formik.setFieldValue('recaptcha', '');
             } catch (resetError) {
-              console.warn('Error resetting reCAPTCHA after login failure:', resetError);
+              console.warn(
+                'Error resetting reCAPTCHA after login failure:',
+                resetError,
+              );
               formik.setFieldValue('recaptcha', '');
             }
           }

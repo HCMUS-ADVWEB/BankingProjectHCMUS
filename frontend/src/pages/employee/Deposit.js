@@ -24,7 +24,17 @@ import {
 import { useDeposit } from '../../contexts/employee/DepositContext';
 
 export default function DepositPage() {
-  const { form, setForm, handleDepositAccount, loading, error, success, formatVND, resetForm, clearMessages } = useDeposit();
+  const {
+    form,
+    setForm,
+    handleDepositAccount,
+    loading,
+    error,
+    success,
+    formatVND,
+    resetForm,
+    clearMessages,
+  } = useDeposit();
   const [formErrors, setFormErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [buttonPulse, setButtonPulse] = useState(false);
@@ -116,7 +126,13 @@ export default function DepositPage() {
         >
           <Typography
             variant="h3"
-            sx={{ fontWeight: 700, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center' }}
+            sx={{
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1,
+              display: 'flex',
+              alignItems: 'center',
+            }}
           >
             <Avatar
               sx={{
@@ -160,7 +176,9 @@ export default function DepositPage() {
                 variant="outlined"
                 fullWidth
                 value={form.accountNumberReceiver}
-                onChange={(e) => setForm({ accountNumberReceiver: e.target.value })}
+                onChange={(e) =>
+                  setForm({ accountNumberReceiver: e.target.value })
+                }
                 error={!!formErrors.accountNumberReceiver}
                 helperText={formErrors.accountNumberReceiver}
                 slotProps={{

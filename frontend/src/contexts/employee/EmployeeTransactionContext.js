@@ -40,7 +40,10 @@ const initialState = {
 
 export const useEmployeeTransaction = () => {
   const context = useContext(EmployeeTransactionContext);
-  if (!context) throw new Error('useEmployeeTransaction must be used within EmployeeTransactionProvider');
+  if (!context)
+    throw new Error(
+      'useEmployeeTransaction must be used within EmployeeTransactionProvider',
+    );
   return context;
 };
 
@@ -55,7 +58,8 @@ export const EmployeeTransactionProvider = ({ children }) => {
       dispatch({ type: 'SET_BANKS', payload: res.data });
       return true;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to fetch banks';
+      const errorMessage =
+        err.response?.data?.message || 'Failed to fetch banks';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return false;
     } finally {
@@ -72,19 +76,27 @@ export const EmployeeTransactionProvider = ({ children }) => {
       const query = {
         limit: 1000000,
         pn: 1,
-        type: state.form.type === 'ALL' || state.form.type === null ? undefined : state.form.type,
+        type:
+          state.form.type === 'ALL' || state.form.type === null
+            ? undefined
+            : state.form.type,
       };
-      const res = await EmployeeService.fetchTransactions(state.form.accountNumber, query);
+      const res = await EmployeeService.fetchTransactions(
+        state.form.accountNumber,
+        query,
+      );
       dispatch({ type: 'SET_TRANSACTIONS', payload: res.transactions });
       dispatch({
         type: 'SET_SUCCESS',
-        payload: res.transactions.length > 0
-          ? 'Transactions fetched successfully!'
-          : 'No transactions found for this account.',
+        payload:
+          res.transactions.length > 0
+            ? 'Transactions fetched successfully!'
+            : 'No transactions found for this account.',
       });
       return true;
     } catch (err) {
-      const errorMessage =  err.response?.data?.message || 'Failed to fetch transactions';
+      const errorMessage =
+        err.response?.data?.message || 'Failed to fetch transactions';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       dispatch({ type: 'SET_TRANSACTIONS', payload: [] });
       return false;

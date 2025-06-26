@@ -1,12 +1,11 @@
-import {
-  Box,
-  Typography,
-  Button,
-} from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../layouts/AdminLayout';
 import { useEffect } from 'react';
-import { useEmployeeManagement, EmployeeManagementProvider } from '../../contexts/admin/EmployeeManagementContext';
+import {
+  useEmployeeManagement,
+  EmployeeManagementProvider,
+} from '../../contexts/admin/EmployeeManagementContext';
 import AddEmployeeDialog from '../../components/admin/AddEmployeeDialog';
 import DeleteConfirmationDialog from '../../components/admin/DeleteConfirmationDialog';
 import ErrorSuccessMessage from '../../components/ErrorSuccessMessage';
@@ -74,7 +73,6 @@ function EmployeesContent() {
     navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } });
   };
 
-
   const handleDeleteClick = (e, employee) => {
     e.stopPropagation();
     openDeleteDialog(employee);
@@ -96,14 +94,16 @@ function EmployeesContent() {
   return (
     <AdminLayout>
       <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">
-            Employee List
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={openAddDialog}
-          >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <Typography variant="h4">Employee List</Typography>
+          <Button variant="contained" onClick={openAddDialog}>
             Add Employee
           </Button>
         </Box>
@@ -131,7 +131,9 @@ function EmployeesContent() {
 
         <EmployeeTable
           employees={getPaginatedEmployees()}
-          onRowClick={(emp) => navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })}
+          onRowClick={(emp) =>
+            navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })
+          }
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
           pagination={{

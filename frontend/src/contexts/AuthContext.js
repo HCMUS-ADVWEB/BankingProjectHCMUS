@@ -80,16 +80,19 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      const response = await axios.post(`${BASE_URL}/api/auth/login`, {
-        username,
-        password,
-        token: recaptcha,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axios.post(
+        `${BASE_URL}/api/auth/login`,
+        {
+          username,
+          password,
+          token: recaptcha,
         },
-      });
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
       const { status, message, data, timestamp } = response.data;
       const accessToken = data?.accessToken || '';
       const refreshToken = data?.refreshToken || '';
@@ -100,14 +103,18 @@ export const AuthProvider = ({ children }) => {
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
-        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        const timestamp =
+          error.response.data?.timestamp || new Date().toISOString();
         console.error(`Error ${status}: ${msg} at ${timestamp}`);
         dispatch({
           type: 'LOGIN_FAILURE',
           payload: msg || 'Login failed',
         });
       } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
+        console.error(
+          'Network error or no response from server:',
+          error.request,
+        );
         dispatch({
           type: 'LOGIN_FAILURE',
           payload: 'Network error or no response from server',
@@ -139,14 +146,18 @@ export const AuthProvider = ({ children }) => {
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
-        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        const timestamp =
+          error.response.data?.timestamp || new Date().toISOString();
         console.error(`Error ${status}: ${msg} at ${timestamp}`);
         dispatch({
           type: 'LOGIN_FAILURE',
           payload: msg || 'Login failed',
         });
       } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
+        console.error(
+          'Network error or no response from server:',
+          error.request,
+        );
         dispatch({
           type: 'LOGIN_FAILURE',
           payload: 'Network error or no response from server',
