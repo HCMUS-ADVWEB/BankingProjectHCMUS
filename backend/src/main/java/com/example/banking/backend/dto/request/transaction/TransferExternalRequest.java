@@ -17,11 +17,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Schema(description = "Request to make an external transaction with this information")
 public class TransferExternalRequest  {
-    @NotBlank(message = "Sender account number is required")
-    @Schema(description = "Sender's account number",
-            example = "5873160242223846",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-    private String senderAccountNumber;
+//    @NotBlank(message = "Sender account number is required")
+//    @Schema(description = "Sender's account number",
+//            example = "5873160242223846",
+//            requiredMode = Schema.RequiredMode.REQUIRED)
+//    private String senderAccountNumber;
 
     @NotBlank(message = "Receiver account number is required")
     @Schema(description = "Receiver's account number",
@@ -41,6 +41,13 @@ public class TransferExternalRequest  {
             example = "Tra tien lien ngan hang",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String content;
+
+    @NotNull(message = "Transaction's feeType can not be null")
+    @NotEmpty(message = "Transaction's feeType can not be empty")
+    @Schema(description = "Fee Type ",
+            example = "Sender",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    private String feeType;
 
     @NotNull(message = "OTP can not be null")
     @NotEmpty(message = "OTP can not be empty")

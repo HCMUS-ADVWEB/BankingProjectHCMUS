@@ -18,9 +18,9 @@ import java.util.UUID;
 @Data
 @Schema(description = "transaction list")
 public class TransactionInfoDto {
-    @Schema(description = "Transaction's id",
-            example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
-    private UUID id;
+//    @Schema(description = "Transaction's id",
+//            example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
+//    private UUID id;
 
     @Schema(description = "Transaction type",
             example = "INTERNAL_TRANSFER")
