@@ -26,7 +26,7 @@ import {
   Lock as PasswordIcon,
   Clear as ClearIcon,
   Check as CheckIcon,
-  Visibility as  VisibilityIcon,
+  Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -44,7 +44,16 @@ const passwordRequirements = [
 ];
 
 export default function AccountsPage() {
-  const { form, loading, error, success, setForm, handleCreateAccount, resetForm, clearMessages } = useCreateAccount();
+  const {
+    form,
+    loading,
+    error,
+    success,
+    setForm,
+    handleCreateAccount,
+    resetForm,
+    clearMessages,
+  } = useCreateAccount();
   const [formErrors, setFormErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -59,18 +68,25 @@ export default function AccountsPage() {
     const errors = {};
     if (!form.fullName?.trim()) errors.fullName = 'Full name is required';
     if (!form.email?.trim()) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = 'Email is invalid';
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      errors.email = 'Email is invalid';
     if (!form.phone?.trim()) errors.phone = 'Phone is required';
-    else if (!/^(0[0-9]{9})$/.test(form.phone)) errors.phone = 'Phone must be 10 digits starting with 0';
+    else if (!/^(0[0-9]{9})$/.test(form.phone))
+      errors.phone = 'Phone must be 10 digits starting with 0';
     if (!form.address?.trim()) errors.address = 'Address is required';
     if (!form.dob) errors.dob = 'Date of birth is required';
     if (!form.username?.trim()) errors.username = 'Username is required';
     if (!form.password?.trim()) errors.password = 'Password is required';
-    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(form.password)) {
+    else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        form.password,
+      )
+    ) {
       const failedReqs = passwordRequirements
         .filter(({ test }) => !test(form.password))
         .map(({ message }) => message)
-        .join(', ').toLowerCase();
+        .join(', ')
+        .toLowerCase();
       errors.password = `Password conditions: ${failedReqs}`;
     }
     setFormErrors(errors);
@@ -159,7 +175,13 @@ export default function AccountsPage() {
         >
           <Typography
             variant="h3"
-            sx={{ fontWeight: 700, color: 'text.primary', mb: 1, display: 'flex', alignItems: 'center' }}
+            sx={{
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1,
+              display: 'flex',
+              alignItems: 'center',
+            }}
           >
             <Avatar
               sx={{
@@ -267,7 +289,9 @@ export default function AccountsPage() {
                   format="DD/MM/YYYY"
                   value={form.dob ? dayjs(form.dob) : null}
                   onChange={(newValue) => {
-                    const formattedDate = newValue ? newValue.format('YYYY-MM-DD') : '';
+                    const formattedDate = newValue
+                      ? newValue.format('YYYY-MM-DD')
+                      : '';
                     setForm({ dob: formattedDate });
                   }}
                   slotProps={{
@@ -356,11 +380,12 @@ export default function AccountsPage() {
                     ),
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton
-                          onClick={handleTogglePassword}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        <IconButton onClick={handleTogglePassword} edge="end">
+                          {showPassword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -457,7 +482,11 @@ export default function AccountsPage() {
                 <ClearIcon fontSize="small" />
               </IconButton>
             </Box>
-            <Typography component="span" variant="body1" sx={{ color: 'text.secondary', mt: 1 }}>
+            <Typography
+              component="span"
+              variant="body1"
+              sx={{ color: 'text.secondary', mt: 1 }}
+            >
               The account number for the newly created customer is &nbsp;
             </Typography>
             <Typography
