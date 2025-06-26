@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import { AdminService } from '../services/AdminService';
-import { useAuth } from './AuthContext';
+import { AdminService } from '../../services/AdminService';
+import { useAuth } from '../AuthContext';
 
 // Employee Detail reducer for state management
 const employeeDetailReducer = (state, action) => {

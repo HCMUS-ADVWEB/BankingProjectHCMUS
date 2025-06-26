@@ -21,7 +21,7 @@ export default function EmployeeTable({
 }) {
     return (
         <>
-            <TableContainer component={Paper} sx={{ bgcolor: "#1e1e1e" }}>
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>

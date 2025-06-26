@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import { AdminService } from '../services/AdminService';
+import { AdminService } from '../../services/AdminService';
 
 // Employee Management reducer for state management
 const employeeManagementReducer = (state, action) => {
@@ -485,7 +485,7 @@ export const EmployeeManagementProvider = ({ children }) => {
   // Auto-fetch employees on filter/sort changes
   useEffect(() => {
     fetchEmployees();
-  }, [state.filters, state.sort]); // Note: fetchEmployees is not included to avoid infinite loop
+  }, [state.filters, state.sort, fetchEmployees]); // Note: fetchEmployees is not included to avoid infinite loop
 
   const contextValue = {
     // State

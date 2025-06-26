@@ -7,9 +7,9 @@ import {
 import AdminLayout from "../../layouts/AdminLayout";
 import { useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useEmployeeDetail, EmployeeDetailProvider } from "../../contexts/EmployeeDetailContext";
-import EmployeeDetailCard from "../../components/EmployeeDetailCard";
-import DeleteConfirmationDialog from "../../components/DeleteConfirmationDialog";
+import { useEmployeeDetail, EmployeeDetailProvider } from "../../contexts/admin/EmployeeDetailContext";
+import EmployeeDetailCard from "../../components/admin/EmployeeDetailCard";
+import DeleteConfirmationDialog from "../../components/admin/DeleteConfirmationDialog";
 import Loading from "../../components/Loading";
 import NotFound from "../../components/NotFound";
 import ErrorSuccessMessage from "../../components/ErrorSuccessMessage";
@@ -45,9 +45,6 @@ function EmployeeDetailContent() {
         // Dialog operations
         showDeleteDialog,
         hideDeleteDialog,
-        
-        // Utility functions
-        clearError,
 
         resetState,
     } = useEmployeeDetail();

@@ -5,23 +5,16 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../layouts/AdminLayout";
-import { useEffect, useRef } from "react";
-import { useEmployeeManagement, EmployeeManagementProvider } from '../../contexts/EmployeeManagementContext';
-import AddEmployeeDialog from "../../components/AddEmployeeDialog";
-import DeleteConfirmationDialog from "../../components/DeleteConfirmationDialog";
+import { useEffect } from "react";
+import { useEmployeeManagement, EmployeeManagementProvider } from '../../contexts/admin/EmployeeManagementContext';
+import AddEmployeeDialog from "../../components/admin/AddEmployeeDialog";
+import DeleteConfirmationDialog from "../../components/admin/DeleteConfirmationDialog";
 import ErrorSuccessMessage from "../../components/ErrorSuccessMessage";
-import EmployeeTable from "../../components/EmployeeTable";
+import EmployeeTable from "../../components/admin/EmployeeTable";
 import Loading from "../../components/Loading";
 
 function EmployeesContent() {
   const navigate = useNavigate();
-  const usernameRef = useRef();
-  const passwordRef = useRef();
-  const fullNameRef = useRef();
-  const emailRef = useRef();
-  const phoneRef = useRef();
-  const addressRef = useRef();
-  const dobRef = useRef();
 
   const {
     // State
@@ -55,21 +48,11 @@ function EmployeesContent() {
     openDeleteDialog,
     closeDeleteDialog,
     togglePasswordVisibility,
-
-    // Utility functions
-    clearError,
-    clearSuccess,
-    clearFormErrors,
   } = useEmployeeManagement();
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    updateNewEmployeeField(name, value);
-  };
 
   const handleAddEmployee = async () => {
     const result = await createEmployee();
