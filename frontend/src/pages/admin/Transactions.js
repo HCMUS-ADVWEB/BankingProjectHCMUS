@@ -57,6 +57,7 @@ function TransactionsPageContent() {
       limit: rowsPerPage,
       page,
     });
+
   }, [selectedBank, selectedDate, page, rowsPerPage, fetchTransactions, fetchStatistics, endDate, startDate]);
 
   const handleBankChange = (value) => {
@@ -96,7 +97,7 @@ function TransactionsPageContent() {
             onDateChange={handleDateChange}
           />
 
-          <TransactionSummary statistics={statistics.totalAmount} />
+          <TransactionSummary statistics={statistics ? statistics.totalAmount : 0} />
 
           {error ? (
             <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>
@@ -105,7 +106,7 @@ function TransactionsPageContent() {
               <TransactionTable transactions={transactions} />
               
               <TransactionPagination
-                totalRecords={statistics.totalTransactions}
+                totalRecords={statistics ? statistics.totalTransactions : 0}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={handlePageChange}

@@ -7,10 +7,7 @@ import com.example.banking.backend.dto.request.account.AccountInfoRequest;
 import com.example.banking.backend.dto.request.account.CreateCustomerRequest;
 import com.example.banking.backend.dto.request.auth.CreateUserRequest;
 import com.example.banking.backend.dto.request.user.UpdateUserRequest;
-import com.example.banking.backend.dto.response.account.AccountInfoResult;
-import com.example.banking.backend.dto.response.account.CreateCustomerAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountResponse;
-import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
+import com.example.banking.backend.dto.response.account.*;
 import com.example.banking.backend.dto.response.user.UserDto;
 import com.example.banking.backend.exception.BadRequestException;
 import com.example.banking.backend.exception.ExistenceException;
@@ -108,9 +105,22 @@ public class AccountServiceImpl implements AccountService {
     public ApiResponse<GetAccountTransactionsResponse> getAccountTransactions(String accountNumber, Integer size, Integer pagination, TransactionType type) {
         Account account = accountRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException("Account not found!"));
 
-        Account accountTransaction = accountRepository.getPaginatedTransactions(account.getAccountId(), pagination, size, type);
+        PaginatedAccountTransactionDto paginatedDto = accountRepository.getPaginatedTransactions(
+                account.getAccountId(),
+                pagination,
+                size,
+                type
+        );
 
-        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
+        if (paginatedDto == null) {
+            throw new NotFoundException("Account not found!");
+        }
+
+        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(
+                paginatedDto.getAccount(),
+                paginatedDto.getTotalTransactions(),
+                paginatedDto.getTotalPages()
+        );
 
         return ApiResponse.<GetAccountTransactionsResponse>builder()
                 .data(accountTransactionsResponse)
@@ -125,13 +135,22 @@ public class AccountServiceImpl implements AccountService {
             throw new IllegalArgumentException("Limit must be positive and page must be 1 or greater");
         }
 
-        Account account = accountRepository.getPaginatedTransactions(getAccountCurrentUser().getAccountId(), pagination, size, type);
+        PaginatedAccountTransactionDto paginatedDto = accountRepository.getPaginatedTransactions(
+                getAccountCurrentUser().getAccountId(),
+                pagination,
+                size,
+                type
+        );
 
-        if (account == null) {
+        if (paginatedDto == null) {
             throw new NotFoundException("Account not found!");
         }
 
-        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(account);
+        GetAccountTransactionsResponse accountTransactionsResponse = AccountMapper.INSTANCE.accountToGetAccountTransactionsResponse(
+                paginatedDto.getAccount(),
+                paginatedDto.getTotalTransactions(),
+                paginatedDto.getTotalPages()
+        );
 
         return ApiResponse.<GetAccountTransactionsResponse>builder()
                 .data(accountTransactionsResponse)
@@ -139,6 +158,7 @@ public class AccountServiceImpl implements AccountService {
                 .message("Account's transaction history found successfully!")
                 .build();
     }
+
 
     @Override
     public ApiResponse<CreateCustomerAccountResponse> createCustomerAccount(CreateCustomerRequest request) {
