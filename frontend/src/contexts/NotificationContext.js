@@ -107,9 +107,8 @@ export const NotificationProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await notificationService.getNotifications(10, 1);
 
-      if (response && response.content) {
-        dispatch({ type: 'SET_NOTIFICATIONS', payload: response.content });
-      } else if (Array.isArray(response)) {
+      // Backend now returns List<NotificationResponse> directly
+      if (Array.isArray(response)) {
         dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
       } else {
         console.warn('Notification response format unexpected:', response);

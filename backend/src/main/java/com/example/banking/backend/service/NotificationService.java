@@ -3,12 +3,12 @@ package com.example.banking.backend.service;
 import com.example.banking.backend.dto.request.notification.AddNotificationRequest;
 import com.example.banking.backend.dto.response.notification.NotificationResponse;
 import com.example.banking.backend.model.Notification;
-import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface NotificationService {
-    Page<NotificationResponse> getAllNotifications(int limit, int page);
+    List<NotificationResponse> getAllNotifications(int limit, int page);
 
     void markAllNotificationsAsRead();
 
