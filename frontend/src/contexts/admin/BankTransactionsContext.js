@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import { AdminService } from '../../services/AdminService';
+import { data } from 'react-router-dom';
 
 // Reducer for transaction state management
 const transactionReducer = (state, action) => {
@@ -16,15 +17,13 @@ const transactionReducer = (state, action) => {
       return {
         ...state,
         transactions: action.payload.data,
-        totalRecords: action.payload.totalRecords,
         currentPage: action.payload.page,
         pageSize: action.payload.limit,
       };
     case 'SET_STATISTICS':
       return { 
         ...state, 
-        statistics: action.payload.statistics, 
-        totalRecords: action.payload.totalRecords };
+        statistics: action.payload };
     case 'RESET_STATE':
       return { ...initialState };
     default:
@@ -42,7 +41,6 @@ const initialState = {
   // pagination
   currentPage: 1,
   pageSize: 5,
-  totalRecords: 0,
 };
 
 const TransactionContext = createContext();
@@ -121,10 +119,7 @@ export const TransactionProvider = ({ children }) => {
       const response = await AdminService.fetchTransactionStatistics(params);
       dispatch({ 
         type: 'SET_STATISTICS', 
-        payload: {
-            totalRecords: response.data.totalTransactions,
-           statistics: response.data.totalAmount
-        }      
+        payload: response.data,
     });
       return response.data;
     } catch (error) {
@@ -153,7 +148,6 @@ export const TransactionProvider = ({ children }) => {
     // pagination state
     currentPage: state.currentPage,
     pageSize: state.pageSize,
-    totalRecords: state.totalRecords,
 
     fetchBanks,
     fetchTransactions,

@@ -23,13 +23,13 @@ function TransactionFilter({
     <Grid container spacing={2} mb={3}>
       <Grid item xs={12} md={3}>
         <FormControl fullWidth>
-          <Typography variant="subtitle1" sx={{ color: "#90caf9", mb: 0.5 }}>
+          <Typography variant="subtitle1" sx={{ color: "text.secondary", mb: 0.5 }}>
             Select Bank
           </Typography>
           <Select
             value={selectedBank}
             onChange={(e) => onBankChange(e.target.value)}
-            sx={{ color: "#fff", bgcolor: "#1e1e1e", borderRadius: 1 }}
+            sx={{borderRadius: "shape.borderRadius" }}
           >
             <MenuItem value="All Banks">All Banks</MenuItem>
             {banks.map((bank) => (
@@ -42,7 +42,7 @@ function TransactionFilter({
       </Grid>
 
       <Grid item xs={12} md={3}>
-        <Typography variant="subtitle1" sx={{ color: "#90caf9", mb: 0.5 }}>
+        <Typography variant="subtitle1" sx={{ color: "text.secondary", mb: 0.5 }}>
           Select Month
         </Typography>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -51,10 +51,8 @@ function TransactionFilter({
             value={selectedDate}
             onChange={(newValue) => onDateChange(newValue)}
             sx={{
-              bgcolor: "#1e1e1e",
-              input: { color: "#fff" },
-              svg: { color: "#90caf9" },
-              borderRadius: 1,
+              input: { color: "text.secondary" },
+              borderRadius: "shape.borderRadius",
             }}
           />
         </LocalizationProvider>

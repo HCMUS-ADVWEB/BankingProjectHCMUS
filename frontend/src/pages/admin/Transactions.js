@@ -18,7 +18,6 @@ function TransactionsPageContent() {
     fetchStatistics,
     loading,
     error,
-    totalRecords,
     currentPage,
     pageSize,
   } = useTransaction();
@@ -84,7 +83,7 @@ function TransactionsPageContent() {
   return (
     <AdminLayout>
       <TransactionProvider>
-        <Box sx={{ p: 3, bgcolor: "#121212", minHeight: "100vh" }}>
+        <Box sx={{bgcolor: "background.default", p: 3}}>
           <Typography variant="h4" gutterBottom>
             Transaction Details
           </Typography>
@@ -97,7 +96,7 @@ function TransactionsPageContent() {
             onDateChange={handleDateChange}
           />
 
-          <TransactionSummary statistics={statistics} />
+          <TransactionSummary statistics={statistics.totalAmount} />
 
           {error ? (
             <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>
@@ -106,7 +105,7 @@ function TransactionsPageContent() {
               <TransactionTable transactions={transactions} />
               
               <TransactionPagination
-                totalRecords={totalRecords}
+                totalRecords={statistics.totalTransactions}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={handlePageChange}
