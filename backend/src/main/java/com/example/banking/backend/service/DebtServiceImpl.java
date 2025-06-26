@@ -176,7 +176,7 @@ public class DebtServiceImpl implements DebtService {
         }
 
         // Validate OTP
-        boolean isValidOtp = otpService.validateOtp(getCurrentUser().getId(), OtpType.DEBT_PAYMENT, request.getOtp());
+        boolean isValidOtp = otpService.validateOtp(reminder.getDebtor().getId(), OtpType.DEBT_PAYMENT, request.getOtp());
         if (!isValidOtp) {
             throw new InvalidOtpException("Otp is not valid");
         }        // Retrieve creditor's account number (assuming the creator is the creditor)
@@ -191,7 +191,7 @@ public class DebtServiceImpl implements DebtService {
         transferRequest.setOtp(request.getOtp()); // Set the OTP for transaction validation
 
         // Call TransactionService to process the transfer
-        TransferResult transferResult = transactionService.internalTransfer(transferRequest);
+        TransferResult transferResult = transactionService.internalTransfer(transferRequest , false);
 
         if (!transferResult.getSuccess()) {
             throw new BadRequestException("Failed to process debt payment: " + transferResult.getErrorMessage());

@@ -38,7 +38,7 @@ public class TransactionController {
     @PostMapping("/internal")
     public ResponseEntity<ApiResponse<TransferResult>> internalTransfer(
             @Valid @RequestBody TransferRequest request) {
-        TransferResult result = transactionService.internalTransfer(request);
+        TransferResult result = transactionService.internalTransfer(request , true );
         return ResponseEntity.ok(ApiResponse.<TransferResult>builder()
                 .status(HttpStatus.OK.value())
                 .message("Internal transfer initiated successfully")
@@ -127,7 +127,7 @@ public class TransactionController {
     @PostMapping("/internal/deposit")
     public ResponseEntity<ApiResponse<InternalDepositResult>> internalDeposit(
             @Valid @RequestBody InternalDeposit request) {
-        InternalDepositResult result = transactionService.internalDeposit(request);
+        InternalDepositResult result = transactionService.internalDeposit(request );
         return ResponseEntity.ok(ApiResponse.<InternalDepositResult>builder()
                 .status(HttpStatus.OK.value())
                 .message("Internal deposit initiated successfully")

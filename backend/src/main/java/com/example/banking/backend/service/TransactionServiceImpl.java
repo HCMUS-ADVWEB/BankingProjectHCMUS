@@ -42,6 +42,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -291,7 +292,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public InternalDepositResult internalDeposit(InternalDeposit internalDeposit) {
+    public InternalDepositResult internalDeposit(InternalDeposit internalDeposit ) {
         Account toAccount = getAccountFromNumber(internalDeposit.getAccountNumberReceiver());
 
         if (toAccount == null) {
@@ -349,7 +350,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransferResult internalTransfer(TransferRequest request) {
+    public TransferResult internalTransfer(TransferRequest request , Boolean needToCheckOtp) {
 
 
         Account accountCurrentUser = getAccountCurrentUser();
@@ -384,15 +385,16 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setUpdatedAt(now);
 
         // Validate OTP if provided
-        if (request.getOtp() != null && !request.getOtp().isEmpty()) {
-            if (!otpService.validateOtp(
-                    getCurrentUser().getId(),
-                    OtpType.TRANSFER,
-                    request.getOtp())) throw new BadRequestException("Invalid OTP");
-        } else {
-            throw new BadRequestException("OTP is required for internal transfer");
+        if (needToCheckOtp) {
+            if (request.getOtp() != null && !request.getOtp().isEmpty()) {
+                if (!otpService.validateOtp(
+                        getCurrentUser().getId(),
+                        OtpType.TRANSFER,
+                        request.getOtp())) throw new BadRequestException("Invalid OTP");
+            } else {
+                throw new BadRequestException("OTP is required for internal transfer");
+            }
         }
-
         // Save transaction
         var savedTransaction = transactionRepository.save(transaction);
 
