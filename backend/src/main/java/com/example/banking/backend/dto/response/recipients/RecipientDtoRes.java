@@ -34,4 +34,7 @@ public class RecipientDtoRes {
     @Schema(description = "Recipient's bank name, if null then recipient is internal",
             example = "Fake Bank")
     String bankName;
+    @Schema(description = "Recipient's bank Code, if null then recipient is internal",
+            example = "FAK ")
+    String bankCode ;
 }
