@@ -1,6 +1,6 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { BASE_URL } from '../utils/constants';
+import { BASE_URL } from './constants';
 
 class WebSocketService {
   constructor() {
@@ -291,12 +291,6 @@ class WebSocketService {
   }
 
   async subscribeToUserNotifications(callback) {
-    // Check user role before allowing subscription
-    const userRole = this.getUserRoleFromToken();
-    if (userRole !== 'customer') {
-      return null;
-    }
-
     const userId = this.getUserIdFromToken();
     if (!userId) {
       console.error('No user ID found in token');
@@ -392,29 +386,6 @@ class WebSocketService {
       return payload.id;
     } catch (error) {
       console.error('Error decoding token:', error);
-      return null;
-    }
-  }
-
-  getUserRoleFromToken() {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return null;
-
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join(''),
-      );
-
-      const payload = JSON.parse(jsonPayload);
-      // Return the user role from the token
-      return payload.role?.toLowerCase();
-    } catch (error) {
-      console.error('Error decoding token for role:', error);
       return null;
     }
   }

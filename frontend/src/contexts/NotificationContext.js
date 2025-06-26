@@ -6,7 +6,7 @@ import {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
-import webSocketService from '../services/WebSocketService';
+import webSocketService from '../utils/webSocket';
 import notificationService from '../services/NotificationService';
 
 const notificationReducer = (state, action) => {
