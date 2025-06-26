@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
@@ -33,7 +33,7 @@ const notificationReducer = (state, action) => {
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
       };
-    case 'MARK_AS_READ':
+    case 'MARK_AS_READ': {
       const wasUnread = state.notifications.some(
         (n) => n.id === action.payload && !n.read,
       );
@@ -46,6 +46,7 @@ const notificationReducer = (state, action) => {
           ? Math.max(0, state.unreadCount - 1)
           : state.unreadCount,
       };
+    }
     case 'SET_CONNECTION_STATUS':
       return { ...state, isConnecting: action.payload };
     case 'SET_SUBSCRIPTION':

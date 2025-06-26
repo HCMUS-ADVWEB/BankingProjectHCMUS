@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -12,7 +11,6 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   SaveAlt as SaveIcon,
-  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useTransfer } from '../../../contexts/customer/TransferContext';
 import { TRANSFER_STEPS } from '../../../utils/transferConstants';

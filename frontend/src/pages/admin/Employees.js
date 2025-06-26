@@ -2,16 +2,16 @@ import {
   Box,
   Typography,
   Button,
-} from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import AdminLayout from "../../layouts/AdminLayout";
-import { useEffect } from "react";
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import AdminLayout from '../../layouts/AdminLayout';
+import { useEffect } from 'react';
 import { useEmployeeManagement, EmployeeManagementProvider } from '../../contexts/admin/EmployeeManagementContext';
-import AddEmployeeDialog from "../../components/admin/AddEmployeeDialog";
-import DeleteConfirmationDialog from "../../components/admin/DeleteConfirmationDialog";
-import ErrorSuccessMessage from "../../components/ErrorSuccessMessage";
-import EmployeeTable from "../../components/admin/EmployeeTable";
-import Loading from "../../components/Loading";
+import AddEmployeeDialog from '../../components/admin/AddEmployeeDialog';
+import DeleteConfirmationDialog from '../../components/admin/DeleteConfirmationDialog';
+import ErrorSuccessMessage from '../../components/ErrorSuccessMessage';
+import EmployeeTable from '../../components/admin/EmployeeTable';
+import Loading from '../../components/Loading';
 
 function EmployeesContent() {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ function EmployeesContent() {
 
   const handleEdit = (e, emp) => {
     e.stopPropagation();
-    console.log("Move to employee:", emp.id);
+    console.log('Move to employee:', emp.id);
     navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } });
   };
 
@@ -95,8 +95,8 @@ function EmployeesContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4">
             Employee List
           </Typography>
@@ -136,7 +136,7 @@ function EmployeesContent() {
           onDelete={handleDeleteClick}
           pagination={{
             ...pagination,
-            totalCount: employees.length
+            totalCount: employees.length,
           }}
           onPageChange={handleChangePage}
         />

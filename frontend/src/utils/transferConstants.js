@@ -3,19 +3,19 @@ export const TRANSFER_STEPS = {
   FORM: 1,
   CONFIRM: 2,
   OTP: 3,
-  COMPLETE: 4
+  COMPLETE: 4,
 };
 
 // Fee types
 export const FEE_TYPES = {
   SENDER: 'SENDER',
-  RECEIVER: 'RECEIVER'
+  RECEIVER: 'RECEIVER',
 };
 
 // Transfer types
 export const TRANSFER_TYPES = {
   INTERNAL: 'internal',
-  EXTERNAL: 'external'
+  EXTERNAL: 'external',
 };
 
 // Status colors
@@ -23,7 +23,7 @@ export const STATUS_COLORS = {
   SUCCESS: 'success',
   ERROR: 'error',
   WARNING: 'warning',
-  INFO: 'info'
+  INFO: 'info',
 };
 
 // Default form state

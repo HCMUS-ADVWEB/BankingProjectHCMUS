@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Table,
   TableBody,
@@ -7,7 +6,7 @@ import {
   TableHead,
   TableRow,
   Paper,
-} from "@mui/material";
+} from '@mui/material';
 
 function TransactionTable({ transactions }) {
   return (
@@ -27,23 +26,23 @@ function TransactionTable({ transactions }) {
             transactions.listTransaction.map((tx) => (
               <TableRow key={tx.id}>
                 <TableCell>
-                  {new Intl.DateTimeFormat("vi-VN", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
+                  {new Intl.DateTimeFormat('vi-VN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
                   }).format(new Date(tx.transactionDate))}
                 </TableCell>
-                <TableCell>{tx.fromBankCode || "FIN"}</TableCell>
-                <TableCell>{tx.toBankCode || "FIN"}</TableCell>
+                <TableCell>{tx.fromBankCode || 'FIN'}</TableCell>
+                <TableCell>{tx.toBankCode || 'FIN'}</TableCell>
                 <TableCell>{tx.amount?.toLocaleString()}</TableCell>
-                <TableCell>{tx.message || "N/A"}</TableCell>
+                <TableCell>{tx.message || 'N/A'}</TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} sx={{ color: "text.secondary", textAlign: "center" }}>
+              <TableCell colSpan={5} sx={{ color: 'text.secondary', textAlign: 'center' }}>
                 No transactions found.
               </TableCell>
             </TableRow>

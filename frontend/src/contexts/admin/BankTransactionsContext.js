@@ -1,6 +1,5 @@
 import { createContext, useContext, useReducer, useCallback } from 'react';
 import { AdminService } from '../../services/AdminService';
-import { data } from 'react-router-dom';
 
 // Reducer for transaction state management
 const transactionReducer = (state, action) => {
@@ -21,8 +20,8 @@ const transactionReducer = (state, action) => {
         pageSize: action.payload.limit,
       };
     case 'SET_STATISTICS':
-      return { 
-        ...state, 
+      return {
+        ...state,
         statistics: action.payload };
     case 'RESET_STATE':
       return { ...initialState };
@@ -117,10 +116,10 @@ export const TransactionProvider = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
     try {
       const response = await AdminService.fetchTransactionStatistics(params);
-      dispatch({ 
-        type: 'SET_STATISTICS', 
+      dispatch({
+        type: 'SET_STATISTICS',
         payload: response.data,
-    });
+      });
       return response.data;
     } catch (error) {
       handleApiError(error);

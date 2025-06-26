@@ -1,18 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from 'react';
 import {
-  Box, Grid, Typography, Card, CardContent, FormControl, Select, MenuItem
-} from "@mui/material";
+  Box, Grid, Typography, Card, CardContent, FormControl, Select, MenuItem,
+} from '@mui/material';
 import {
-  DatePicker, LocalizationProvider
-} from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { BarChart } from "@mui/x-charts";
-import AdminLayout from "../../layouts/AdminLayout";
-import Loading from "../../components/Loading";
+  DatePicker, LocalizationProvider,
+} from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { BarChart } from '@mui/x-charts';
+import AdminLayout from '../../layouts/AdminLayout';
+import Loading from '../../components/Loading';
 import {
   BankStatisticsProvider,
-  useBankStatistics
-} from "../../contexts/admin/BankStatisticsContext";
+  useBankStatistics,
+} from '../../contexts/admin/BankStatisticsContext';
 
 export function DashboardContent() {
   const {
@@ -23,10 +23,10 @@ export function DashboardContent() {
     loading,
     error,
     fetchBanks,
-    fetchStatisticsForYear
+    fetchStatisticsForYear,
   } = useBankStatistics();
 
-  const [selectedBank, setSelectedBank] = useState("All Banks");
+  const [selectedBank, setSelectedBank] = useState('All Banks');
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const selectedYear = selectedDate.getFullYear();
@@ -40,14 +40,14 @@ export function DashboardContent() {
   useEffect(() => {
     fetchStatisticsForYear({
       year: selectedYear,
-      bankCode: selectedBank === "All Banks" ? null : selectedBank,
+      bankCode: selectedBank === 'All Banks' ? null : selectedBank,
     });
   }, [selectedBank, selectedYear, fetchStatisticsForYear]);
 
   const bestMonth = useMemo(() => {
-    if (statisticsByMonth.length === 0) return "-";
+    if (statisticsByMonth.length === 0) return '-';
     return statisticsByMonth.reduce((a, b) =>
-      a.totalAmount > b.totalAmount ? a : b
+      a.totalAmount > b.totalAmount ? a : b,
     ).month;
   }, [statisticsByMonth]);
 
@@ -60,21 +60,21 @@ export function DashboardContent() {
 
   return (
     <AdminLayout>
-      <Box sx={{ p: 3, bgcolor: "background.default", minHeight: "100vh" }}>
-        <Typography variant="h4" gutterBottom sx={{ color: "text.primary" }}>
+      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
           Bank Transaction Statistics
         </Typography>
 
         <Grid container spacing={2} mb={3}>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <Typography variant="subtitle1" sx={{ color: "text.secondary", mb: 0.5 }}>
+              <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Select Bank
               </Typography>
               <Select
                 value={selectedBank}
                 onChange={(e) => setSelectedBank(e.target.value)}
-                sx={{ borderRadius: "shape.borderRadius" }}
+                sx={{ borderRadius: 'shape.borderRadius' }}
               >
                 <MenuItem value="All Banks">All Banks</MenuItem>
                 {banks.map((bank) => (
@@ -87,20 +87,20 @@ export function DashboardContent() {
           </Grid>
 
           <Grid item xs={12} md={3}>
-            <Typography variant="subtitle1" sx={{ color: "text.secondary", mb: 0.5 }}>
+            <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
               Select Year
             </Typography>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                views={["year"]}
+                views={['year']}
                 value={selectedDate}
                 onChange={(newValue) => setSelectedDate(newValue)}
                 sx={{
-                  input: { color: "text.secondary" },
-                  borderRadius: "shape.borderRadius",
-                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#555" },
-                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#90caf9" },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#90caf9" },
+                  input: { color: 'text.secondary' },
+                  borderRadius: 'shape.borderRadius',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
                 }}
               />
             </LocalizationProvider>
@@ -109,7 +109,7 @@ export function DashboardContent() {
 
         <Grid container spacing={4} mb={4}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Total Transaction Volume</Typography>
                 <Typography variant="h5" color="success.main">
@@ -120,7 +120,7 @@ export function DashboardContent() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Total Transactions</Typography>
                 <Typography variant="h5" color="success.main">
@@ -131,7 +131,7 @@ export function DashboardContent() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Best Month</Typography>
                 <Typography variant="h5" color="success.main">
@@ -142,7 +142,7 @@ export function DashboardContent() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Average Monthly Volume</Typography>
                 <Typography variant="h5" color="info.main">
@@ -153,25 +153,25 @@ export function DashboardContent() {
           </Grid>
         </Grid>
 
-        <Card sx={{ bgcolor: "background.paper", color: "text.primary" }}>
+        <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Transaction Volume by Month ({selectedBank})
             </Typography>
             <BarChart
               xAxis={[{
-                scaleType: "band",
+                scaleType: 'band',
                 data: statisticsByMonth.map((item) => `Thg ${item.month}`),
-                label: "Month",
+                label: 'Month',
               }]}
               series={[{
                 data: statisticsByMonth.map((item) => item.totalAmount),
-                label: "Transaction Amount (VNĐ)",
+                label: 'Transaction Amount (VNĐ)',
               }]}
               height={300}
               margin={{ top: 20, right: 30, bottom: 30, left: 60 }}
               yAxis={[{
-                label: "Amount (VNĐ)",
+                label: 'Amount (VNĐ)',
                 valueFormatter: (value) => `${value.toLocaleString()}`,
               }]}
             />
@@ -179,7 +179,7 @@ export function DashboardContent() {
         </Card>
 
         {error && (
-          <Typography sx={{ color: "red", mt: 2 }}>
+          <Typography sx={{ color: 'red', mt: 2 }}>
             {error}
           </Typography>
         )}

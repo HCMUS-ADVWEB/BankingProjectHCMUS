@@ -22,7 +22,7 @@ const employeeManagementReducer = (state, action) => {
       return {
         ...state,
         employees: state.employees.map(emp =>
-          emp.id === action.payload.id ? action.payload : emp
+          emp.id === action.payload.id ? action.payload : emp,
         ),
       };
     case 'REMOVE_EMPLOYEE':
@@ -129,15 +129,15 @@ export const EmployeeManagementProvider = ({ children }) => {
   // Utility function to handle API errors
   const handleApiError = useCallback((error) => {
     let errorMessage = 'An unexpected error occurred';
-    
+
     if (error.response) {
       const status = error.response.status;
       const msg = error.response.data?.message;
       const timestamp = error.response.data?.timestamp || new Date().toISOString();
-      
+
       console.error(`Error ${status}: ${msg} at ${timestamp}`);
       errorMessage = msg || `HTTP ${status} Error`;
-      
+
       if (status === 401) {
         errorMessage = 'Unauthorized: Please log in again.';
         setTimeout(() => {
@@ -151,7 +151,7 @@ export const EmployeeManagementProvider = ({ children }) => {
       console.error('Unexpected error:', error.message);
       errorMessage = error.message;
     }
-    
+
     dispatch({ type: 'SET_ERROR', payload: errorMessage });
     return errorMessage;
   }, []);
@@ -166,14 +166,14 @@ export const EmployeeManagementProvider = ({ children }) => {
   const fetchEmployees = useCallback(async (retryCount = 0) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR' });
-    
+
     try {
       const response = await AdminService.fetchEmployees();
       let employees = response.data || [];
-      
+
       // Filter out customers (only show employees and admins)
       employees = employees.filter(emp => emp.role !== 'CUSTOMER');
-      
+
       // Apply filters
       if (state.filters.search) {
         const searchTerm = state.filters.search.toLowerCase();
@@ -181,25 +181,25 @@ export const EmployeeManagementProvider = ({ children }) => {
           emp.fullName.toLowerCase().includes(searchTerm) ||
           emp.username.toLowerCase().includes(searchTerm) ||
           emp.email.toLowerCase().includes(searchTerm) ||
-          emp.phone.includes(searchTerm)
+          emp.phone.includes(searchTerm),
         );
       }
-      
+
       if (state.filters.role !== 'ALL') {
         employees = employees.filter(emp => emp.role === state.filters.role);
       }
-      
+
       if (state.filters.isActive !== 'ALL') {
         const isActiveFilter = state.filters.isActive === 'ACTIVE';
         employees = employees.filter(emp => emp.isActive === isActiveFilter);
       }
-      
+
       // Apply sorting
       employees.sort((a, b) => {
         const { orderBy, order } = state.sort;
         let aValue = a[orderBy];
         let bValue = b[orderBy];
-        
+
         // Handle different data types
         if (orderBy === 'createdAt' || orderBy === 'updatedAt') {
           aValue = new Date(aValue);
@@ -208,20 +208,20 @@ export const EmployeeManagementProvider = ({ children }) => {
           aValue = aValue.toLowerCase();
           bValue = bValue.toLowerCase();
         }
-        
+
         if (order === 'asc') {
           return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
         } else {
           return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
         }
       });
-      
+
       dispatch({ type: 'SET_EMPLOYEES', payload: employees });
-      dispatch({ 
-        type: 'SET_PAGINATION', 
-        payload: { total: employees.length } 
+      dispatch({
+        type: 'SET_PAGINATION',
+        payload: { total: employees.length },
       });
-      
+
       setSuccessWithTimeout('Employees loaded successfully!');
     } catch (error) {
       handleApiError(error);
@@ -246,13 +246,13 @@ export const EmployeeManagementProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR' });
     dispatch({ type: 'CLEAR_FORM_ERRORS' });
-    
+
     try {
       const payload = {
         ...state.newEmployee,
         dob: state.newEmployee.dob ? new Date(state.newEmployee.dob).toISOString() : null,
       };
-      
+
       const response = await AdminService.createEmployee(payload);
       const newEmployee = response.data || {
         ...payload,
@@ -260,11 +260,11 @@ export const EmployeeManagementProvider = ({ children }) => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      
+
       dispatch({ type: 'ADD_EMPLOYEE', payload: newEmployee });
       dispatch({ type: 'RESET_NEW_EMPLOYEE' });
       dispatch({ type: 'SET_DIALOGS', payload: { openAddDialog: false } });
-      
+
       setSuccessWithTimeout('Employee created successfully!');
       return true;
     } catch (error) {
@@ -284,21 +284,21 @@ export const EmployeeManagementProvider = ({ children }) => {
 
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR' });
-    
+
     try {
       const payload = {
         ...updateData,
         dob: updateData.dob ? new Date(updateData.dob).toISOString() : null,
       };
-      
+
       await AdminService.updateEmployee(employeeId, payload);
-      
+
       const updatedEmployee = {
         ...updateData,
         id: employeeId,
         updatedAt: new Date().toISOString(),
       };
-      
+
       dispatch({ type: 'UPDATE_EMPLOYEE', payload: updatedEmployee });
       setSuccessWithTimeout('Employee updated successfully!');
       return true;
@@ -319,13 +319,13 @@ export const EmployeeManagementProvider = ({ children }) => {
 
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR' });
-    
+
     try {
       await AdminService.deleteEmployee(employeeId);
       dispatch({ type: 'REMOVE_EMPLOYEE', payload: employeeId });
       dispatch({ type: 'SET_DIALOGS', payload: { openDeleteDialog: false } });
       dispatch({ type: 'SET_SELECTED_EMPLOYEE', payload: null });
-      
+
       setSuccessWithTimeout('Employee deleted successfully!');
       return true;
     } catch (error) {

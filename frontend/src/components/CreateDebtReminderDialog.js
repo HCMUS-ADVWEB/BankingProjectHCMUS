@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,7 +9,6 @@ import {
   Alert,
   Box,
   CircularProgress,
-  FormHelperText,
   InputAdornment,
 } from '@mui/material';
 import { useDebt } from '../contexts/customer/DebtContext';

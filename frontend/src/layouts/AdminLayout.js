@@ -1,6 +1,6 @@
 import Navigation from '../components/Navigation';
 import MainHeader from '../components/MainHeader';
-import { Home, Users, History, Component } from 'lucide-react';
+import { Home, Users, History } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeProvider } from '@mui/material/styles';
 
