@@ -31,7 +31,7 @@ public class Transaction {
     @Column(name = "transaction_type", nullable = false, length = 50)
     private TransactionType transactionType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "from_bank_id")
     private Bank fromBank;
 
@@ -43,7 +43,7 @@ public class Transaction {
     @Column(name = "from_account_number")
     private String fromAccountNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "to_bank_id")
     private Bank toBank;
 

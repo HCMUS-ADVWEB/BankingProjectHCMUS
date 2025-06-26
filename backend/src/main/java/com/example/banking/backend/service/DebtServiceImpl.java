@@ -191,7 +191,7 @@ public class DebtServiceImpl implements DebtService {
         transferRequest.setOtp(request.getOtp()); // Set the OTP for transaction validation
 
         // Call TransactionService to process the transfer
-        TransferResult transferResult = transactionService.internalTransfer(transferRequest);
+        TransferResult transferResult = transactionService.internalTransfer(transferRequest , false);
 
         if (!transferResult.getSuccess()) {
             throw new BadRequestException("Failed to process debt payment: " + transferResult.getErrorMessage());
