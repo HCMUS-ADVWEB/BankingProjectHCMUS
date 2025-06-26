@@ -13,12 +13,14 @@ export default function NotificationList({
   // Handle notification click
   const handleNotificationClick = async (notification) => {
     try {
-      // Mark as read if not already read
       if (!notification.read) {
         await markAsRead(notification.id);
       }
-      // Navigate to debt page if it's a debt-related notification
-      navigate('/customer/debts');
+      if (window.location.pathname === '/customer/debts') {
+        window.location.reload();
+      } else {
+        navigate('/customer/debts');
+      }
     } catch (error) {
       console.error('Error handling notification click:', error);
     }

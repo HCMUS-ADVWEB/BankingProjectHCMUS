@@ -36,7 +36,7 @@ export default function ChangePasswordPage() {
       const body = {
         userId: state.user.id,
         email: state.user.email,
-        otpType: 'PASSWORD_CHANGE',
+        otpType: 'PASSWORD_RESET',
       };
       await api.post('/api/otp', body);
       setStep(2);
@@ -56,7 +56,7 @@ export default function ChangePasswordPage() {
         newPassword: form.newPassword,
         otp,
       };
-      await api.post('/api/accounts/change-password', body);
+      await api.post('/api/users/change-password', body);
       setSuccess('Password changed successfully!');
       setStep(1);
       setForm({ oldPassword: '', newPassword: '' });
@@ -220,11 +220,7 @@ export default function ChangePasswordPage() {
             />
           </DialogContent>
           <DialogActions>
-            <Button
-              onClick={() => setStep(1)}
-              disabled={loading}
-              sx={{ color: 'text.secondary' }}
-            >
+            <Button onClick={() => setStep(1)} disabled={loading}>
               Cancel
             </Button>
             <Button
@@ -232,7 +228,6 @@ export default function ChangePasswordPage() {
               variant="contained"
               color="primary"
               disabled={loading || !otp}
-              sx={{ fontWeight: 600 }}
             >
               Submit
             </Button>
