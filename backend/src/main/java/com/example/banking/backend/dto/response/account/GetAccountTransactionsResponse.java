@@ -18,6 +18,13 @@ import java.util.Set;
 public class GetAccountTransactionsResponse {
     @Schema(description = "Sent transactions")
     private Set<TransactionInfoDto> transactionsAsSender;
+
     @Schema(description = "Received transactions")
     private Set<TransactionInfoDto> transactionsAsReceiver;
+
+    @Schema(description = "Total number of transactions after applying filters", example = "24")
+    private int totalTransactions;
+
+    @Schema(description = "Total number of pages based on the page size", example = "5")
+    private int totalPages;
 }

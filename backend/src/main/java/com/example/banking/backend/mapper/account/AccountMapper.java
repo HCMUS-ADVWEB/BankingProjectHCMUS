@@ -4,6 +4,7 @@ import com.example.banking.backend.dto.response.account.GetAccountResponse;
 import com.example.banking.backend.dto.response.account.GetAccountTransactionsResponse;
 import com.example.banking.backend.model.Account;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
@@ -13,5 +14,7 @@ public interface AccountMapper {
 
     GetAccountResponse accountToGetAccountResponse(Account account);
 
-    GetAccountTransactionsResponse accountToGetAccountTransactionsResponse(Account account);
+    @Mapping(source = "totalTransactions", target = "totalTransactions")
+    @Mapping(source = "totalPages", target = "totalPages")
+    GetAccountTransactionsResponse accountToGetAccountTransactionsResponse(Account account, Integer totalTransactions, Integer totalPages);
 }
