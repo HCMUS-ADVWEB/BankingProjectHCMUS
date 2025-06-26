@@ -1,4 +1,4 @@
-import api from '../utils/api';
+import api from '../../utils/api';
 
 const TransactionService = {
   /**
@@ -9,17 +9,23 @@ const TransactionService = {
    * @param {string} order - Sort direction ('asc' or 'desc')
    * @returns {Promise} Promise containing the transaction data
    */
-  async getTransactions(limit = 10, page = 1, orderBy = 'createdAt', order = 'desc') {
-    return api.get('/api/accounts/customer/transactions', { 
-      params: { 
-        limit, 
-        pn: page,
-        orderBy,
-        order
-      } 
-    })
-      .then(res => res.data)
-      .catch(err => {
+  async getTransactions(
+    limit = 10,
+    page = 1,
+    orderBy = 'createdAt',
+    order = 'desc',
+  ) {
+    return api
+      .get('/api/accounts/customer/transactions', {
+        params: {
+          limit,
+          pn: page,
+          orderBy,
+          order,
+        },
+      })
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error fetching transactions:', err);
         throw err;
       });
@@ -31,13 +37,14 @@ const TransactionService = {
    * @returns {Promise} Promise containing the transaction details
    */
   async getTransactionDetails(transactionId) {
-    return api.get(`/api/transactions/${transactionId}`)
-      .then(res => res.data)
-      .catch(err => {
+    return api
+      .get(`/api/transactions/${transactionId}`)
+      .then((res) => res.data)
+      .catch((err) => {
         console.error('Error fetching transaction details:', err);
         throw err;
       });
-  }
+  },
 };
 
 export default TransactionService;

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -12,9 +11,8 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   SaveAlt as SaveIcon,
-  Person as PersonIcon,
 } from '@mui/icons-material';
-import { useTransfer } from '../../../contexts/TransferContext';
+import { useTransfer } from '../../../contexts/customer/TransferContext';
 import { TRANSFER_STEPS } from '../../../utils/transferConstants';
 
 const SaveRecipientStep = () => {
@@ -31,8 +29,8 @@ const SaveRecipientStep = () => {
   return (
     <>
       <Box display="flex" alignItems="center" mb={3}>
-        <IconButton 
-          color="primary" 
+        <IconButton
+          color="primary"
           onClick={() => setStep(TRANSFER_STEPS.COMPLETE)}
           sx={{ mr: 1 }}
         >
@@ -61,7 +59,7 @@ const SaveRecipientStep = () => {
               autoFocus
             />
           </Grid>
-          
+
           <Grid item xs={12}>
             <TextField
               label="Account Number"
@@ -72,7 +70,7 @@ const SaveRecipientStep = () => {
               disabled
             />
           </Grid>
-          
+
           <Grid item xs={12}>
             <TextField
               label="Bank Name"
@@ -83,7 +81,7 @@ const SaveRecipientStep = () => {
               disabled
             />
           </Grid>
-          
+
           <Grid item xs={12}>
             <TextField
               label="Recipient Name"

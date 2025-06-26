@@ -5,11 +5,13 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
-import { EmployeeProvider } from './contexts/EmployeeContext';
-import { DebtProvider } from './contexts/DebtContext';
-import { TransactionProvider } from './contexts/TransactionContext';
+import { DebtProvider } from './contexts/customer/DebtContext';
+import { TransactionProvider } from './contexts/customer/TransactionContext';
+import { RecipientProvider } from './contexts/customer/RecipientContext';
+import { EmployeeTransactionProvider } from './contexts/employee/EmployeeTransactionContext';
+import { CreateAccountProvider } from './contexts/employee/CreateAccountContext';
+import { DepositProvider } from './contexts/employee/DepositContext';
 import './styles/output.css';
-import { RecipientProvider } from './contexts/RecipientContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,18 +20,22 @@ root.render(
       <AuthProvider>
         <ThemeProvider>
           <NotificationProvider>
-            <EmployeeProvider>
+            <EmployeeTransactionProvider>
               <DebtProvider>
                 <TransactionProvider>
                   <RecipientProvider>
-                    <App />
+                    <CreateAccountProvider>
+                      <DepositProvider>
+                        <App />
+                      </DepositProvider>
+                    </CreateAccountProvider>
                   </RecipientProvider>
                 </TransactionProvider>
               </DebtProvider>
-            </EmployeeProvider>
+            </EmployeeTransactionProvider>
           </NotificationProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

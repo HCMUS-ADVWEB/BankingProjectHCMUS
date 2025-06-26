@@ -1,11 +1,11 @@
 import { Bell } from 'lucide-react';
 
-export default function NotificationList({ 
-  notifications = [], 
-  loading = false, 
+export default function NotificationList({
+  notifications = [],
+  loading = false,
   markAsRead,
   markAllAsRead,
-  isDarkMode
+  isDarkMode,
 }) {
   return (
     <>
@@ -23,7 +23,7 @@ export default function NotificationList({
               No notifications
             </p>
             <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-              You'll see notifications here when you receive them
+              You&apos;ll see notifications here when you receive them
             </p>
           </div>
         ) : (
@@ -37,7 +37,7 @@ export default function NotificationList({
                   ? isDarkMode
                     ? 'border-l-emerald-500 bg-emerald-900/30'
                     : 'border-l-blue-500 bg-blue-50/50'
-                  : isDarkMode 
+                  : isDarkMode
                     ? 'border-l-transparent bg-transparent text-gray-300'
                     : 'border-l-transparent bg-transparent text-gray-600'
               } relative transition-colors duration-200 cursor-pointer`}

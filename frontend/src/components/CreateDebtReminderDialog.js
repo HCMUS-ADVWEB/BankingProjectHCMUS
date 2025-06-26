@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,10 +9,9 @@ import {
   Alert,
   Box,
   CircularProgress,
-  FormHelperText,
   InputAdornment,
 } from '@mui/material';
-import { useDebt } from '../contexts/DebtContext';
+import { useDebt } from '../contexts/customer/DebtContext';
 
 const CreateDebtReminderDialog = ({ open, onClose }) => {
   const { createDebtReminder, loading, error } = useDebt();

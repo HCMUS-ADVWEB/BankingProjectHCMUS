@@ -1,7 +1,16 @@
 import api from '../utils/api';
 
-export const NotificationAPI = {
-  getNotifications: async (limit = 10, page = 1) => {
+/**
+ * Service for handling notification-related API calls
+ */
+class NotificationService {
+  /**
+   * Fetch paginated notifications
+   * @param {number} limit - Maximum number of notifications to fetch
+   * @param {number} page - Page number to fetch
+   * @returns {Promise<Object>} - Notifications data
+   */
+  async getNotifications(limit = 10, page = 1) {
     try {
       const response = await api.get(
         `/api/notifications?limit=${limit}&page=${page}`,
@@ -23,9 +32,13 @@ export const NotificationAPI = {
       }
       throw error;
     }
-  },
+  }
 
-  markAllAsRead: async () => {
+  /**
+   * Mark all notifications as read
+   * @returns {Promise<Object>} - API response
+   */
+  async markAllAsRead() {
     try {
       const response = await api.put('/api/notifications/read-all');
       return response.data;
@@ -33,9 +46,14 @@ export const NotificationAPI = {
       console.error('Error marking all notifications as read:', error);
       throw error;
     }
-  },
+  }
 
-  markAsRead: async (notificationId) => {
+  /**
+   * Mark a specific notification as read
+   * @param {string} notificationId - ID of the notification to mark as read
+   * @returns {Promise<Object>} - API response
+   */
+  async markAsRead(notificationId) {
     try {
       const response = await api.put(
         `/api/notifications/read/${notificationId}`,
@@ -48,7 +66,9 @@ export const NotificationAPI = {
       );
       throw error;
     }
-  },
-};
+  }
+}
 
-export default NotificationAPI;
+// Create a singleton instance
+const notificationService = new NotificationService();
+export default notificationService;

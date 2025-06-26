@@ -1,13 +1,13 @@
-import React, {
+import {
   createContext,
   useContext,
   useReducer,
   useCallback,
   useEffect,
 } from 'react';
-import { useAuth } from './AuthContext';
-import TransferService from '../services/TransferService';
-import { formatVND } from '../utils/constants';
+import { useAuth } from '../AuthContext';
+import TransferService from '../../services/customer/TransferService';
+import { formatVND } from '../../utils/constants';
 
 const transferReducer = (state, action) => {
   switch (action.type) {

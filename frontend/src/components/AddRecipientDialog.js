@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,7 @@ import {
   Box,
   CircularProgress,
 } from '@mui/material';
-import { useRecipient } from '../contexts/RecipientContext';
+import { useRecipient } from '../contexts/customer/RecipientContext';
 
 const AddRecipientDialog = ({ open, onClose }) => {
   const { addNewRecipient, loading, error } = useRecipient();

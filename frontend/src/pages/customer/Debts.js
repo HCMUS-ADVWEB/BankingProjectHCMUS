@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import CustomerLayout from '../../layouts/CustomerLayout';
-import { useDebt } from '../../contexts/DebtContext';
+import { useDebt } from '../../contexts/customer/DebtContext';
 import CreateDebtReminderDialog from '../../components/CreateDebtReminderDialog';
 import {
   CircularProgress,

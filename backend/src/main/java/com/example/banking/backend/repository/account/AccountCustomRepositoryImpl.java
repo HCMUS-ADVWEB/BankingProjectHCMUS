@@ -1,5 +1,6 @@
 package com.example.banking.backend.repository.account;
 
+import com.example.banking.backend.dto.response.account.PaginatedAccountTransactionDto;
 import com.example.banking.backend.model.Account;
 import com.example.banking.backend.model.Transaction;
 import com.example.banking.backend.model.type.TransactionType;
@@ -14,42 +15,53 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
     private EntityManager entityManager;
 
     @Override
-    public Account getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type) {
-        // Fetch account with transactions
+    public PaginatedAccountTransactionDto getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type) {
         Account account = entityManager.createQuery("""
-                            SELECT a FROM Account a
-                            LEFT JOIN FETCH a.transactionsAsSender
-                            LEFT JOIN FETCH a.transactionsAsReceiver
-                            WHERE a.accountId = :accountId
-                        
-                        """, Account.class)
+                    SELECT a FROM Account a
+                    LEFT JOIN FETCH a.transactionsAsSender
+                    LEFT JOIN FETCH a.transactionsAsReceiver
+                    WHERE a.accountId = :accountId
+                """, Account.class)
                 .setParameter("accountId", accountId)
                 .getSingleResult();
 
-        page--;
-
+        // Apply filters and sorting
         List<Transaction> senderList = account.getTransactionsAsSender().stream()
                 .filter(tx -> type == null || tx.getTransactionType() == type)
                 .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                 .collect(Collectors.toList());
 
-        int senderStart = Math.min(page * size, senderList.size());
-        int senderEnd = Math.min(senderStart + size, senderList.size());
-        Set<Transaction> paginatedSenderTxs = new LinkedHashSet<>(senderList.subList(senderStart, senderEnd));
-
-        // Filter receiver transactions by type if provided
         List<Transaction> receiverList = account.getTransactionsAsReceiver().stream()
                 .filter(tx -> type == null || tx.getTransactionType() == type)
-                .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed()) // Optional: sort newest first
+                .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                 .collect(Collectors.toList());
 
-        // Pagination indices for receiver
-        int receiverStart = Math.min(page * size, receiverList.size());
-        int receiverEnd = Math.min(receiverStart + size, receiverList.size());
-        Set<Transaction> paginatedReceiverTxs = new LinkedHashSet<>(receiverList.subList(receiverStart, receiverEnd));
+        // Combine all transactions
+        List<Transaction> allTransactions = new ArrayList<>();
+        allTransactions.addAll(senderList);
+        allTransactions.addAll(receiverList);
+
+        int totalTransactions = allTransactions.size();
+        int totalPages = (int) Math.ceil((double) totalTransactions / size);
+
+        // Pagination
+        page--;
+        int start = Math.min(page * size, totalTransactions);
+        int end = Math.min(start + size, totalTransactions);
+        List<Transaction> paginatedList = allTransactions.subList(start, end);
+
+        // Separate back into sender and receiver sets for Account entity
+        Set<Transaction> paginatedSenderTxs = paginatedList.stream()
+                .filter(senderList::contains)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Set<Transaction> paginatedReceiverTxs = paginatedList.stream()
+                .filter(receiverList::contains)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
         account.setTransactionsAsSender(paginatedSenderTxs);
         account.setTransactionsAsReceiver(paginatedReceiverTxs);
 
-        return account;
+        return new PaginatedAccountTransactionDto(account, totalTransactions, totalPages);
     }
 }

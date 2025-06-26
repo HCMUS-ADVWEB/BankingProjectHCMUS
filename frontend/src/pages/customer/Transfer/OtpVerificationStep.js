@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -12,26 +11,21 @@ import {
   Send as SendIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
-import { useTransfer } from '../../../contexts/TransferContext';
+import { useTransfer } from '../../../contexts/customer/TransferContext';
 import { TRANSFER_STEPS } from '../../../utils/transferConstants';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const OtpVerificationStep = () => {
-  const {
-    otp,
-    setOtp,
-    setStep,
-    handleVerifyOtp,    loading,
-    error,
-  } = useTransfer();
-  
+  const { otp, setOtp, setStep, handleVerifyOtp, loading, error } =
+    useTransfer();
+
   const { state: authState } = useAuth();
 
   return (
     <>
       <Box display="flex" alignItems="center" mb={3}>
-        <IconButton 
-          color="primary" 
+        <IconButton
+          color="primary"
           onClick={() => setStep(TRANSFER_STEPS.CONFIRM)}
           sx={{ mr: 1 }}
         >
@@ -43,16 +37,18 @@ const OtpVerificationStep = () => {
       </Box>
       <Divider sx={{ mb: 3 }} />
 
-      <Box 
-        display="flex" 
-        flexDirection="column" 
-        alignItems="center" 
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
         justifyContent="center"
         p={3}
-      >        <Typography textAlign="center" mb={3}>
-          Please enter the OTP sent to your email address ({authState?.user?.email})
+      >
+        {' '}
+        <Typography textAlign="center" mb={3}>
+          Please enter the OTP sent to your email address (
+          {authState?.user?.email})
         </Typography>
-
         <TextField
           label="Enter OTP"
           fullWidth
@@ -61,13 +57,11 @@ const OtpVerificationStep = () => {
           autoFocus
           sx={{ maxWidth: 300, mb: 3 }}
         />
-
         {error && (
           <Alert severity="error" sx={{ mb: 3, width: '100%' }}>
             {error}
           </Alert>
         )}
-
         <Button
           variant="contained"
           color="primary"

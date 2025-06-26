@@ -13,13 +13,13 @@ import {
 } from '@mui/material';
 // Using React Transition Group with refs for React 18+ compatibility
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import { TransferProvider } from '../../contexts/TransferContext';
+import { TransferProvider } from '../../contexts/customer/TransferContext';
 import { TRANSFER_STEPS } from '../../utils/transferConstants';
 import TransferFormStep from './Transfer/TransferFormStep';
 import ConfirmationStep from './Transfer/ConfirmationStep';
 import OtpVerificationStep from './Transfer/OtpVerificationStep';
 import ResultStep from './Transfer/ResultStep';
-import { useTransfer } from '../../contexts/TransferContext';
+import { useTransfer } from '../../contexts/customer/TransferContext';
 
 const TransferSteps = () => {
   const { step, loading, error, success } = useTransfer();

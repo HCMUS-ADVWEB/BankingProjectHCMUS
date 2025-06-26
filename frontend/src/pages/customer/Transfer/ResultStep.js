@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -16,7 +15,7 @@ import {
   SaveAlt as SaveIcon,
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
-import { useTransfer } from '../../../contexts/TransferContext';
+import { useTransfer } from '../../../contexts/customer/TransferContext';
 import { TRANSFER_STEPS } from '../../../utils/transferConstants';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,7 +33,7 @@ const ResultStep = () => {
     error,
   } = useTransfer();
   const navigate = useNavigate();
-  
+
   // Function to handle starting a new transfer
   const handleNewTransfer = () => {
     resetTransfer();
@@ -43,10 +42,10 @@ const ResultStep = () => {
 
   return (
     <>
-      <Box 
-        display="flex" 
-        flexDirection="column" 
-        alignItems="center" 
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
         mb={3}
         textAlign="center"
       >
@@ -71,7 +70,7 @@ const ResultStep = () => {
                 {result?.transactionId || 'N/A'}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12}>
               <Divider />
             </Grid>
@@ -84,7 +83,7 @@ const ResultStep = () => {
                 {formatCurrency(result?.amount || form.amount)}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <Typography color="textSecondary" gutterBottom>
                 Fee
@@ -93,11 +92,11 @@ const ResultStep = () => {
                 {formatCurrency(result?.fee || '0')}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12}>
               <Divider />
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <Typography color="textSecondary" gutterBottom>
                 Recipient
@@ -106,7 +105,7 @@ const ResultStep = () => {
                 {result?.recipientName || form.recipientName}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12} sm={6}>
               <Typography color="textSecondary" gutterBottom>
                 Account Number
@@ -115,7 +114,7 @@ const ResultStep = () => {
                 {result?.accountNumberReceiver || form.accountNumberReceiver}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12}>
               <Typography color="textSecondary" gutterBottom>
                 Message
@@ -124,23 +123,28 @@ const ResultStep = () => {
                 {result?.message || form.message || 'No message'}
               </Typography>
             </Grid>
-            
+
             <Grid item xs={12}>
               <Typography color="textSecondary" gutterBottom>
                 Status
               </Typography>
-              <Chip 
-                label="Completed" 
-                color="success" 
-                size="small" 
-                icon={<CheckCircleIcon />} 
+              <Chip
+                label="Completed"
+                color="success"
+                size="small"
+                icon={<CheckCircleIcon />}
               />
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      <Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        flexWrap="wrap"
+        gap={2}
+      >
         <Button
           variant="outlined"
           onClick={() => navigate('/customer/dashboard')}
@@ -148,7 +152,7 @@ const ResultStep = () => {
         >
           Go to Dashboard
         </Button>
-        
+
         <Box display="flex" gap={1} flexWrap="wrap">
           {saveRecipient?.accountNumber && (
             <Button
@@ -161,7 +165,7 @@ const ResultStep = () => {
               Save Recipient
             </Button>
           )}
-          
+
           <Button
             variant="outlined"
             color="primary"
@@ -171,7 +175,7 @@ const ResultStep = () => {
           >
             New Transfer
           </Button>
-          
+
           <Button
             variant="contained"
             color="primary"
@@ -182,7 +186,7 @@ const ResultStep = () => {
           </Button>
         </Box>
       </Box>
-      
+
       {error && (
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}

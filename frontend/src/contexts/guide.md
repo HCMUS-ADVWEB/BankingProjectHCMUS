@@ -103,7 +103,7 @@ import { Container, Grid, Box, Typography } from '@mui/material';
 
 <Container maxWidth="xl" sx={{ bgcolor: 'background.default', p: 3 }}>
   <Grid container spacing={3}>
-    <Grid item xs={12} sm={6}>
+    <Grid item size={{ sx: 12, sm: 6}}>
       <Box
         sx={{
           bgcolor: 'background.paper',
@@ -116,7 +116,7 @@ import { Container, Grid, Box, Typography } from '@mui/material';
         </Typography>
       </Box>
     </Grid>
-    <Grid item xs={12} sm={6}>
+    <Grid item size={{ sx: 12, sm: 6}}>
       <Box
         sx={{
           bgcolor: 'background.paper',

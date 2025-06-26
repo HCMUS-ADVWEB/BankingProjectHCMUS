@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -20,7 +19,7 @@ import {
   AttachMoney as MoneyIcon,
   Message as MessageIcon,
 } from '@mui/icons-material';
-import { useTransfer } from '../../../contexts/TransferContext';
+import { useTransfer } from '../../../contexts/customer/TransferContext';
 
 const TransferFormStep = () => {
   const {
@@ -35,11 +34,12 @@ const TransferFormStep = () => {
   } = useTransfer();
 
   return (
-    <>        <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
+    <>
+      {' '}
+      <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
         Transfer Details
       </Typography>
       <Divider sx={{ mb: 3 }} />
-      
       {error && (
         <Box sx={{ mb: 3 }}>
           <Typography color="error" variant="body2">
@@ -47,13 +47,14 @@ const TransferFormStep = () => {
           </Typography>
         </Box>
       )}
-      
-      <Box 
-        component="form" 
-        onSubmit={(e) => { e.preventDefault(); }}
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
         sx={{ maxWidth: '600px', mx: 'auto' }}
       >
-        <Grid container spacing={3} >
+        <Grid container spacing={3}>
           <Grid item xs={12}>
             <Box
               sx={{
@@ -66,25 +67,27 @@ const TransferFormStep = () => {
                 mb: 1,
                 border: '1px solid',
                 borderColor: 'divider',
-                maxWidth: '500px'
+                maxWidth: '500px',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <BankIcon sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography fontWeight="medium">
-                  {form.transferType === 'internal' ? 'Internal Transfer' : 'External Transfer'}
+                  {form.transferType === 'internal'
+                    ? 'Internal Transfer'
+                    : 'External Transfer'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography variant="body2" color="text.secondary"></Typography>
                 <Switch
                   checked={form.transferType === 'external'}
-                  onChange={(e) => 
+                  onChange={(e) =>
                     handleChange({
                       target: {
                         name: 'transferType',
-                        value: e.target.checked ? 'external' : 'internal'
-                      }
+                        value: e.target.checked ? 'external' : 'internal',
+                      },
                     })
                   }
                   color="primary"
@@ -92,12 +95,19 @@ const TransferFormStep = () => {
                 <Typography variant="body2" color="text.secondary"></Typography>
               </Box>
             </Box>
-
           </Grid>
-          </Grid>
+        </Grid>
         <Grid container spacing={3}>
           <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
-            <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, maxWidth: '500px' }}>
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                maxWidth: '500px',
+              }}
+            >
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <FormControl fullWidth>
@@ -113,14 +123,18 @@ const TransferFormStep = () => {
                     >
                       <MenuItem value="manual">Enter manually</MenuItem>
                       {recipients.map((rec) => (
-                        <MenuItem key={rec.recipientId} value={rec.accountNumber}>
-                          {rec.recipientNickname || rec.recipientName} ({rec.accountNumber})
+                        <MenuItem
+                          key={rec.recipientId}
+                          value={rec.accountNumber}
+                        >
+                          {rec.recipientNickname || rec.recipientName} (
+                          {rec.accountNumber})
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                 </Grid>
-                
+
                 <Grid item xs={12}>
                   <TextField
                     label="Account Number"
@@ -138,7 +152,7 @@ const TransferFormStep = () => {
                     }}
                   />
                 </Grid>
-                
+
                 {form.transferType === 'external' && (
                   <>
                     <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
@@ -158,8 +172,8 @@ const TransferFormStep = () => {
                         }}
                       />
                     </Grid>
-                    
-                    <Grid item size={{ sx: 12, sm: 6, md: 6}}>
+
+                    <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
                       <TextField
                         label="Bank ID"
                         name="bankId"
@@ -175,8 +189,8 @@ const TransferFormStep = () => {
                         }}
                       />
                     </Grid>
-                    
-                    <Grid item size={{ sx: 12, sm: 6, md: 6}}>
+
+                    <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
                       <TextField
                         label="Recipient Name"
                         name="recipientName"
@@ -197,10 +211,18 @@ const TransferFormStep = () => {
               </Grid>
             </Box>
           </Grid>
-          <Grid item size={{ sx: 12, sm: 12, md: 12}}>
-            <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1, maxWidth: '500px' }}>
+          <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                maxWidth: '500px',
+              }}
+            >
               <Grid container spacing={2}>
-                <Grid item size={{ sx: 12, sm: 12, md: 12}}>
+                <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
                   <TextField
                     label="Amount"
                     name="amount"
@@ -217,8 +239,8 @@ const TransferFormStep = () => {
                     }}
                   />
                 </Grid>
-                
-                <Grid item size={{ sx: 12, sm: 12, md: 12}}>
+
+                <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
                   <TextField
                     label="Message"
                     name="message"
@@ -229,7 +251,10 @@ const TransferFormStep = () => {
                     rows={2}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                        <InputAdornment
+                          position="start"
+                          sx={{ alignSelf: 'flex-start', mt: 1.5 }}
+                        >
                           <MessageIcon />
                         </InputAdornment>
                       ),
@@ -239,44 +264,53 @@ const TransferFormStep = () => {
               </Grid>
             </Box>
           </Grid>
-          
-          {/* Group 4: Fee Type */}            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                p: 2,
-                borderRadius: 1,
-                border: '1px solid',
-                borderColor: 'divider',
-                maxWidth: '500px'
-              }}
-            
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <MoneyIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography>{form.feeType === 'RECEIVER' ? 'Receiver' : 'Sender'} </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}></Typography>
-                <Switch
-                  checked={form.feeType === 'RECEIVER'}
-                  onChange={(e) => 
-                    handleChange({
-                      target: {
-                        name: 'feeType',
-                        value: e.target.checked ? 'RECEIVER' : 'SENDER'
-                      }
-                    })
-                  }
-                  color="primary"
-                />
-                <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}></Typography>
-              </Box>
+          {/* Group 4: Fee Type */}{' '}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              p: 2,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'divider',
+              maxWidth: '500px',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <MoneyIcon sx={{ mr: 1, color: 'primary.main' }} />
+              <Typography>
+                {form.feeType === 'RECEIVER' ? 'Receiver' : 'Sender'}{' '}
+              </Typography>
             </Box>
-
-          
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mr: 1 }}
+              ></Typography>
+              <Switch
+                checked={form.feeType === 'RECEIVER'}
+                onChange={(e) =>
+                  handleChange({
+                    target: {
+                      name: 'feeType',
+                      value: e.target.checked ? 'RECEIVER' : 'SENDER',
+                    },
+                  })
+                }
+                color="primary"
+              />
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 1 }}
+              ></Typography>
+            </Box>
+          </Box>
           {/* Group 5: Confirm Button */}
-          <Grid item xs={12}>            <Button
+          <Grid item xs={12}>
+            {' '}
+            <Button
               type="button"
               variant="contained"
               color="primary"

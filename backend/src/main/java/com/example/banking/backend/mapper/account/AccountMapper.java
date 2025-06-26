@@ -16,7 +16,6 @@ public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     GetAccountResponse accountToGetAccountResponse(Account account);
-
     GetAccountTransactionsResponse accountToGetAccountTransactionsResponse(Account account);
     @Mapping(target = "fromBankId", expression = "java(getBankId(transaction.getFromBank()))")
     @Mapping(target = "toBankId", expression = "java(getBankId(transaction.getToBank()))")
@@ -31,4 +30,7 @@ public interface AccountMapper {
             return null;
         }
     }
+    @Mapping(source = "totalTransactions", target = "totalTransactions")
+    @Mapping(source = "totalPages", target = "totalPages")
+    GetAccountTransactionsResponse accountToGetAccountTransactionsResponse(Account account, Integer totalTransactions, Integer totalPages);
 }

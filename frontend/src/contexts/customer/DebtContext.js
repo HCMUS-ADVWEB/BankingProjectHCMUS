@@ -1,12 +1,12 @@
-import React, {
+import {
   createContext,
   useContext,
   useReducer,
   useEffect,
   useCallback,
 } from 'react';
-import DebtService from '../services/DebtService';
-import { useAuth } from './AuthContext';
+import DebtService from '../../services/customer/DebtService';
+import { useAuth } from '../AuthContext';
 
 const debtReducer = (state, action) => {
   switch (action.type) {
