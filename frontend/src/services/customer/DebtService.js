@@ -8,23 +8,14 @@ const DebtService = {
    * @param {string|null} status - Filter by status (PENDING, PAID, CANCELLED)
    * @param {number} limit - Number of items per page
    * @param {number} page - Page number (1-based)
-   * @param {string} orderBy - Field to sort by
-   * @param {string} order - Sort direction ('asc' or 'desc')
+
    * @returns {Promise} Promise containing the debt reminders data
    */
-  async getDebtReminderLists(
-    status = null,
-    limit = 10,
-    page = 1,
-    orderBy = 'createdAt',
-    order = 'desc',
-  ) {
+  async getDebtReminderLists(status = null, limit = 10, page = 1) {
     const queryParams = new URLSearchParams();
     if (status) queryParams.append('status', status);
     queryParams.append('limit', limit);
     queryParams.append('page', page);
-    queryParams.append('orderBy', orderBy);
-    queryParams.append('order', order);
 
     const url = `/api/debts?${queryParams.toString()}`;
     return api
@@ -92,13 +83,13 @@ const DebtService = {
 
   /**
    * Pay a debt reminder
-   * @param {string} reminderId - UUID of the debt reminder
    * @param {Object} paymentData - Payment data including OTP
    * @returns {Promise} Promise containing the payment operation result
    */
   async payDebtReminder(reminderId, paymentData) {
+    console.log('Paying debt reminder:', { paymentData });
     return api
-      .post(`/api/debts/${reminderId}/pay`, paymentData)
+      .post(`/api/debts/${reminderId}`, paymentData)
       .then((res) => res.data)
       .catch((err) => {
         console.error('Error paying debt reminder:', err);

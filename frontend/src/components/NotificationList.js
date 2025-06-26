@@ -1,4 +1,5 @@
 import { Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function NotificationList({
   notifications = [],
@@ -7,22 +8,46 @@ export default function NotificationList({
   markAllAsRead,
   isDarkMode,
 }) {
+  const navigate = useNavigate();
+
+  // Handle notification click
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark as read if not already read
+      if (!notification.read) {
+        await markAsRead(notification.id);
+      }
+      // Navigate to debt page if it's a debt-related notification
+      navigate('/customer/debts');
+    } catch (error) {
+      console.error('Error handling notification click:', error);
+    }
+  };
+
   return (
     <>
       <div className="max-h-64 overflow-y-auto">
         {loading ? (
           <div className="px-4 py-3 text-center">
-            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <p
+              className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            >
               Loading notifications...
             </p>
           </div>
         ) : notifications.length === 0 ? (
           <div className="px-4 py-6 text-center">
-            <Bell className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-            <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <Bell
+              className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}
+            />
+            <p
+              className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
+            >
               No notifications
             </p>
-            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+            <p
+              className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}
+            >
               You&apos;ll see notifications here when you receive them
             </p>
           </div>
@@ -30,6 +55,7 @@ export default function NotificationList({
           notifications.map((notification) => (
             <div
               key={notification.id}
+              title={'go to debt payment page'}
               className={`px-4 py-3 hover:${
                 isDarkMode ? 'bg-slate-700/50' : 'bg-gray-50'
               } border-l-4 ${
@@ -40,8 +66,12 @@ export default function NotificationList({
                   : isDarkMode
                     ? 'border-l-transparent bg-transparent text-gray-300'
                     : 'border-l-transparent bg-transparent text-gray-600'
-              } relative transition-colors duration-200 cursor-pointer`}
-              onClick={() => !notification.read && markAsRead(notification.id)}
+              } relative transition-colors duration-200 cursor-pointer ${
+                isDarkMode
+                  ? 'hover:border-l-emerald-400 hover:bg-emerald-900/40'
+                  : 'hover:border-l-blue-400 hover:bg-blue-100/60'
+              }`}
+              onClick={() => handleNotificationClick(notification)}
             >
               <p
                 className={`text-sm ${
@@ -69,6 +99,17 @@ export default function NotificationList({
                 } mt-1`}
               >
                 {new Date(notification.createdAt).toLocaleString()}
+                {
+                  <span
+                    className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                      isDarkMode
+                        ? 'bg-emerald-800 text-emerald-200'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    💳 Click to pay
+                  </span>
+                }
               </p>
             </div>
           ))
