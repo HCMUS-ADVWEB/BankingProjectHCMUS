@@ -1521,13 +1521,15 @@ export const ThemeProvider = ({ children }) => {
     dispatch({ type: 'TOGGLE_THEME' });
   };
   return (
-    <ThemeContext.Provider value={{
-      theme,
-      isDarkMode: state.isDarkMode,
-      toggleTheme,
-      setDarkMode: () => dispatch({ type: 'SET_DARK_MODE' }),
-      setLightMode: () => dispatch({ type: 'SET_LIGHT_MODE' }),
-    }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        isDarkMode: state.isDarkMode,
+        toggleTheme,
+        setDarkMode: () => dispatch({ type: 'SET_DARK_MODE' }),
+        setLightMode: () => dispatch({ type: 'SET_LIGHT_MODE' }),
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

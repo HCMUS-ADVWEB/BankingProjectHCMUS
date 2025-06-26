@@ -6,16 +6,28 @@ export const EmployeeService = {
   },
 
   async depositAccount(data) {
-    return api.post('/api/transactions/internal/deposit', data).then((res) => res.data);
+    return api
+      .post('/api/transactions/internal/deposit', data)
+      .then((res) => res.data);
   },
 
   async fetchTransactions(accountNumber, params = {}) {
     return api
-      .post('/api/accounts/get-account-transactions', { accountNumber }, { params })
+      .post(
+        '/api/accounts/get-account-transactions',
+        { accountNumber },
+        { params },
+      )
       .then((res) => ({
         transactions: [
-          ...(res.data.data.transactionsAsSender || []).map((tx) => ({ ...tx, role: 'SENDER' })),
-          ...(res.data.data.transactionsAsReceiver || []).map((tx) => ({ ...tx, role: 'RECEIVER' })),
+          ...(res.data.data.transactionsAsSender || []).map((tx) => ({
+            ...tx,
+            role: 'SENDER',
+          })),
+          ...(res.data.data.transactionsAsReceiver || []).map((tx) => ({
+            ...tx,
+            role: 'RECEIVER',
+          })),
         ],
       }));
   },

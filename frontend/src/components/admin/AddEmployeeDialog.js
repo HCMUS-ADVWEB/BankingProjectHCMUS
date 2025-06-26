@@ -73,10 +73,7 @@ export default function AddEmployeeDialog({
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  onClick={onTogglePasswordVisibility}
-                  edge="end"
-                >
+                <IconButton onClick={onTogglePasswordVisibility} edge="end">
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
@@ -152,7 +149,8 @@ export default function AddEmployeeDialog({
                 {...params}
                 margin="dense"
                 fullWidth
-                variant="outlined" />
+                variant="outlined"
+              />
             )}
             sx={{ my: 1 }}
             error={Boolean(formErrors.dob)}
@@ -175,7 +173,9 @@ export default function AddEmployeeDialog({
         </Select>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
-          <Typography sx={{ color: 'text.primary', fontWeight: 'bold' }}>Active:</Typography>
+          <Typography sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+            Active:
+          </Typography>
           <Checkbox
             checked={newEmployee.isActive}
             onChange={(e) => onEmployeeUpdate({ isActive: e.target.checked })}
@@ -183,14 +183,12 @@ export default function AddEmployeeDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>
-                    Cancel
-        </Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button
           onClick={onSubmit}
           sx={{ bgcolor: 'primary.main', color: 'text.primary' }}
         >
-                    Add
+          Add
         </Button>
       </DialogActions>
     </Dialog>

@@ -39,7 +39,10 @@ const initialState = {
 
 export const useCreateAccount = () => {
   const context = useContext(CreateAccountContext);
-  if (!context) throw new Error('useCreateAccount must be used within CreateAccountProvider');
+  if (!context)
+    throw new Error(
+      'useCreateAccount must be used within CreateAccountProvider',
+    );
   return context;
 };
 
@@ -59,7 +62,8 @@ export const CreateAccountProvider = ({ children }) => {
       dispatch({ type: 'RESET_FORM' });
       return res.data.accountNumber;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to create account';
+      const errorMessage =
+        err.response?.data?.message || 'Failed to create account';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return null;
     } finally {

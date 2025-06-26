@@ -12,11 +12,7 @@ import {
   Divider,
   Tooltip,
 } from '@mui/material';
-import {
-  PersonAdd,
-  AddCard,
-  History,
-} from '@mui/icons-material';
+import { PersonAdd, AddCard, History } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 export default function EmployeeDashboard() {
@@ -78,7 +74,8 @@ export default function EmployeeDashboard() {
             Welcome, {state.user?.fullName || 'Employee'}! 👋
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Your dashboard provides quick access to banking operations for efficient management.
+            Your dashboard provides quick access to banking operations for
+            efficient management.
           </Typography>
         </Box>
 
@@ -118,7 +115,8 @@ export default function EmployeeDashboard() {
                       <Tooltip title={action.tooltip}>
                         <Avatar
                           sx={{
-                            bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
+                            bgcolor:
+                              'linear-gradient(to right, #10b981, #06b6d4)',
                             color: 'white',
                             mr: 2,
                             width: 40,

@@ -11,10 +11,7 @@ import {
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { format } from 'date-fns';
-import {
-  DatePicker,
-  LocalizationProvider,
-} from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 export default function EmployeeDetailCard({
@@ -36,22 +33,35 @@ export default function EmployeeDetailCard({
   ];
 
   return (
-    <Card sx={{ p: 2, borderRadius: 'shape.borderRadius', bgcolor: 'background.paper', mb: 3 }}>
+    <Card
+      sx={{
+        p: 2,
+        borderRadius: 'shape.borderRadius',
+        bgcolor: 'background.paper',
+        mb: 3,
+      }}
+    >
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <Typography variant="h6">ID: {employee.id}</Typography>
           <Box>
             {editMode ? (
               <>
                 <Button size="small" onClick={onCancel}>
-                                    Cancel
+                  Cancel
                 </Button>
                 <Button
                   size="small"
                   sx={{ bgcolor: 'primary.main', color: 'text.primary' }}
                   onClick={onSave}
                 >
-                                    Save
+                  Save
                 </Button>
               </>
             ) : (
@@ -68,8 +78,13 @@ export default function EmployeeDetailCard({
         </Box>
 
         {textFields.map((field) => (
-          <Box key={field.value} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography sx={{ width: 140, fontWeight: 'bold', color: 'text.primary' }}>
+          <Box
+            key={field.value}
+            sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+          >
+            <Typography
+              sx={{ width: 140, fontWeight: 'bold', color: 'text.primary' }}
+            >
               {field.label}:
             </Typography>
             {editMode ? (
@@ -90,8 +105,10 @@ export default function EmployeeDetailCard({
         ))}
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}>
-                        Date of birth:
+          <Typography
+            sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}
+          >
+            Date of birth:
           </Typography>
           {editMode ? (
             <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -105,20 +122,26 @@ export default function EmployeeDetailCard({
                   svg: { color: '#90caf9' },
                   borderRadius: 'shape.borderRadius',
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#90caf9',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#90caf9',
+                  },
                 }}
               />
             </LocalizationProvider>
           ) : (
-            <Typography>
-              {format(employee.dob, 'dd-MM-yyyy')}
-            </Typography>
+            <Typography>{format(employee.dob, 'dd-MM-yyyy')}</Typography>
           )}
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}>Role:</Typography>
+          <Typography
+            sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}
+          >
+            Role:
+          </Typography>
           {editMode ? (
             <Select
               value={editedEmployee.role || 'EMPLOYEE'}
@@ -135,7 +158,11 @@ export default function EmployeeDetailCard({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}>Active:</Typography>
+          <Typography
+            sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}
+          >
+            Active:
+          </Typography>
           {editMode ? (
             <Checkbox
               checked={editedEmployee.isActive || false}
@@ -147,8 +174,10 @@ export default function EmployeeDetailCard({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}>
-                        Created at:
+          <Typography
+            sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}
+          >
+            Created at:
           </Typography>
           <Typography>
             {format(employee.createdAt, 'dd-MM-yyyy HH:mm:ss')}
@@ -156,8 +185,10 @@ export default function EmployeeDetailCard({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}>
-                        Updated at:
+          <Typography
+            sx={{ width: 140, color: 'text.primary', fontWeight: 'bold' }}
+          >
+            Updated at:
           </Typography>
           <Typography>
             {format(employee.updatedAt, 'dd-MM-yyyy HH:mm:ss')}

@@ -1,10 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Box, Grid, Typography, Card, CardContent, FormControl, Select, MenuItem,
+  Box,
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
-import {
-  DatePicker, LocalizationProvider,
-} from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { BarChart } from '@mui/x-charts';
 import AdminLayout from '../../layouts/AdminLayout';
@@ -68,7 +73,10 @@ export function DashboardContent() {
         <Grid container spacing={2} mb={3}>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+              <Typography
+                variant="subtitle1"
+                sx={{ color: 'text.secondary', mb: 0.5 }}
+              >
                 Select Bank
               </Typography>
               <Select
@@ -87,7 +95,10 @@ export function DashboardContent() {
           </Grid>
 
           <Grid item xs={12} md={3}>
-            <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ color: 'text.secondary', mb: 0.5 }}
+            >
               Select Year
             </Typography>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -99,8 +110,12 @@ export function DashboardContent() {
                   input: { color: 'text.secondary' },
                   borderRadius: 'shape.borderRadius',
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#90caf9',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#90caf9',
+                  },
                 }}
               />
             </LocalizationProvider>
@@ -159,30 +174,32 @@ export function DashboardContent() {
               Transaction Volume by Month ({selectedBank})
             </Typography>
             <BarChart
-              xAxis={[{
-                scaleType: 'band',
-                data: statisticsByMonth.map((item) => `Thg ${item.month}`),
-                label: 'Month',
-              }]}
-              series={[{
-                data: statisticsByMonth.map((item) => item.totalAmount),
-                label: 'Transaction Amount (VNĐ)',
-              }]}
+              xAxis={[
+                {
+                  scaleType: 'band',
+                  data: statisticsByMonth.map((item) => `Thg ${item.month}`),
+                  label: 'Month',
+                },
+              ]}
+              series={[
+                {
+                  data: statisticsByMonth.map((item) => item.totalAmount),
+                  label: 'Transaction Amount (VNĐ)',
+                },
+              ]}
               height={300}
               margin={{ top: 20, right: 30, bottom: 30, left: 60 }}
-              yAxis={[{
-                label: 'Amount (VNĐ)',
-                valueFormatter: (value) => `${value.toLocaleString()}`,
-              }]}
+              yAxis={[
+                {
+                  label: 'Amount (VNĐ)',
+                  valueFormatter: (value) => `${value.toLocaleString()}`,
+                },
+              ]}
             />
           </CardContent>
         </Card>
 
-        {error && (
-          <Typography sx={{ color: 'red', mt: 2 }}>
-            {error}
-          </Typography>
-        )}
+        {error && <Typography sx={{ color: 'red', mt: 2 }}>{error}</Typography>}
       </Box>
     </AdminLayout>
   );

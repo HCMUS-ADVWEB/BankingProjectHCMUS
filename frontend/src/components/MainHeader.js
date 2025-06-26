@@ -117,7 +117,10 @@ export default function MainHeader({ navigationItems = [] }) {
 
                 // Log current notification state when toggling
                 if (!showNotifications) {
-                  console.log('Opening notifications - Current count:', unreadCount);
+                  console.log(
+                    'Opening notifications - Current count:',
+                    unreadCount,
+                  );
                   console.log('Current notifications:', notifications);
                 }
               }}

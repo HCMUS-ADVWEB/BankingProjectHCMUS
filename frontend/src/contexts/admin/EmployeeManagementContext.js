@@ -1,4 +1,10 @@
-import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+} from 'react';
 import { AdminService } from '../../services/AdminService';
 
 // Employee Management reducer for state management
@@ -21,14 +27,14 @@ const employeeManagementReducer = (state, action) => {
     case 'UPDATE_EMPLOYEE':
       return {
         ...state,
-        employees: state.employees.map(emp =>
+        employees: state.employees.map((emp) =>
           emp.id === action.payload.id ? action.payload : emp,
         ),
       };
     case 'REMOVE_EMPLOYEE':
       return {
         ...state,
-        employees: state.employees.filter(emp => emp.id !== action.payload),
+        employees: state.employees.filter((emp) => emp.id !== action.payload),
       };
     case 'SET_PAGINATION':
       return {
@@ -118,7 +124,9 @@ const EmployeeManagementContext = createContext();
 export const useEmployeeManagement = () => {
   const context = useContext(EmployeeManagementContext);
   if (!context) {
-    throw new Error('useEmployeeManagement must be used within an EmployeeManagementProvider');
+    throw new Error(
+      'useEmployeeManagement must be used within an EmployeeManagementProvider',
+    );
   }
   return context;
 };
@@ -133,7 +141,8 @@ export const EmployeeManagementProvider = ({ children }) => {
     if (error.response) {
       const status = error.response.status;
       const msg = error.response.data?.message;
-      const timestamp = error.response.data?.timestamp || new Date().toISOString();
+      const timestamp =
+        error.response.data?.timestamp || new Date().toISOString();
 
       console.error(`Error ${status}: ${msg} at ${timestamp}`);
       errorMessage = msg || `HTTP ${status} Error`;
@@ -163,77 +172,85 @@ export const EmployeeManagementProvider = ({ children }) => {
   }, []);
 
   // Fetch employees with filtering and sorting
-  const fetchEmployees = useCallback(async (retryCount = 0) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+  const fetchEmployees = useCallback(
+    async (retryCount = 0) => {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
 
-    try {
-      const response = await AdminService.fetchEmployees();
-      let employees = response.data || [];
+      try {
+        const response = await AdminService.fetchEmployees();
+        let employees = response.data || [];
 
-      // Filter out customers (only show employees and admins)
-      employees = employees.filter(emp => emp.role !== 'CUSTOMER');
+        // Filter out customers (only show employees and admins)
+        employees = employees.filter((emp) => emp.role !== 'CUSTOMER');
 
-      // Apply filters
-      if (state.filters.search) {
-        const searchTerm = state.filters.search.toLowerCase();
-        employees = employees.filter(emp =>
-          emp.fullName.toLowerCase().includes(searchTerm) ||
-          emp.username.toLowerCase().includes(searchTerm) ||
-          emp.email.toLowerCase().includes(searchTerm) ||
-          emp.phone.includes(searchTerm),
-        );
-      }
-
-      if (state.filters.role !== 'ALL') {
-        employees = employees.filter(emp => emp.role === state.filters.role);
-      }
-
-      if (state.filters.isActive !== 'ALL') {
-        const isActiveFilter = state.filters.isActive === 'ACTIVE';
-        employees = employees.filter(emp => emp.isActive === isActiveFilter);
-      }
-
-      // Apply sorting
-      employees.sort((a, b) => {
-        const { orderBy, order } = state.sort;
-        let aValue = a[orderBy];
-        let bValue = b[orderBy];
-
-        // Handle different data types
-        if (orderBy === 'createdAt' || orderBy === 'updatedAt') {
-          aValue = new Date(aValue);
-          bValue = new Date(bValue);
-        } else if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
+        // Apply filters
+        if (state.filters.search) {
+          const searchTerm = state.filters.search.toLowerCase();
+          employees = employees.filter(
+            (emp) =>
+              emp.fullName.toLowerCase().includes(searchTerm) ||
+              emp.username.toLowerCase().includes(searchTerm) ||
+              emp.email.toLowerCase().includes(searchTerm) ||
+              emp.phone.includes(searchTerm),
+          );
         }
 
-        if (order === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        if (state.filters.role !== 'ALL') {
+          employees = employees.filter(
+            (emp) => emp.role === state.filters.role,
+          );
         }
-      });
 
-      dispatch({ type: 'SET_EMPLOYEES', payload: employees });
-      dispatch({
-        type: 'SET_PAGINATION',
-        payload: { total: employees.length },
-      });
+        if (state.filters.isActive !== 'ALL') {
+          const isActiveFilter = state.filters.isActive === 'ACTIVE';
+          employees = employees.filter(
+            (emp) => emp.isActive === isActiveFilter,
+          );
+        }
 
-      setSuccessWithTimeout('Employees loaded successfully!');
-    } catch (error) {
-      handleApiError(error);
-      // Retry logic for network errors
-      if (retryCount < 2 && error.request) {
-        setTimeout(() => fetchEmployees(retryCount + 1), 1000);
-        return;
+        // Apply sorting
+        employees.sort((a, b) => {
+          const { orderBy, order } = state.sort;
+          let aValue = a[orderBy];
+          let bValue = b[orderBy];
+
+          // Handle different data types
+          if (orderBy === 'createdAt' || orderBy === 'updatedAt') {
+            aValue = new Date(aValue);
+            bValue = new Date(bValue);
+          } else if (typeof aValue === 'string') {
+            aValue = aValue.toLowerCase();
+            bValue = bValue.toLowerCase();
+          }
+
+          if (order === 'asc') {
+            return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+          } else {
+            return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+          }
+        });
+
+        dispatch({ type: 'SET_EMPLOYEES', payload: employees });
+        dispatch({
+          type: 'SET_PAGINATION',
+          payload: { total: employees.length },
+        });
+
+        setSuccessWithTimeout('Employees loaded successfully!');
+      } catch (error) {
+        handleApiError(error);
+        // Retry logic for network errors
+        if (retryCount < 2 && error.request) {
+          setTimeout(() => fetchEmployees(retryCount + 1), 1000);
+          return;
+        }
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [state.filters, state.sort, handleApiError, setSuccessWithTimeout]);
+    },
+    [state.filters, state.sort, handleApiError, setSuccessWithTimeout],
+  );
 
   // Create new employee
   const createEmployee = useCallback(async () => {
@@ -250,7 +267,9 @@ export const EmployeeManagementProvider = ({ children }) => {
     try {
       const payload = {
         ...state.newEmployee,
-        dob: state.newEmployee.dob ? new Date(state.newEmployee.dob).toISOString() : null,
+        dob: state.newEmployee.dob
+          ? new Date(state.newEmployee.dob).toISOString()
+          : null,
       };
 
       const response = await AdminService.createEmployee(payload);
@@ -276,65 +295,71 @@ export const EmployeeManagementProvider = ({ children }) => {
   }, [state.newEmployee, handleApiError, setSuccessWithTimeout]);
 
   // Update employee
-  const updateEmployee = useCallback(async (employeeId, updateData) => {
-    if (!employeeId) {
-      dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
-      return false;
-    }
+  const updateEmployee = useCallback(
+    async (employeeId, updateData) => {
+      if (!employeeId) {
+        dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
+        return false;
+      }
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
 
-    try {
-      const payload = {
-        ...updateData,
-        dob: updateData.dob ? new Date(updateData.dob).toISOString() : null,
-      };
+      try {
+        const payload = {
+          ...updateData,
+          dob: updateData.dob ? new Date(updateData.dob).toISOString() : null,
+        };
 
-      await AdminService.updateEmployee(employeeId, payload);
+        await AdminService.updateEmployee(employeeId, payload);
 
-      const updatedEmployee = {
-        ...updateData,
-        id: employeeId,
-        updatedAt: new Date().toISOString(),
-      };
+        const updatedEmployee = {
+          ...updateData,
+          id: employeeId,
+          updatedAt: new Date().toISOString(),
+        };
 
-      dispatch({ type: 'UPDATE_EMPLOYEE', payload: updatedEmployee });
-      setSuccessWithTimeout('Employee updated successfully!');
-      return true;
-    } catch (error) {
-      handleApiError(error);
-      return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError, setSuccessWithTimeout]);
+        dispatch({ type: 'UPDATE_EMPLOYEE', payload: updatedEmployee });
+        setSuccessWithTimeout('Employee updated successfully!');
+        return true;
+      } catch (error) {
+        handleApiError(error);
+        return false;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError, setSuccessWithTimeout],
+  );
 
   // Delete employee
-  const deleteEmployee = useCallback(async (employeeId) => {
-    if (!employeeId) {
-      dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
-      return false;
-    }
+  const deleteEmployee = useCallback(
+    async (employeeId) => {
+      if (!employeeId) {
+        dispatch({ type: 'SET_ERROR', payload: 'Employee ID is required' });
+        return false;
+      }
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'CLEAR_ERROR' });
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
 
-    try {
-      await AdminService.deleteEmployee(employeeId);
-      dispatch({ type: 'REMOVE_EMPLOYEE', payload: employeeId });
-      dispatch({ type: 'SET_DIALOGS', payload: { openDeleteDialog: false } });
-      dispatch({ type: 'SET_SELECTED_EMPLOYEE', payload: null });
+      try {
+        await AdminService.deleteEmployee(employeeId);
+        dispatch({ type: 'REMOVE_EMPLOYEE', payload: employeeId });
+        dispatch({ type: 'SET_DIALOGS', payload: { openDeleteDialog: false } });
+        dispatch({ type: 'SET_SELECTED_EMPLOYEE', payload: null });
 
-      setSuccessWithTimeout('Employee deleted successfully!');
-      return true;
-    } catch (error) {
-      handleApiError(error);
-      return false;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [handleApiError, setSuccessWithTimeout]);
+        setSuccessWithTimeout('Employee deleted successfully!');
+        return true;
+      } catch (error) {
+        handleApiError(error);
+        return false;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [handleApiError, setSuccessWithTimeout],
+  );
 
   // Form validation
   const validateNewEmployee = useCallback(() => {
@@ -400,16 +425,20 @@ export const EmployeeManagementProvider = ({ children }) => {
   }, []);
 
   // Sorting handlers
-  const handleRequestSort = useCallback((property) => {
-    const isAsc = state.sort.orderBy === property && state.sort.order === 'asc';
-    dispatch({
-      type: 'SET_SORT',
-      payload: {
-        orderBy: property,
-        order: isAsc ? 'desc' : 'asc',
-      },
-    });
-  }, [state.sort]);
+  const handleRequestSort = useCallback(
+    (property) => {
+      const isAsc =
+        state.sort.orderBy === property && state.sort.order === 'asc';
+      dispatch({
+        type: 'SET_SORT',
+        payload: {
+          orderBy: property,
+          order: isAsc ? 'desc' : 'asc',
+        },
+      });
+    },
+    [state.sort],
+  );
 
   // Filter handlers
   const updateFilters = useCallback((newFilters) => {
@@ -447,15 +476,18 @@ export const EmployeeManagementProvider = ({ children }) => {
   }, [state.dialogs.showPassword]);
 
   // Form field handlers
-  const updateNewEmployeeField = useCallback((field, value) => {
-    dispatch({ type: 'SET_NEW_EMPLOYEE', payload: { [field]: value } });
-    // Clear field-specific error
-    if (state.formErrors[field]) {
-      const newErrors = { ...state.formErrors };
-      delete newErrors[field];
-      dispatch({ type: 'SET_FORM_ERRORS', payload: newErrors });
-    }
-  }, [state.formErrors]);
+  const updateNewEmployeeField = useCallback(
+    (field, value) => {
+      dispatch({ type: 'SET_NEW_EMPLOYEE', payload: { [field]: value } });
+      // Clear field-specific error
+      if (state.formErrors[field]) {
+        const newErrors = { ...state.formErrors };
+        delete newErrors[field];
+        dispatch({ type: 'SET_FORM_ERRORS', payload: newErrors });
+      }
+    },
+    [state.formErrors],
+  );
 
   const updateNewEmployee = useCallback((updates) => {
     dispatch({ type: 'SET_NEW_EMPLOYEE', payload: updates });

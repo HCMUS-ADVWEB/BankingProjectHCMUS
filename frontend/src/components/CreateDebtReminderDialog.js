@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useDebt } from '../contexts/customer/DebtContext';
 
-const CreateDebtReminderDialog = ({ open, onClose }) => {
+const CreateDebtReminderDialog = ({ open, onClose, onSuccess }) => {
   const { createDebtReminder, loading, error } = useDebt();
   const [formData, setFormData] = useState({
     accountNumber: '',
@@ -66,6 +66,8 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
 
     const result = await createDebtReminder(debtData);
     if (result && result.success) {
+      // Notify parent of success
+      onSuccess && onSuccess();
       handleClose();
     }
   };

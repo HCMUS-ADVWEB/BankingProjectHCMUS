@@ -47,16 +47,10 @@ export default function EmployeeTable({
                 <TableCell>{emp.phone}</TableCell>
                 <TableCell>{emp.role}</TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => onEdit(e, emp.id)}
-                  >
+                  <IconButton size="small" onClick={(e) => onEdit(e, emp.id)}>
                     <Info sx={{ color: '#90caf9' }} />
                   </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => onDelete(e, emp)}
-                  >
+                  <IconButton size="small" onClick={(e) => onDelete(e, emp)}>
                     <Delete sx={{ color: '#f44336' }} />
                   </IconButton>
                 </TableCell>
@@ -75,9 +69,10 @@ export default function EmployeeTable({
           sx={{
             color: '#fff',
             '.MuiTablePagination-toolbar': { bgcolor: '#1e1e1e' },
-            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
-              color: '#fff',
-            },
+            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows':
+              {
+                color: '#fff',
+              },
             '.MuiSvgIcon-root': { color: '#90caf9' },
           }}
         />
