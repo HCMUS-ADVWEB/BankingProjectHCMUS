@@ -13,7 +13,6 @@ import {
   Tooltip,
 } from '@mui/material';
 import {
-  Home,
   PersonAdd,
   AddCard,
   History,

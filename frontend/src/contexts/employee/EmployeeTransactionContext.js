@@ -57,7 +57,7 @@ export const EmployeeTransactionProvider = ({ children }) => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to fetch banks';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
-      return false
+      return false;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }

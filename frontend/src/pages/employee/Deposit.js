@@ -31,7 +31,7 @@ export default function DepositPage() {
 
   useEffect(() => {
     clearMessages();
-  }, []);
+  }, [clearMessages]);
 
   const validateForm = useCallback(() => {
     const errors = {};

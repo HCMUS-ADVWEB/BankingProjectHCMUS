@@ -43,7 +43,7 @@ public class SignatureUtil {
         try {
             long timestampMillis = Long.parseLong(timestampStr);
             LocalDateTime dateTime = Instant.ofEpochMilli(timestampMillis)
-                    .atZone(ZoneId.systemDefault())
+                    .atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
                     .toLocalDateTime();
             LocalDateTime now = LocalDateTime.now();
             Duration duration = Duration.between(dateTime, now).abs();

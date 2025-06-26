@@ -23,7 +23,7 @@ export default function NotificationList({
               No notifications
             </p>
             <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-              You'll see notifications here when you receive them
+              You&apos;ll see notifications here when you receive them
             </p>
           </div>
         ) : (

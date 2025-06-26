@@ -1,225 +1,197 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
-  Box,
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Select,
-  MenuItem,
-  FormControl,
+  Box, Grid, Typography, Card, CardContent, FormControl, Select, MenuItem,
 } from '@mui/material';
 import {
-  DatePicker,
-  LocalizationProvider,
+  DatePicker, LocalizationProvider,
 } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { BarChart } from '@mui/x-charts';
 import AdminLayout from '../../layouts/AdminLayout';
+import Loading from '../../components/Loading';
+import {
+  BankStatisticsProvider,
+  useBankStatistics,
+} from '../../contexts/admin/BankStatisticsContext';
 
-const bankList = ['All Banks', 'Bank A', 'Bank B', 'Bank C'];
+export function DashboardContent() {
+  const {
+    statisticsByMonth,
+    totalYearTransactions,
+    totalYearAmount,
+    banks,
+    loading,
+    error,
+    fetchBanks,
+    fetchStatisticsForYear,
+  } = useBankStatistics();
 
-const transactionData = {
-  'All Banks': [
-    { month: 'Jan', amount: 300000 },
-    { month: 'Feb', amount: 270000 },
-    { month: 'Mar', amount: 340000 },
-    { month: 'Apr', amount: 310000 },
-    { month: 'May', amount: 360000 },
-    { month: 'Jun', amount: 320000 },
-  ],
-  'Bank A': [
-    { month: 'Jan', amount: 120000 },
-    { month: 'Feb', amount: 95000 },
-    { month: 'Mar', amount: 134000 },
-    { month: 'Apr', amount: 110500 },
-    { month: 'May', amount: 160200 },
-    { month: 'Jun', amount: 143800 },
-  ],
-  'Bank B': [
-    { month: 'Jan', amount: 80000 },
-    { month: 'Feb', amount: 75000 },
-    { month: 'Mar', amount: 90000 },
-    { month: 'Apr', amount: 85000 },
-    { month: 'May', amount: 95000 },
-    { month: 'Jun', amount: 97000 },
-  ],
-  'Bank C': [
-    { month: 'Jan', amount: 100000 },
-    { month: 'Feb', amount: 100000 },
-    { month: 'Mar', amount: 116000 },
-    { month: 'Apr', amount: 114500 },
-    { month: 'May', amount: 104800 },
-    { month: 'Jun', amount: 112200 },
-  ],
-};
-
-const transactionTypes = ['All', 'Transfer', 'Deposit', 'Withdrawal'];
-
-export default function AdminDashboard() {
   const [selectedBank, setSelectedBank] = useState('All Banks');
-  const transactionStats = transactionData[selectedBank];
-  const totalTransactions = transactionStats.reduce((sum, t) => sum + t.amount, 0);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [transactionType, setTransactionType] = useState('All');
+
+  const selectedYear = selectedDate.getFullYear();
+
+  // Fetch banks when component mount
+  useEffect(() => {
+    fetchBanks();
+  }, [fetchBanks]);
+
+  // Fetch statistics when bank or year changes
+  useEffect(() => {
+    fetchStatisticsForYear({
+      year: selectedYear,
+      bankCode: selectedBank === 'All Banks' ? null : selectedBank,
+    });
+  }, [selectedBank, selectedYear, fetchStatisticsForYear]);
+
+  const bestMonth = useMemo(() => {
+    if (statisticsByMonth.length === 0) return '-';
+    return statisticsByMonth.reduce((a, b) =>
+      a.totalAmount > b.totalAmount ? a : b,
+    ).month;
+  }, [statisticsByMonth]);
+
+  const averageAmount = useMemo(() => {
+    if (statisticsByMonth.length === 0) return 0;
+    return Math.round(totalYearAmount / statisticsByMonth.length);
+  }, [statisticsByMonth, totalYearAmount]);
+
+  if (loading) return <Loading />;
 
   return (
     <AdminLayout>
-      <Box sx={{ p: 3, bgcolor: '#121212', minHeight: '100vh' }}>
-        <Typography variant="h4" gutterBottom sx={{ color: '#fff' }}>
+      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Typography variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
           Bank Transaction Statistics
         </Typography>
 
         <Grid container spacing={2} mb={3}>
-          {/* Bank Picker */}
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <Typography variant="subtitle1" sx={{ color: '#90caf9', mb: 0.5 }}>
+              <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
                 Select Bank
               </Typography>
               <Select
                 value={selectedBank}
                 onChange={(e) => setSelectedBank(e.target.value)}
-                sx={{
-                  color: '#fff',
-                  bgcolor: '#1e1e1e',
-                  borderRadius: 1,
-                }}
+                sx={{ borderRadius: 'shape.borderRadius' }}
               >
-                {bankList.map((bank) => (
-                  <MenuItem key={bank} value={bank}>
-                    {bank}
+                <MenuItem value="All Banks">All Banks</MenuItem>
+                {banks.map((bank) => (
+                  <MenuItem key={bank.bankCode} value={bank.bankCode}>
+                    {bank.bankName}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
 
-          {/* Date Picker */}
           <Grid item xs={12} md={3}>
-            <Typography variant="subtitle1" sx={{ color: '#90caf9', mb: 0.5 }}>
-              Select Month
+            <Typography variant="subtitle1" sx={{ color: 'text.secondary', mb: 0.5 }}>
+              Select Year
             </Typography>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                views={['year', 'month']}
+                views={['year']}
                 value={selectedDate}
                 onChange={(newValue) => setSelectedDate(newValue)}
                 sx={{
-                  bgcolor: '#1e1e1e',
-                  input: { color: '#fff' },
-                  svg: { color: '#90caf9' },
-                  borderRadius: 1,
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#555',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#90caf9',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#90caf9',
-                  },
+                  input: { color: 'text.secondary' },
+                  borderRadius: 'shape.borderRadius',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
                 }}
               />
             </LocalizationProvider>
-
-          </Grid>
-
-          {/* Transaction Type Picker */}
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
-              <Typography variant="subtitle1" sx={{ color: '#90caf9', mb: 0.5 }}>
-                Transaction Type
-              </Typography>
-              <Select
-                value={transactionType}
-                onChange={(e) => setTransactionType(e.target.value)}
-                sx={{
-                  color: '#fff',
-                  bgcolor: '#1e1e1e',
-                  borderRadius: 1,
-                }}
-              >
-                {transactionTypes.map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} mb={4}>
+        <Grid container spacing={4} mb={4}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#1e1e1e', color: '#fff' }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Total Transaction Volume</Typography>
                 <Typography variant="h5" color="success.main">
-                  ${totalTransactions.toLocaleString()}
+                  {totalYearAmount.toLocaleString()} VNĐ
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#1e1e1e', color: '#fff' }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
+              <CardContent>
+                <Typography variant="h6">Total Transactions</Typography>
+                <Typography variant="h5" color="success.main">
+                  {totalYearTransactions.toLocaleString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Best Month</Typography>
                 <Typography variant="h5" color="success.main">
-                  {
-                    transactionStats.reduce((a, b) => (a.amount > b.amount ? a : b))
-                      .month
-                  }
+                  Tháng {bestMonth}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Card sx={{ bgcolor: '#1e1e1e', color: '#fff' }}>
+            <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
               <CardContent>
                 <Typography variant="h6">Average Monthly Volume</Typography>
                 <Typography variant="h5" color="info.main">
-                  ${Math.round(totalTransactions / transactionStats.length).toLocaleString()}
+                  {averageAmount.toLocaleString()} VNĐ
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Card sx={{ bgcolor: '#1e1e1e', color: '#fff' }}>
+        <Card sx={{ bgcolor: 'background.paper', color: 'text.primary' }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Transaction Volume by Month ({selectedBank})
             </Typography>
             <BarChart
-              xAxis={[
-                {
-                  scaleType: 'band',
-                  data: transactionStats.map((item) => item.month),
-                  label: 'Month',
-                },
-              ]}
-              series={[
-                {
-                  data: transactionStats.map((item) => item.amount),
-                  label: 'Transaction Amount ($)',
-                  color: '#42a5f5',
-                },
-              ]}
+              xAxis={[{
+                scaleType: 'band',
+                data: statisticsByMonth.map((item) => `Thg ${item.month}`),
+                label: 'Month',
+              }]}
+              series={[{
+                data: statisticsByMonth.map((item) => item.totalAmount),
+                label: 'Transaction Amount (VNĐ)',
+              }]}
               height={300}
               margin={{ top: 20, right: 30, bottom: 30, left: 60 }}
-              yAxis={[
-                {
-                  label: 'Amount ($)',
-                  valueFormatter: (value) => `$${value.toLocaleString()}`,
-                },
-              ]}
+              yAxis={[{
+                label: 'Amount (VNĐ)',
+                valueFormatter: (value) => `${value.toLocaleString()}`,
+              }]}
             />
           </CardContent>
         </Card>
+
+        {error && (
+          <Typography sx={{ color: 'red', mt: 2 }}>
+            {error}
+          </Typography>
+        )}
       </Box>
     </AdminLayout>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <BankStatisticsProvider>
+      <DashboardContent />
+    </BankStatisticsProvider>
   );
 }

@@ -54,7 +54,7 @@ export const CreateAccountProvider = ({ children }) => {
       const res = await EmployeeService.createAccount(data);
       dispatch({
         type: 'SET_SUCCESS',
-        payload: `Account created successfully!`,
+        payload: 'Account created successfully!',
       });
       dispatch({ type: 'RESET_FORM' });
       return res.data.accountNumber;

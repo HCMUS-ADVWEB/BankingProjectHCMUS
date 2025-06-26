@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { useAuth } from './AuthContext';
 import webSocketService from '../services/WebSocketService';
-import NotificationAPI from '../services/NotificationApi';
+import notificationService from '../services/NotificationService';
 
 const notificationReducer = (state, action) => {
   switch (action.type) {
@@ -33,7 +33,7 @@ const notificationReducer = (state, action) => {
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
       };
-    case 'MARK_AS_READ':
+    case 'MARK_AS_READ': {
       const wasUnread = state.notifications.some(
         (n) => n.id === action.payload && !n.read,
       );
@@ -46,6 +46,7 @@ const notificationReducer = (state, action) => {
           ? Math.max(0, state.unreadCount - 1)
           : state.unreadCount,
       };
+    }
     case 'SET_CONNECTION_STATUS':
       return { ...state, isConnecting: action.payload };
     case 'SET_SUBSCRIPTION':
@@ -95,10 +96,9 @@ export const NotificationProvider = ({ children }) => {
     if (!authState.isAuthenticated || !authState.user?.id) {
       return;
     }
-
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await NotificationAPI.getNotifications(10, 1);
+      const response = await notificationService.getNotifications(10, 1);
 
       if (response && response.content) {
         dispatch({ type: 'SET_NOTIFICATIONS', payload: response.content });
@@ -266,23 +266,21 @@ export const NotificationProvider = ({ children }) => {
     setupWebSocket,
     state.subscription,
   ]);
-
   const markAllAsRead = async () => {
     try {
       dispatch({ type: 'MARK_ALL_READ' });
 
-      await NotificationAPI.markAllAsRead();
+      await notificationService.markAllAsRead();
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       fetchNotifications();
     }
   };
-
   const markAsRead = async (notificationId) => {
     try {
       dispatch({ type: 'MARK_AS_READ', payload: notificationId });
 
-      await NotificationAPI.markAsRead(notificationId);
+      await notificationService.markAsRead(notificationId);
     } catch (error) {
       console.error(
         `Error marking notification ${notificationId} as read:`,

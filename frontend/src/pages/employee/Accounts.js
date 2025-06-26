@@ -53,7 +53,7 @@ export default function AccountsPage() {
 
   useEffect(() => {
     clearMessages();
-  }, []);
+  }, [clearMessages]);
 
   const validateForm = useCallback(() => {
     const errors = {};
@@ -98,7 +98,7 @@ export default function AccountsPage() {
     setSnackbarOpen(false);
     resetForm();
     setFormErrors({});
-  }
+  };
 
   const handleCloseAccountNumberBox = () => {
     setAccountNumberCreated(null);
@@ -272,7 +272,7 @@ export default function AccountsPage() {
                   }}
                   slotProps={{
                     textField: {
-                      variant: "outlined",
+                      variant: 'outlined',
                       fullWidth: true,
                       error: !!formErrors.dob,
                       helperText: formErrors.dob,

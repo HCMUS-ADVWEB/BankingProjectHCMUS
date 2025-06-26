@@ -30,12 +30,11 @@ import {
   Tooltip,
   IconButton,
   Collapse,
-  Fade,
 } from '@mui/material';
-import { 
-  CreditCard as CardIcon, 
-  FilterList as FilterIcon, 
-  ArrowUpward as ArrowUpwardIcon, 
+import {
+  CreditCard as CardIcon,
+  FilterList as FilterIcon,
+  ArrowUpward as ArrowUpwardIcon,
   ArrowDownward as ArrowDownwardIcon,
   Clear as ClearIcon,
   Search as SearchIcon,
@@ -88,7 +87,7 @@ export default function TransactionsPage() {
     bank: 'ALL',
     dateFrom: dayjs().subtract(1, 'month').toDate(),
     dateTo: dayjs().toDate(),
-  };  
+  };
 
   const [formErrors, setFormErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -128,7 +127,7 @@ export default function TransactionsPage() {
       return;
     }
     setHasSearched(true);
-    setPage(0); 
+    setPage(0);
     await fetchTransactions();
     setSnackbarOpen(true);
   };
@@ -160,17 +159,17 @@ export default function TransactionsPage() {
 
   const filteredTransactions = useMemo(() => {
     if (!hasSearched || transactions.length === 0) return [];
-    
+
     let result = [...transactions];
-    
+
     if (filters.role !== 'ALL') {
       result = result.filter((tx) => tx.role === filters.role);
     }
-    
+
     if (filters.status !== 'ALL') {
       result = result.filter((tx) => tx.status === filters.status);
     }
-    
+
     if (filters.bank !== 'ALL') {
       result = result.filter((tx) => {
         if (filters.bank === null) {
@@ -180,25 +179,25 @@ export default function TransactionsPage() {
         return tx.fromBankId === filters.bank || tx.toBankId === filters.bank;
       });
     }
-    
+
     if (filters.dateFrom) {
-      result = result.filter((tx) => 
-        dayjs(tx.createdAt).isAfter(dayjs(filters.dateFrom).startOf('day'))
+      result = result.filter((tx) =>
+        dayjs(tx.createdAt).isAfter(dayjs(filters.dateFrom).startOf('day')),
       );
     }
-    
+
     if (filters.dateTo) {
-      result = result.filter((tx) => 
-        dayjs(tx.createdAt).isBefore(dayjs(filters.dateTo).endOf('day'))
+      result = result.filter((tx) =>
+        dayjs(tx.createdAt).isBefore(dayjs(filters.dateTo).endOf('day')),
       );
     }
-    
+
     result.sort((a, b) => {
       const dateA = dayjs(a.updatedAt);
       const dateB = dayjs(b.updatedAt);
       return sortOrder === 'desc' ? dateB.diff(dateA) : dateA.diff(dateB);
     });
-    
+
     return result;
   }, [transactions, filters, sortOrder, hasSearched]);
 
@@ -215,7 +214,7 @@ export default function TransactionsPage() {
 
   const formatVND = (value) => {
     if (!value) return '0 VND';
-    return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+    return `${new Intl.NumberFormat('vi-VN').format(value)} VND`;
   };
 
   const getTypeLabel = (type) => {
@@ -249,15 +248,15 @@ export default function TransactionsPage() {
 
   const formatAccountNumber = (accountNumber) => {
     if (!accountNumber) return 'N/A';
-    return (accountNumber.length > 8 ? 
-      `${accountNumber.slice(0, 4)}...${accountNumber.slice(-4)}` : 
+    return (accountNumber.length > 8 ?
+      `${accountNumber.slice(0, 4)}...${accountNumber.slice(-4)}` :
       accountNumber);
   };
 
   const isFilterActive = () => {
-    return filters.role !== 'ALL' || 
-           filters.status !== 'ALL' || 
-           filters.bank !== 'ALL'
+    return filters.role !== 'ALL' ||
+           filters.status !== 'ALL' ||
+           filters.bank !== 'ALL';
   };
 
   return (
@@ -308,12 +307,12 @@ export default function TransactionsPage() {
         >
           <Typography
             variant="h3"
-            sx={{ 
-              fontWeight: 700, 
-              color: 'text.primary', 
-              mb: 1, 
-              display: 'flex', 
-              alignItems: 'center' 
+            sx={{
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1,
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <Avatar
@@ -354,14 +353,14 @@ export default function TransactionsPage() {
               Search Transactions
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Tooltip title={filterOpen ? "Hide Filters" : "Show Filters"}>
+              <Tooltip title={filterOpen ? 'Hide Filters' : 'Show Filters'}>
                 <IconButton
                   onClick={() => setFilterOpen(!filterOpen)}
                   sx={{
                     bgcolor: isFilterActive() ? 'primary.main' : 'transparent',
                     color: isFilterActive() ? 'white' : 'text.primary',
-                    '&:hover': { 
-                      bgcolor: isFilterActive() ? 'primary.dark' : 'action.hover' 
+                    '&:hover': {
+                      bgcolor: isFilterActive() ? 'primary.dark' : 'action.hover',
                     },
                   }}
                 >
@@ -626,7 +625,7 @@ export default function TransactionsPage() {
                           </TableCell>
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontFamily: 'monospace', }}>
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                                 {formatAccountNumber(tx.fromAccountNumber)} {(tx.fromAccountNumber === form.accountNumber && !tx.fromBankId) ? ' (Self)' : ''}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
@@ -645,11 +644,11 @@ export default function TransactionsPage() {
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
+                            <Typography
+                              variant="body2"
+                              sx={{
                                 fontWeight: 600,
-                                color: tx.role === 'SENDER' ? 'error.main' : 'success.main'
+                                color: tx.role === 'SENDER' ? 'error.main' : 'success.main',
                               }}
                             >
                               {tx.role === 'SENDER' ? <ArrowDownwardIcon fontSize="small" /> : <ArrowUpwardIcon fontSize="small" />}{formatVND(tx.amount)}
