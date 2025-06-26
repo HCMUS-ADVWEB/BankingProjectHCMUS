@@ -6,7 +6,6 @@ import { ThemeProvider } from '@mui/material/styles';
 
 export default function AdminLayout({ children }) {
   const navigationItems = [
-    { label: 'Template', href: '/admin/template', icon: Component },
     { label: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { label: 'Employees', href: '/admin/employees', icon: Users },
     { label: 'Transactions', href: '/admin/transactions', icon: History },

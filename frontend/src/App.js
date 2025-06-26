@@ -25,7 +25,6 @@ import EmployeeTemplate from './pages/employee/Template';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminEmployees from './pages/admin/Employees';
 import AdminTransactions from './pages/admin/Transactions';
-import AdminTemplate from './pages/admin/Template';
 import EmployeeDetail from "./pages/admin/EmployeeDetail";
 
 export default function App() {
@@ -151,14 +150,6 @@ export default function App() {
 
         {/* Admin routes */}
         <>
-          <Route
-            path="/admin/template"
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminTemplate />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/admin/dashboard"
             element={
