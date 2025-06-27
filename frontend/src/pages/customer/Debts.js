@@ -42,7 +42,10 @@ import {
   DeleteOutline as DeleteIcon,
   Payment as PaymentIcon,
   Add as AddIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
 } from '@mui/icons-material';
+import dayjs from 'dayjs';
 
 // Status colors and icons mapping
 const statusConfig = {
@@ -73,6 +76,7 @@ export default function DebtsPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // State for cancel dialog
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -102,6 +106,10 @@ export default function DebtsPage() {
 
   const onRequestSort = (property) => {
     contextRequestSort(property);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
   };
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -225,21 +233,29 @@ export default function DebtsPage() {
             },
           }}
         >
+          {/* Results Header */}
+          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Debt Results
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Found {sortedDebts.length} debts
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    <TableSortLabel
-                      active={sort.orderBy === 'createdAt'}
-                      direction={
-                        sort.orderBy === 'createdAt' ? sort.order : 'asc'
-                      }
-                      onClick={() => onRequestSort('createdAt')}
-                    >
-                      Created At
-                    </TableSortLabel>
-                  </TableCell>
                   <TableCell>
                     {currentTab === 0 ? 'Debtor' : 'Creator'}
                   </TableCell>
@@ -263,33 +279,23 @@ export default function DebtsPage() {
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>Actions</TableCell>
+                  <TableCell sx={{ textAlign: 'right' }}>
+                    <TableSortLabel
+                      active={sort.orderBy === 'createdAt'}
+                      direction={
+                        sort.orderBy === 'createdAt' ? sort.order : 'asc'
+                      }
+                      onClick={() => onRequestSort('createdAt')}
+                    >
+                      Date
+                    </TableSortLabel>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedDebts.length > 0 ? (
                   sortedDebts.map((debt) => (
                     <TableRow key={debt.id} hover>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {new Date(debt.createdAt).toLocaleDateString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            },
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(debt.createdAt).toLocaleTimeString(
-                            'en-US',
-                            {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            },
-                          )}
-                        </Typography>
-                      </TableCell>
                       <TableCell>
                         {/* Display user full name and account number */}
                         <Typography
@@ -357,6 +363,20 @@ export default function DebtsPage() {
                               <PaymentIcon fontSize="small" />
                             </IconButton>
                           )}
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ textAlign: 'right' }}>
+                        <Box>
+                          <Typography variant="caption">
+                            {dayjs(debt.createdAt).format('DD/MM/YYYY')}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: 'block' }}
+                          >
+                            {dayjs(debt.createdAt).format('HH:mm:ss')}
+                          </Typography>
                         </Box>
                       </TableCell>
                     </TableRow>

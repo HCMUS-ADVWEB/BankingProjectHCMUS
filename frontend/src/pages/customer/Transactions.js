@@ -41,6 +41,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { useTransaction } from '../../contexts/customer/TransactionContext';
 import { formatVND } from '../../utils/constants';
+import api from '../../utils/api';
 
 const transactionTypes = [
   { value: 'ALL', label: 'All' },
@@ -80,9 +81,23 @@ export default function TransactionsPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [banks, setBanks] = useState([]);
+
+  // Fetch banks data
+  const fetchBanks = useCallback(async () => {
+    try {
+      const response = await api.get('/api/banks');
+      setBanks(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch banks:', error);
+      setBanks([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAllTransactions();
-  }, [fetchAllTransactions]);
+    fetchBanks();
+  }, [fetchAllTransactions, fetchBanks]);
 
   useEffect(() => {
     if (error) {
@@ -180,6 +195,12 @@ export default function TransactionsPage() {
       default:
         return '#9ca3af'; // Default gray
     }
+  };
+
+  const getBankName = (bankId) => {
+    if (!bankId || bankId === 'null') return 'Fintech Hub (FIN - System)';
+    const bank = banks.find((b) => b.id === bankId);
+    return bank ? `${bank.bankName} (${bank.bankCode})` : 'Unknown Bank';
   };
 
   const getStatusColor = (status) => {
@@ -341,9 +362,8 @@ export default function TransactionsPage() {
               </Tooltip>
             </Box>
           </Box>
-
           <Grid container spacing={2} justifyContent="flex-end">
-            <Grid item size={{ xs: 12, sm: 4 }}>
+            <Grid item size={{ xs: 12, sm: 3 }}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Transaction Type</InputLabel>
                 <Select
@@ -360,13 +380,12 @@ export default function TransactionsPage() {
               </FormControl>
             </Grid>
           </Grid>
-
           {/* Advanced Filters */}
           <Collapse in={filterOpen}>
             <Box>
               <Divider sx={{ my: 4 }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+              <Grid container spacing={2} justifyContent="flex-end">
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       label="Date From"
@@ -388,7 +407,7 @@ export default function TransactionsPage() {
                     />
                   </LocalizationProvider>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       label="Date To"
@@ -505,17 +524,22 @@ export default function TransactionsPage() {
                       <TableCell
                         sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
                       >
-                        Account
+                        From
                       </TableCell>
                       <TableCell
                         sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
                       >
-                        Message
+                        To
                       </TableCell>
                       <TableCell
                         sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
                       >
                         Amount
+                      </TableCell>
+                      <TableCell
+                        sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
+                      >
+                        Message
                       </TableCell>
                       <TableCell
                         sx={{
@@ -573,20 +597,38 @@ export default function TransactionsPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography
-                            variant="body2"
-                            sx={{ fontFamily: 'monospace' }}
-                          >
-                            {tx.direction === 'outgoing'
-                              ? formatAccountNumber(tx.toAccountNumber)
-                              : formatAccountNumber(tx.fromAccountNumber)}
-                          </Typography>
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontFamily: 'monospace' }}
+                            >
+                              {formatAccountNumber(tx.fromAccountNumber)}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {getBankName(tx.fromBankId)}
+                            </Typography>
+                          </Box>
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">
-                            {tx.message || 'No message'}
-                          </Typography>
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontFamily: 'monospace' }}
+                            >
+                              {formatAccountNumber(tx.toAccountNumber)}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {getBankName(tx.toBankId)}
+                            </Typography>
+                          </Box>
                         </TableCell>
+
                         <TableCell>
                           <Typography
                             variant="body2"
@@ -603,7 +645,12 @@ export default function TransactionsPage() {
                             ) : (
                               <ArrowUpwardIcon fontSize="small" />
                             )}
-                            {formatVND(tx.amount)}
+                            {formatVND(tx.amount)} VND
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {tx.message || 'No message'}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>
