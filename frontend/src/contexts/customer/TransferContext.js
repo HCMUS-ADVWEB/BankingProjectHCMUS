@@ -115,14 +115,15 @@ export function TransferProvider({ children, initialAccountNumber }) {
       }
 
       // 2. If success, move to result page
-      setResult(res.data);  // <--- store this response’s data into context
-      if (state.result.data.success) {
+      setResult(res.data);  
+      if (state.result.success) {
         setSuccess('Transfer successful!');
+        setError(null);
+        setStep(TRANSFER_STEPS.COMPLETE);
+        setSuccess('Transfer completed successfully.');
       } else {
         setError('Transfer failed: ' + (res.data.message || 'Unknown error'));
       }
-      setStep(TRANSFER_STEPS.COMPLETE);
-      setSuccess('Transfer completed successfully.');
     } catch (err) {
       console.error('Transfer failed:', err);
       setError(err.response?.data?.message || 'Transfer failed, please try again.');
