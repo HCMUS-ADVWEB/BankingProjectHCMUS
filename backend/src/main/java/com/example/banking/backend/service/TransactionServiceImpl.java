@@ -161,6 +161,8 @@ public class TransactionServiceImpl implements TransactionService {
 
                     // Xử lý response
                     if (response.getStatusCode() == HttpStatus.OK) {
+                        accountCurrentUser.setBalance(accountCurrentUser.getBalance() - totalAmount);
+                        accountRepository.save(accountCurrentUser);
                         savedTransaction.setStatus(TransactionStatusType.COMPLETED);
                         transactionRepository.save(savedTransaction);
 
