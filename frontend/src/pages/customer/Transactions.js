@@ -64,12 +64,7 @@ export default function TransactionsPage() {
     allTransactions,
     loading,
     error,
-    pagination,
-    fetchTransactions,
-    handleChangePage: contextChangePage,
-    handleChangeRowsPerPage: contextChangeRowsPerPage,
-    sort,
-    handleRequestSort: contextRequestSort,
+    fetchAllTransactions,
   } = useTransaction();
 
   const initFilters = {
@@ -83,9 +78,11 @@ export default function TransactionsPage() {
   const [filters, setFilters] = useState({ ...initFilters });
   const [sortOrder, setSortOrder] = useState('desc');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    fetchAllTransactions();
+  }, [fetchAllTransactions]);
 
   useEffect(() => {
     if (error) {
@@ -102,14 +99,17 @@ export default function TransactionsPage() {
     setSortOrder('desc');
     setFilterOpen(false);
     setSnackbarOpen(false);
+    setPage(0); // Reset to first page when filters change
   };
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+    setPage(0); // Reset to first page when sort changes
   };
 
   const handleFilterChange = (filterType, value) => {
     setFilters((prev) => ({ ...prev, [filterType]: value }));
+    setPage(0); // Reset to first page when filters change
   };
 
   const filteredTransactions = useMemo(() => {
@@ -147,9 +147,20 @@ export default function TransactionsPage() {
   }, [allTransactions, filters, sortOrder]);
 
   const paginatedTransactions = useMemo(() => {
-    const start = pagination.page * pagination.rowsPerPage;
-    return filteredTransactions.slice(start, start + pagination.rowsPerPage);
-  }, [filteredTransactions, pagination.page, pagination.rowsPerPage]);
+    const start = page * rowsPerPage;
+    return filteredTransactions.slice(start, start + rowsPerPage);
+  }, [filteredTransactions, page, rowsPerPage]);
+
+  // Reset page if current page is beyond available pages
+  useEffect(() => {
+    const maxPage = Math.max(
+      0,
+      Math.ceil(filteredTransactions.length / rowsPerPage) - 1,
+    );
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [filteredTransactions.length, rowsPerPage, page]);
 
   const getTypeLabel = (type) => {
     const typeObj = transactionTypes.find((t) => t.value === type);
@@ -198,11 +209,12 @@ export default function TransactionsPage() {
   };
 
   const onChangePage = (event, newPage) => {
-    contextChangePage(event, newPage);
+    setPage(newPage);
   };
 
   const onChangeRowsPerPage = (event) => {
-    contextChangeRowsPerPage(event);
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page when rows per page changes
   };
 
   return (
@@ -473,11 +485,6 @@ export default function TransactionsPage() {
                   <TableHead>
                     <TableRow>
                       <TableCell
-                        sx={{ fontWeight: 600, bgcolor: 'background.paper' }}
-                      >
-                        ID
-                      </TableCell>
-                      <TableCell
                         sx={{
                           fontWeight: 600,
                           bgcolor: 'background.paper',
@@ -538,16 +545,6 @@ export default function TransactionsPage() {
                           '&:hover': { opacity: 0.8, cursor: 'pointer' },
                         }}
                       >
-                        <TableCell>
-                          <Tooltip title={tx.id}>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontFamily: 'monospace' }}
-                            >
-                              {tx.id.slice(0, 8)}...
-                            </Typography>
-                          </Tooltip>
-                        </TableCell>
                         <TableCell sx={{ textAlign: 'center' }}>
                           <Chip
                             size="small"
@@ -641,8 +638,8 @@ export default function TransactionsPage() {
               <TablePagination
                 component="div"
                 count={filteredTransactions.length}
-                rowsPerPage={pagination.rowsPerPage}
-                page={pagination.page}
+                rowsPerPage={rowsPerPage}
+                page={page}
                 onPageChange={onChangePage}
                 onRowsPerPageChange={onChangeRowsPerPage}
                 rowsPerPageOptions={[5, 10, 25, 50]}

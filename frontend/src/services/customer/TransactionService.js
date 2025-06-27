@@ -2,7 +2,7 @@ import api from '../../utils/api';
 
 const TransactionService = {
   async getTransactions(
-    limit = 10,
+    limit = 1000,
     page = 1,
     orderBy = 'createdAt',
     order = 'desc',
@@ -16,7 +16,10 @@ const TransactionService = {
           order,
         },
       })
-      .then((res) => res.data)
+      .then((res) => {
+        console.log('Transactions response:', res);
+        return res.data;
+      })
       .catch((err) => {
         console.error('Error fetching transactions:', err);
         throw err;
@@ -26,7 +29,10 @@ const TransactionService = {
   async getTransactionDetails(transactionId) {
     return api
       .get(`/api/transactions/${transactionId}`)
-      .then((res) => res.data)
+      .then((res) => {
+        console.log('Transaction details response:', res);
+        return res.data;
+      })
       .catch((err) => {
         console.error('Error fetching transaction details:', err);
         throw err;

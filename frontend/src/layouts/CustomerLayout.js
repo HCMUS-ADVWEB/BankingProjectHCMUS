@@ -9,13 +9,13 @@ import {
   History,
   Settings,
   CreditCard,
+  Delete,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeProvider } from '@mui/material/styles';
 
 export default function CustomerLayout({ children }) {
   const navigationItems = [
-    { label: 'Template', href: '/customer/template', icon: Component },
     { label: 'Dashboard', href: '/customer/dashboard', icon: Home },
     { label: 'Accounts', href: '/customer/accounts', icon: CreditCard },
     { label: 'Transfer', href: '/customer/transfer', icon: Send },
@@ -26,6 +26,11 @@ export default function CustomerLayout({ children }) {
       label: 'Change Password',
       href: '/customer/change-password',
       icon: Settings,
+    },
+    {
+      label: 'Close account',
+      href: '/customer/close-account',
+      icon: Delete,
     },
   ];
   const { theme } = useTheme();
