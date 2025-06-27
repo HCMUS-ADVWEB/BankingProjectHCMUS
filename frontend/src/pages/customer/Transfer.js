@@ -25,15 +25,6 @@ const TransferSteps = () => {
   const { step, loading, error, success } = useTransfer();
   const [direction, setDirection] = useState('right');
   const [prevStep, setPrevStep] = useState(step);
-
-  // Create refs for React 18+ compatibility with CSSTransition
-  // These refs replace the deprecated findDOMNode functionality
-  const formStepRef = useRef(null);
-  const confirmStepRef = useRef(null);
-  const otpStepRef = useRef(null);
-  const resultStepRef = useRef(null);
-
-  // Track direction of transition based on step changes
   useEffect(() => {
     if (step > prevStep) {
       setDirection('right');
@@ -42,6 +33,16 @@ const TransferSteps = () => {
     }
     setPrevStep(step);
   }, [step, prevStep]);
+  // Create refs for React 18+ compatibility with CSSTransition
+  // These refs replace the deprecated findDOMNode functionality
+  const confirmStepRef = useRef(null);
+  const otpStepRef = useRef(null);
+  const resultStepRef = useRef(null);
+  const formStepRef = useRef(null);
+
+
+  // Track direction of transition based on step changes
+
 
   // Define the steps
   const steps = [
