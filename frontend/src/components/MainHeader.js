@@ -56,13 +56,13 @@ export default function MainHeader({ navigationItems = [] }) {
           isDarkMode
             ? 'bg-slate-800 border-slate-700'
             : 'bg-white border-gray-200'
-        } border-b flex items-center justify-between px-4 md:px-6 relative z-40`}
+        } border-b flex items-center justify-between px-6 relative z-40`}
       >
         {/* Left side */}
         <div className="flex items-center space-x-4">
           {/* Breadcrumb */}
           <div
-            className={`hidden md:flex items-center space-x-2 text-sm ${
+            className={`flex items-center space-x-2 text-sm ${
               isDarkMode ? 'text-gray-300' : 'text-gray-600'
             }`}
           >
@@ -108,7 +108,7 @@ export default function MainHeader({ navigationItems = [] }) {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center space-x-2 md:space-x-4">
+        <div className="flex items-center space-x-4">
           {/* Notifications */}
           <div className="relative">
             <button
@@ -207,7 +207,7 @@ export default function MainHeader({ navigationItems = [] }) {
               >
                 {state.user?.fullName?.charAt(0) || 'U'}
               </div>
-              <div className="hidden md:block text-left">
+              <div className="block text-left">
                 <div
                   className={`text-sm font-medium ${
                     isDarkMode ? 'text-white' : 'text-gray-900'
@@ -224,7 +224,7 @@ export default function MainHeader({ navigationItems = [] }) {
                 </div>
               </div>
               <ChevronDown
-                className={`w-4 h-4 hidden md:block ${
+                className={`w-4 h-4 block ${
                   isDarkMode ? 'text-gray-400' : 'text-gray-400'
                 }`}
               />

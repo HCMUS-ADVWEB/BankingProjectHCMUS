@@ -55,7 +55,7 @@ const TransferFormStep = () => {
         sx={{ maxWidth: '600px', mx: 'auto' }}
       >
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -109,7 +109,7 @@ const TransferFormStep = () => {
               }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item size={{ sx: 12 }}>
                   <FormControl fullWidth>
                     <InputLabel>Recipient</InputLabel>
                     <Select
@@ -135,7 +135,7 @@ const TransferFormStep = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid item size={{ sx: 12 }}>
                   <TextField
                     label="Account Number"
                     name="accountNumberReceiver"
@@ -308,7 +308,7 @@ const TransferFormStep = () => {
             </Box>
           </Box>
           {/* Group 5: Confirm Button */}
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             {' '}
             <Button
               type="button"

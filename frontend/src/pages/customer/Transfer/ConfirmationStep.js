@@ -38,7 +38,7 @@ const ConfirmationStep = () => {
       <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Typography color="textSecondary" gutterBottom>
                 Transfer Type
               </Typography>
@@ -49,7 +49,7 @@ const ConfirmationStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Typography color="textSecondary" gutterBottom>
                 Recipient Account
               </Typography>
@@ -82,7 +82,7 @@ const ConfirmationStep = () => {
                 <Typography variant="h6">{form.message}</Typography>
               </Grid>
             ) : (
-              <Grid item xs={12}>
+              <Grid item size={{ sx: 12 }}>
                 <Typography color="textSecondary" gutterBottom>
                   Message
                 </Typography>

@@ -48,7 +48,7 @@ const SaveRecipientStep = () => {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             <TextField
               label="Recipient Nickname"
               name="recipientNickname"
@@ -60,7 +60,7 @@ const SaveRecipientStep = () => {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             <TextField
               label="Account Number"
               name="accountNumber"
@@ -71,7 +71,7 @@ const SaveRecipientStep = () => {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             <TextField
               label="Bank Name"
               name="bankName"
@@ -82,7 +82,7 @@ const SaveRecipientStep = () => {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ sx: 12 }}>
             <TextField
               label="Recipient Name"
               name="recipientName"

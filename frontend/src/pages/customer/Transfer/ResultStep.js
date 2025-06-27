@@ -62,7 +62,7 @@ const ResultStep = () => {
       <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Typography color="textSecondary" gutterBottom>
                 Transaction ID
               </Typography>
@@ -71,11 +71,11 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Divider />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ sx: 12, sm: 6 }}>
               <Typography color="textSecondary" gutterBottom>
                 Amount
               </Typography>
@@ -84,7 +84,7 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ sx: 12, sm: 6 }}>
               <Typography color="textSecondary" gutterBottom>
                 Fee
               </Typography>
@@ -93,11 +93,11 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Divider />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ sx: 12, sm: 6 }}>
               <Typography color="textSecondary" gutterBottom>
                 Recipient
               </Typography>
@@ -106,7 +106,7 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ sx: 12, sm: 6 }}>
               <Typography color="textSecondary" gutterBottom>
                 Account Number
               </Typography>
@@ -115,7 +115,7 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Typography color="textSecondary" gutterBottom>
                 Message
               </Typography>
@@ -124,7 +124,7 @@ const ResultStep = () => {
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ sx: 12 }}>
               <Typography color="textSecondary" gutterBottom>
                 Status
               </Typography>

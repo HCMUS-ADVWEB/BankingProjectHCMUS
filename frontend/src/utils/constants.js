@@ -16,9 +16,8 @@ import SendIcon from '@mui/icons-material/Send';
 import PaymentIcon from '@mui/icons-material/Payment';
 import MoneyIcon from '@mui/icons-material/AttachMoney';
 
-export const BASE_URL = 'http://localhost:8081';
-// export const BASE_URL =
-//   'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
+// export const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
+export const BASE_URL = 'https://banking-backend-aca.calmbush-23bf89f4.southeastasia.azurecontainerapps.io';
 
 export const SOLUTIONS = [
   {

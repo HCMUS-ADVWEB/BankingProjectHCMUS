@@ -68,7 +68,7 @@ export default function TransactionsPage() {
     <CustomerLayout>
       {' '}
       <Container
-        maxWidth="xl"
+        maxWidth="2xl"
         sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
       >
         {/* Header Section */}

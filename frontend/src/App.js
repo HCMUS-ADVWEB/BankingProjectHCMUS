@@ -14,7 +14,6 @@ import CustomerTransfer from './pages/customer/Transfer';
 import CustomerDebts from './pages/customer/Debts';
 import CustomerTransactions from './pages/customer/Transactions';
 import CustomerChangePassword from './pages/customer/ChangePassword';
-import CustomerTemplate from './pages/customer/Template';
 // Employee pages
 import EmployeeDashboard from './pages/employee/Dashboard';
 import EmployeeAccounts from './pages/employee/Accounts';
@@ -37,14 +36,6 @@ export default function App() {
 
         {/* Customer routes */}
         <>
-          <Route
-            path="/customer/template"
-            element={
-              <ProtectedRoute allowedRoles={['customer']}>
-                <CustomerTemplate />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/customer/dashboard"
             element={

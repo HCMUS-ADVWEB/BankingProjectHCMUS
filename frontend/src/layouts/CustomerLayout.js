@@ -1,7 +1,6 @@
 import Navigation from '../components/Navigation';
 import MainHeader from '../components/MainHeader';
 import {
-  Component,
   Home,
   Send,
   Users,
@@ -15,7 +14,6 @@ import { ThemeProvider } from '@mui/material/styles';
 
 export default function CustomerLayout({ children }) {
   const navigationItems = [
-    { label: 'Template', href: '/customer/template', icon: Component },
     { label: 'Dashboard', href: '/customer/dashboard', icon: Home },
     { label: 'Accounts', href: '/customer/accounts', icon: CreditCard },
     { label: 'Transfer', href: '/customer/transfer', icon: Send },

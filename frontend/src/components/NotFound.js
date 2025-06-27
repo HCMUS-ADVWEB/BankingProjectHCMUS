@@ -31,7 +31,7 @@ export default function NotFound() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-row items-center justify-center gap-4">
           <NavLink
             to="/"
             className="inline-flex items-center gap-2 text-white font-semibold rounded-xl

@@ -34,6 +34,12 @@ const darkTheme = createTheme({
       dark: '#0891b2', // cyan-600
       contrastText: '#ffffff',
     },
+    error: {
+      main: '#ef4444', // red-500
+      light: '#f87171', // red-400
+      dark: '#dc2626', // red-600
+      contrastText: '#ffffff',
+    },
     text: {
       primary: '#ffffff',
       secondary: '#d1d5db', // gray-300

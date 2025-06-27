@@ -79,8 +79,8 @@ export default function CustomerDashboard() {
   return (
     <CustomerLayout>
       <Container
-        maxWidth="xl"
-        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+        maxWidth="2xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
       >
         {/* Header Section */}
         <Box
