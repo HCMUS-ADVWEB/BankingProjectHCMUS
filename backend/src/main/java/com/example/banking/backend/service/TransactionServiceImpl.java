@@ -95,8 +95,14 @@ public class TransactionServiceImpl implements TransactionService {
             if (sourceAccount.getBalance() < totalAmount) {
                 return new TransferResult(false, null, request.getAmount(), fee, null, "Insufficient balance after fee");
             }
-
-            otpService.validateOtp(getCurrentUser().getId(), OtpType.TRANSFER, request.getOtp());
+            if (request.getOtp() != null && !request.getOtp().isEmpty()) {
+                if (!otpService.validateOtp(
+                        getCurrentUser().getId(),
+                        OtpType.TRANSFER,
+                        request.getOtp())) throw new BadRequestException("Invalid OTP");
+            } else {
+                throw new BadRequestException("OTP is required for internal transfer");
+            }
 
             Bank destinationBank = bankRepository.findByBankCode(request.getBankCode())
                     .orElseThrow(() -> new IllegalArgumentException("Destination bank not found"));
@@ -161,6 +167,8 @@ public class TransactionServiceImpl implements TransactionService {
 
                     // Xử lý response
                     if (response.getStatusCode() == HttpStatus.OK) {
+                        accountCurrentUser.setBalance(accountCurrentUser.getBalance() - totalAmount);
+                        accountRepository.save(accountCurrentUser);
                         savedTransaction.setStatus(TransactionStatusType.COMPLETED);
                         transactionRepository.save(savedTransaction);
 

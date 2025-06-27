@@ -110,13 +110,21 @@ export function TransferProvider({ children, initialAccountNumber }) {
           content: info.message,
           otp: state.otp,
           bankCode: info.bankId,
+          feeType: info.feeType,
         });
       }
 
       // 2. If success, move to result page
-      setResult(res.data);  // <--- store this response’s data into context
-      setStep(TRANSFER_STEPS.COMPLETE);
-      setSuccess('Transfer completed successfully.');
+      setResult(res.data);  
+      console.log('Transfer result:', res.data);
+      if (res.data.success) {
+        setSuccess('Transfer successful!');
+        setError(null);
+        setStep(TRANSFER_STEPS.COMPLETE);
+        setSuccess('Transfer completed successfully.');
+      } else {
+        setError('Transfer failed: ' + (res.data.message || 'Unknown error'));
+      }
     } catch (err) {
       console.error('Transfer failed:', err);
       setError(err.response?.data?.message || 'Transfer failed, please try again.');
@@ -154,7 +162,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
       if (transferType === TRANSFER_TYPES.INTERNAL) {
         await saveRecipientIfNotExist(accountNumber, res.data.fullName);
       }
-
+      setError(null);
       return res.data.fullName;
     } catch (err) {
       console.error('Failed to fetch account info:', err);

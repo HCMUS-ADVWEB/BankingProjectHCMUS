@@ -15,6 +15,7 @@ import {
   Backdrop,
   Avatar,
   IconButton,
+  Dialog,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -426,85 +427,70 @@ export default function AccountsPage() {
           </Box>
         </Paper>
 
-        {accountNumberCreated && (
-          <Paper
-            elevation={4}
-            sx={{
-              mt: 4,
-              p: { xs: 2, sm: 3 },
-              bgcolor: 'background.paper',
-              borderRadius: 'shape.borderRadius',
-              transition: 'all 0.3s ease',
+        <Dialog
+          open={!!accountNumberCreated}
+          onClose={handleCloseAccountNumberBox}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{
+            sx: {
+              p: 3,
+              borderRadius: 3,
+              textAlign: 'center',
               animation: 'fadeInUp 0.5s ease-out',
               '@keyframes fadeInUp': {
                 '0%': { opacity: 0, transform: 'translateY(20px)' },
                 '100%': { opacity: 1, transform: 'translateY(0)' },
               },
+            },
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              mb: 2,
+              background: 'linear-gradient(to right, #10b981, #06b6d4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Account Created!
+          </Typography>
+
+          <Typography variant="body1" sx={{ mb: 1, color: 'text.secondary' }}>
+            The new account number is:
+          </Typography>
+
+          <Typography
+            sx={{
+              fontFamily: '"Roboto Mono", monospace',
+              fontSize: '1.8rem',
+              fontWeight: 600,
+              mb: 3,
+              background: 'linear-gradient(to right, #10b981, #06b6d4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {accountNumberCreated}
+          </Typography>
+
+          <Button
+            onClick={handleCloseAccountNumberBox}
+            variant="contained"
+            color="primary"
+            sx={{
+              bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
               '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.2)',
+                bgcolor: 'linear-gradient(to right, #0a8f63, #0590a8)',
               },
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  color: 'text.primary',
-                  background: 'linear-gradient(to right, #10b981, #06b6d4)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                Account Created Successfully!
-              </Typography>
-              <IconButton
-                onClick={handleCloseAccountNumberBox}
-                sx={{
-                  color: 'color.primary',
-                  bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
-                  borderRadius: '50%',
-                  p: 1,
-                  '&:hover': {
-                    bgcolor: 'linear-gradient(to right, #0a8f63, #0590a8)',
-                    transform: 'scale(1.05)',
-                  },
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <ClearIcon fontSize="small" />
-              </IconButton>
-            </Box>
-            <Typography
-              component="span"
-              variant="body1"
-              sx={{ color: 'text.secondary', mt: 1 }}
-            >
-              The account number for the newly created customer is &nbsp;
-            </Typography>
-            <Typography
-              component="span"
-              sx={{
-                fontFamily: '"Roboto Mono", monospace',
-                fontSize: '1.5rem',
-                fontWeight: 600,
-                mt: 1,
-                background: 'linear-gradient(to right, #10b981, #06b6d4)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              {accountNumberCreated}
-            </Typography>
-          </Paper>
-        )}
+            Close
+          </Button>
+        </Dialog>
+
       </Container>
     </EmployeeLayout>
   );
