@@ -139,7 +139,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
     }
   }, [setBanks, setRecipients, setError]);
 
-  const fetchAccountInfo = useCallback(async (accountNumber, bankId, transferType) => {
+  const fetchAccountInfo = useCallback(async (accountNumber, bankCode, transferType) => {
     if (!accountNumber) {
       return '';
     }
@@ -148,7 +148,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
     try {
       const res = await CustomerService.getAccountInfo(
         accountNumber,
-        transferType === TRANSFER_TYPES.EXTERNAL ? bankId : null
+        transferType === TRANSFER_TYPES.EXTERNAL ? bankCode : null
       );
       return res.data.fullName;
     } catch (err) {

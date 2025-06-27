@@ -17,46 +17,48 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
     @Override
     public PaginatedAccountTransactionDto getPaginatedTransactions(UUID accountId, int page, int size, TransactionType type) {
         Account account = entityManager.createQuery("""
-                    SELECT a FROM Account a
-                    LEFT JOIN FETCH a.transactionsAsSender
-                    LEFT JOIN FETCH a.transactionsAsReceiver
-                    WHERE a.accountId = :accountId
-                """, Account.class)
+                SELECT a FROM Account a
+                LEFT JOIN FETCH a.transactionsAsSender
+                LEFT JOIN FETCH a.transactionsAsReceiver
+                WHERE a.accountId = :accountId
+            """, Account.class)
                 .setParameter("accountId", accountId)
                 .getSingleResult();
 
-        // Apply filters and sorting
-        List<Transaction> senderList = account.getTransactionsAsSender().stream()
-                .filter(tx -> type == null || tx.getTransactionType() == type)
-                .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
-                .collect(Collectors.toList());
-
-        List<Transaction> receiverList = account.getTransactionsAsReceiver().stream()
-                .filter(tx -> type == null || tx.getTransactionType() == type)
-                .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
-                .collect(Collectors.toList());
-
-        // Combine all transactions
+        // Combine both sender and receiver transactions, applying type filter if needed
         List<Transaction> allTransactions = new ArrayList<>();
-        allTransactions.addAll(senderList);
-        allTransactions.addAll(receiverList);
+
+        if (account.getTransactionsAsSender() != null) {
+            allTransactions.addAll(account.getTransactionsAsSender().stream()
+                    .filter(tx -> type == null || tx.getTransactionType() == type)
+                    .toList());
+        }
+
+        if (account.getTransactionsAsReceiver() != null) {
+            allTransactions.addAll(account.getTransactionsAsReceiver().stream()
+                    .filter(tx -> type == null || tx.getTransactionType() == type)
+                    .toList());
+        }
+
+        // Sort all combined transactions by createdAt descending
+        allTransactions.sort(Comparator.comparing(Transaction::getCreatedAt).reversed());
 
         int totalTransactions = allTransactions.size();
         int totalPages = (int) Math.ceil((double) totalTransactions / size);
 
         // Pagination
-        page--;
+        page--; // zero-based index
         int start = Math.min(page * size, totalTransactions);
         int end = Math.min(start + size, totalTransactions);
         List<Transaction> paginatedList = allTransactions.subList(start, end);
 
         // Separate back into sender and receiver sets for Account entity
         Set<Transaction> paginatedSenderTxs = paginatedList.stream()
-                .filter(senderList::contains)
+                .filter(tx -> account.getTransactionsAsSender().contains(tx))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Set<Transaction> paginatedReceiverTxs = paginatedList.stream()
-                .filter(receiverList::contains)
+                .filter(tx -> account.getTransactionsAsReceiver().contains(tx))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         account.setTransactionsAsSender(paginatedSenderTxs);
@@ -64,4 +66,5 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
 
         return new PaginatedAccountTransactionDto(account, totalTransactions, totalPages);
     }
+
 }
