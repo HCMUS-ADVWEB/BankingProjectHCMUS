@@ -29,7 +29,7 @@ const processQueue = (error, token = null) => {
 
 const addToFailedQueue = (resolve, reject) => {
   const timeoutId = setTimeout(() => {
-    const index = failedQueue.findIndex(item => item.resolve === resolve);
+    const index = failedQueue.findIndex((item) => item.resolve === resolve);
     if (index > -1) {
       failedQueue.splice(index, 1);
       reject(new Error('Token refresh timeout'));
@@ -106,7 +106,6 @@ api.interceptors.response.use(
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
-
       } catch (refreshError) {
         console.error('Refresh token failed:', refreshError);
         processQueue(refreshError, null);

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box, Typography, Button, Alert, Divider, IconButton
 } from '@mui/material';

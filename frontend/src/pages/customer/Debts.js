@@ -71,17 +71,17 @@ export default function DebtsPage() {
     formatVND,
   } = useDebt();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [setSnackbarMessage] = useState('');
-  const [setSnackbarSeverity] = useState('error');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
 
   // State for cancel dialog
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [selectedDebt, setSelectedDebt] = useState(null);
 
-  // State for pay dialog
+  // State for pay dialog (OTP confirmation)
   const [payDialogOpen, setPayDialogOpen] = useState(false);
-  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [payStep, setPayStep] = useState(1); // 1 = request OTP, 2 = confirm OTP
   const [otp, setOtp] = useState('');
   const [paymentMessage, setPaymentMessage] = useState('');
 
@@ -90,10 +90,6 @@ export default function DebtsPage() {
 
   const onTabChange = (event, newValue) => {
     contextTabChange(event, newValue);
-  };
-
-  const onStatusChange = (e) => {
-    contextStatusChange(e);
   };
 
   const onChangePage = (e, newPage) => {
@@ -107,7 +103,7 @@ export default function DebtsPage() {
   const onRequestSort = (property) => {
     contextRequestSort(property);
   };
-  const handleCloseSnackbar = () => {
+  const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
 
@@ -131,6 +127,7 @@ export default function DebtsPage() {
       setSnackbarSeverity('error');
     }
   }, [error]);
+
   return (
     <CustomerLayout>
       <Container
@@ -173,17 +170,17 @@ export default function DebtsPage() {
         </Backdrop>
 
         <Snackbar
-          open={snackbarOpen || Boolean(error)}
+          open={snackbarOpen}
           autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
+          onClose={handleSnackbarClose}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
           <Alert
-            onClose={handleCloseSnackbar}
-            severity="error"
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
             sx={{ width: '100%' }}
           >
-            {error}
+            {snackbarMessage}
           </Alert>
         </Snackbar>
 
@@ -352,9 +349,22 @@ export default function DebtsPage() {
                               size="small"
                               color="primary"
                               title="Pay"
-                              onClick={() => {
+                              onClick={async () => {
                                 setSelectedDebt(debt);
-                                setPayDialogOpen(true);
+                                // Send OTP immediately when user clicks pay
+                                const result = await requestOtpForPayDebt();
+                                if (result.success) {
+                                  setPayDialogOpen(true);
+                                  setSnackbarMessage('OTP sent to your email');
+                                  setSnackbarSeverity('info');
+                                  setSnackbarOpen(true);
+                                } else {
+                                  setSnackbarMessage(
+                                    result.error || 'Failed to request OTP',
+                                  );
+                                  setSnackbarSeverity('error');
+                                  setSnackbarOpen(true);
+                                }
                               }}
                             >
                               <PaymentIcon fontSize="small" />
@@ -414,27 +424,25 @@ export default function DebtsPage() {
         <DialogActions>
           <Button onClick={() => setCancelDialogOpen(false)}>Cancel</Button>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (selectedDebt && cancelReason.trim()) {
-                cancelDebtReminder(selectedDebt.id, cancelReason.trim()).then(
-                  (result) => {
-                    if (result.success) {
-                      setSnackbarMessage(
-                        'Debt reminder cancelled successfully',
-                      );
-                      setSnackbarSeverity('success');
-                    } else {
-                      setSnackbarMessage(
-                        result.error || 'Failed to cancel debt reminder',
-                      );
-                      setSnackbarSeverity('error');
-                    }
-                    setSnackbarOpen(true);
-                    setCancelDialogOpen(false);
-                    setCancelReason('');
-                    setSelectedDebt(null);
-                  },
+                const result = await cancelDebtReminder(
+                  selectedDebt.id,
+                  cancelReason.trim(),
                 );
+                if (result.success) {
+                  setSnackbarMessage('Debt reminder cancelled successfully');
+                  setSnackbarSeverity('success');
+                } else {
+                  setSnackbarMessage(
+                    result.error || 'Failed to cancel debt reminder',
+                  );
+                  setSnackbarSeverity('error');
+                }
+                setSnackbarOpen(true);
+                setCancelDialogOpen(false);
+                setCancelReason('');
+                setSelectedDebt(null);
               }
             }}
             color="error"
@@ -445,35 +453,75 @@ export default function DebtsPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Pay Debt Dialog */}
-      <Dialog open={payDialogOpen} onClose={() => setPayDialogOpen(false)}>
-        <DialogTitle>Pay Debt</DialogTitle>
+      {/* Pay Debt Dialog with multi-step OTP */}
+      <Dialog
+        open={payDialogOpen}
+        onClose={() => {
+          setPayDialogOpen(false);
+          setPayStep(1);
+          setOtp('');
+          setPaymentMessage('');
+          setSelectedDebt(null);
+        }}
+      >
+        <DialogTitle>{payStep === 1 ? 'Pay Debt' : 'Confirm OTP'}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            You are about to pay a debt of{' '}
-            {selectedDebt ? formatVND(selectedDebt.amount) : ''} to{' '}
-            {selectedDebt?.creatorFullName}.
-          </DialogContentText>
-          <TextField
-            margin="dense"
-            label="Payment Message (Optional)"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={paymentMessage}
-            onChange={(e) => setPaymentMessage(e.target.value)}
-            sx={{ mt: 2 }}
-          />
+          {payStep === 1 ? (
+            <>
+              <DialogContentText>
+                You are about to pay{' '}
+                {selectedDebt ? formatVND(selectedDebt.amount) : ''} to{' '}
+                {selectedDebt?.creatorFullName}.
+              </DialogContentText>
+              <TextField
+                margin="dense"
+                label="Payment Message (Optional)"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={paymentMessage}
+                onChange={(e) => setPaymentMessage(e.target.value)}
+                sx={{ mt: 2 }}
+              />
+            </>
+          ) : (
+            <>
+              <DialogContentText>
+                Please enter the OTP sent to your email to confirm payment.
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="OTP Code"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                sx={{ mt: 2 }}
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPayDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={() => {
-              if (selectedDebt) {
-                requestOtpForPayDebt().then((result) => {
+          {payStep === 1 ? (
+            <>
+              <Button
+                onClick={() => {
+                  setPayDialogOpen(false);
+                  setSelectedDebt(null);
+                  setPaymentMessage('');
+                }}
+                disabled={loading}
+                sx={{ color: 'text.secondary' }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  const result = await requestOtpForPayDebt();
                   if (result.success) {
-                    setPayDialogOpen(false);
-                    setOtpDialogOpen(true);
+                    setPayStep(2);
                     setSnackbarMessage('OTP sent to your email');
                     setSnackbarSeverity('info');
                     setSnackbarOpen(true);
@@ -482,64 +530,55 @@ export default function DebtsPage() {
                     setSnackbarSeverity('error');
                     setSnackbarOpen(true);
                   }
-                });
-              }
-            }}
-            color="primary"
-          >
-            Request OTP to Pay
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* OTP Verification Dialog */}
-      <Dialog open={otpDialogOpen} onClose={() => setOtpDialogOpen(false)}>
-        <DialogTitle>Enter OTP</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please enter the OTP code sent to your email to confirm payment.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="OTP Code"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOtpDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={() => {
-              if (selectedDebt && otp.trim()) {
-                payDebtReminder(selectedDebt.id, {
-                  otp: otp.trim(),
-                  message: paymentMessage.trim(),
-                }).then((result) => {
-                  if (result.success) {
-                    setSnackbarMessage('Debt paid successfully');
-                    setSnackbarSeverity('success');
-                  } else {
-                    setSnackbarMessage(result.error || 'Failed to pay debt');
-                    setSnackbarSeverity('error');
+                }}
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                sx={{ fontWeight: 600 }}
+              >
+                Request OTP
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => setPayStep(1)}
+                disabled={loading}
+                sx={{ color: 'text.secondary' }}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (otp.trim() && selectedDebt) {
+                    const result = await payDebtReminder(selectedDebt.id, {
+                      otp: otp.trim(),
+                      message: paymentMessage.trim(),
+                    });
+                    if (result.success) {
+                      setSnackbarMessage('Debt paid successfully');
+                      setSnackbarSeverity('success');
+                    } else {
+                      setSnackbarMessage(result.error || 'Failed to pay debt');
+                      setSnackbarSeverity('error');
+                    }
+                    setSnackbarOpen(true);
+                    setPayDialogOpen(false);
+                    setPayStep(1);
+                    setOtp('');
+                    setPaymentMessage('');
+                    setSelectedDebt(null);
                   }
-                  setSnackbarOpen(true);
-                  setOtpDialogOpen(false);
-                  setOtp('');
-                  setPaymentMessage('');
-                  setSelectedDebt(null);
-                });
-              }
-            }}
-            color="primary"
-            disabled={!otp.trim()}
-          >
-            Confirm Payment{' '}
-          </Button>
+                }}
+                variant="contained"
+                color="primary"
+                disabled={loading || !otp.trim()}
+                sx={{ fontWeight: 600 }}
+              >
+                Submit
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -547,6 +586,11 @@ export default function DebtsPage() {
       <CreateDebtReminderDialog
         open={createDialogOpen}
         onClose={handleCloseCreateDialog}
+        onSuccess={() => {
+          setSnackbarMessage('Debt reminder created successfully');
+          setSnackbarSeverity('success');
+          setSnackbarOpen(true);
+        }}
       />
 
       {/* Floating Action Button */}

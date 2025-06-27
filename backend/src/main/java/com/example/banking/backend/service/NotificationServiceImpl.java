@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -88,7 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Page<NotificationResponse> getAllNotifications(int limit, int page) {
+    public List<NotificationResponse> getAllNotifications(int limit, int page) {
         User user = getCurrentUser();
         PageRequest pageable = PageRequest.of(page - 1, limit);
         Page<Notification> notifications = notificationRepository.findAllByUserId(user.getId(), pageable);
@@ -99,8 +100,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notification.getContent(),
                 notification.getCreatedAt(),
                 notification.isRead()
-        ));
-
+        )).getContent();
     }
 
     @Override

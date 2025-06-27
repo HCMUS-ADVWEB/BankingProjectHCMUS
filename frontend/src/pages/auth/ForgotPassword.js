@@ -100,14 +100,17 @@ export default function ForgotPasswordPage() {
     try {
       setSendEmailError('');
       console.log('Sending OTP to email:', email);
-      const response = await axios.post(`${BASE_URL}/api/auth/reset-password/request`, {
-        email,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await axios.post(
+        `${BASE_URL}/api/auth/reset-password/request`,
+        {
+          email,
         },
-      });
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
       const { status, message, timestamp } = response.data;
       console.log(`Success: ${message} at ${timestamp} (Status: ${status})`);
       return true;
@@ -119,13 +122,15 @@ export default function ForgotPasswordPage() {
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
-        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        const timestamp =
+          error.response.data?.timestamp || new Date().toISOString();
         console.error(`Error ${status}: ${msg} at ${timestamp}`);
-        setSendEmailError(
-          msg || 'Failed to send OTP. Please try again.',
-        );
+        setSendEmailError(msg || 'Failed to send OTP. Please try again.');
       } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
+        console.error(
+          'Network error or no response from server:',
+          error.request,
+        );
         setSendEmailError(
           'Network error or no response from server. Please try again later.',
         );
@@ -169,13 +174,17 @@ export default function ForgotPasswordPage() {
       if (error.response) {
         const status = error.response.status;
         const msg = error.response.data?.message;
-        const timestamp = error.response.data?.timestamp || new Date().toISOString();
+        const timestamp =
+          error.response.data?.timestamp || new Date().toISOString();
         console.error(`Error ${status}: ${msg} at ${timestamp}`);
         setResetPasswordError(
           msg || 'Failed to reset password. Please try again.',
         );
       } else if (error.request) {
-        console.error('Network error or no response from server:', error.request);
+        console.error(
+          'Network error or no response from server:',
+          error.request,
+        );
         setResetPasswordError(
           'Network error or no response from server. Please try again later.',
         );
@@ -461,10 +470,10 @@ export default function ForgotPasswordPage() {
                 </div>
                 {formik.touched.confirmPassword &&
                   formik.errors.confirmPassword && (
-                  <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
+                    <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
                       *<span>{formik.errors.confirmPassword}</span>
-                  </div>
-                )}
+                    </div>
+                  )}
               </div>
 
               {/* Submit Button */}

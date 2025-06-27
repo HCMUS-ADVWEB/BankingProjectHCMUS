@@ -1,5 +1,4 @@
-import React from "react";
-import { TablePagination } from "@mui/material";
+import { TablePagination } from '@mui/material';
 
 function TransactionPagination({
   totalRecords,

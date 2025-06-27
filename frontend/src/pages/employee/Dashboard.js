@@ -1,329 +1,156 @@
-import { useState } from 'react';
 import EmployeeLayout from '../../layouts/EmployeeLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  Container,
-  Grid,
-  Paper,
-  Typography,
   Box,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
+  Container,
+  Typography,
+  Grid,
   Card,
-  Chip,
-  Badge,
-
+  CardContent,
+  Button,
+  Avatar,
+  Divider,
+  Tooltip,
 } from '@mui/material';
-import {  LineChart, PieChart, ScatterChart } from '@mui/x-charts';
-
-// Sample data for sections
-const tableData = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'User' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Admin' },
-  { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'User' },
-];
+import { PersonAdd, AddCard, History } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 
 export default function EmployeeDashboard() {
   const { state } = useAuth();
-  // State for interactive components
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  // Handlers for components
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+
+  const quickActions = [
+    {
+      title: 'Create Account',
+      icon: <PersonAdd />,
+      description:
+        'Create new customer accounts by entering required details. Ensure secure account setup with verification steps.',
+      link: '/employee/accounts',
+      tooltip: 'Add new customer accounts',
+    },
+    {
+      title: 'Deposit',
+      icon: <AddCard />,
+      description:
+        'Process deposits into customer accounts. Verify account details and amount before confirming transactions.',
+      link: '/employee/deposit',
+      tooltip: 'Deposit funds to accounts',
+    },
+    {
+      title: 'Transactions',
+      icon: <History />,
+      description:
+        'Review transaction history for all customer accounts, sorted by date, with details on transfers and deposits.',
+      link: '/employee/transactions',
+      tooltip: 'View transaction history',
+    },
+  ];
 
   return (
     <EmployeeLayout>
-      <Container maxWidth="xl" sx={{ py: 4, bgcolor: 'background.default' }}>
-        {/* SECTION 0: Dashboard Overview */}
-        <Box sx={{ mb: 4 }}>
+      <Container
+        maxWidth="xl"
+        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
+        {/* Header Section */}
+        <Box
+          sx={{
+            mb: 6,
+            p: 3,
+            borderRadius: 'shape.borderRadius',
+            bgcolor: 'background.paper',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            animation: 'fadeIn 1s ease-in-out',
+            '@keyframes fadeIn': {
+              '0%': { opacity: 0, transform: 'translateY(-20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          }}
+        >
           <Typography
             variant="h3"
-            sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}
+            sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}
           >
-            Welcome, {state.user?.fullName || 'User'}! 👋
+            Welcome, {state.user?.fullName || 'Employee'}! 👋
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Your dashboard provides a quick overview of key metrics and actions.
+          <Typography variant="body1" color="text.secondary">
+            Your dashboard provides quick access to banking operations for
+            efficient management.
           </Typography>
-          <Grid container spacing={2}>
-            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
-              <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
-                <Typography variant="h6" color="text.primary">
-                  Total Users
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="primary.main"
-                  sx={{ fontWeight: 700 }}
-                >
-                  1,234
-                </Typography>
-                <Chip
-                  onClick={() => {}}
-                  label="+5% this month"
-                  color="success"
-                  size="small"
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
-              <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
-                <Typography variant="h6" color="text.primary">
-                  Revenue
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="primary.main"
-                  sx={{ fontWeight: 700 }}
-                >
-                  $56,789
-                </Typography>
-                <Chip
-                  onClick={() => {}}
-                  label="+12% this month"
-                  color="success"
-                  size="small"
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
-              <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
-                <Typography variant="h6" color="text.primary">
-                  Active Projects
-                </Typography>
-                <Typography
-                  variant="h4"
-                  color="primary.main"
-                  sx={{ fontWeight: 700 }}
-                >
-                  42
-                </Typography>
-                <Badge badgeContent={3} color="error" sx={{ mt: 1 }}>
-                  <Chip label="Pending" size="small" onClick={() => {}} />
-                </Badge>
-              </Card>
-            </Grid>
-            <Grid item size={{ sx: 12, sm: 6, md: 6}}>
-              <Card sx={{ p: 2, borderRadius: 'shape.borderRadius' }}>
-                <Typography variant="h6" color="text.primary">
-                  System Status
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  All systems operational
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  sx={{ mt: 1 }}
-                >
-                  View Details
-                </Button>
-              </Card>
-            </Grid>
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mt: 2,
-                }}
-              >
-                <Typography variant="h5" color="text.primary">
-                  Quick Actions
-                </Typography>
-                <Button variant="outlined" color="primary">
-                  View All
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
         </Box>
 
-        {/* SECTION 6: Table */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            mb: 4,
-            borderRadius: 'shape.borderRadius',
-            bgcolor: 'background.paper',
-          }}
-        >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
-          >
-            📊 Table
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Display data in a tabular format with pagination.
-          </Typography>
-          <TableContainer
-            component={Paper}
-            sx={{ mt: 2, borderRadius: 'shape.borderRadius' }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tableData
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>{row.id}</TableCell>
-                      <TableCell>{row.name}</TableCell>
-                      <TableCell>{row.email}</TableCell>
-                      <TableCell>{row.role}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={tableData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
-
-
-        {/* SECTION 19: Charts & Visualizations */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            mb: 4,
-            borderRadius: 'shape.borderRadius',
-            bgcolor: 'background.paper',
-          }}
-        >
-          <Typography
-            variant="h4"
-            gutterBottom
-            sx={{ fontWeight: 700, color: 'text.primary' }}
-          >
-            📉 Charts & Visualizations
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Diverse chart types for comprehensive data visualization.
-          </Typography>
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={12} sm={6}>
-              <Typography
-                variant="h5"
-                color="primary.main"
-                fontWeight={600}
-                gutterBottom
-              >
-                Pie Chart
-              </Typography>
-              <PieChart
-                series={[
-                  {
-                    data: [
-                      { id: 0, value: 10, label: 'A' },
-                      { id: 1, value: 15, label: 'B' },
-                      { id: 2, value: 20, label: 'C' },
-                    ],
-                  },
-                ]}
-                height={200}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography
-                variant="h5"
-                color="primary.main"
-                fontWeight={600}
-                gutterBottom
-              >
-                Line Chart
-              </Typography>
-              <LineChart
-                series={[{ data: [2, 5, 3, 8, 6] }]}
-                height={200}
-                xAxis={[
-                  {
-                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-                    scaleType: 'point',
-                  },
-                ]}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography
-                variant="h5"
-                color="primary.main"
-                fontWeight={600}
-                gutterBottom
-              >
-                Scatter Chart
-              </Typography>
-              <ScatterChart
-                series={[
-                  {
-                    label: 'Series A',
-                    data: [
-                      { x: 1, y: 2, id: '1' },
-                      { x: 2, y: 5, id: '2' },
-                      { x: 3, y: 3, id: '3' },
-                      { x: 4, y: 8, id: '4' },
-                    ],
-                  },
-                ]}
-                height={200}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography
-                variant="h5"
-                color="primary.main"
-                fontWeight={600}
-                gutterBottom
-              >
-                Sparkline
-              </Typography>
-              <LineChart
-                series={[{ data: [1, 3, 2, 5, 4, 6, 3] }]}
-                height={100}
-                xAxis={[
-                  {
-                    data: [1, 2, 3, 4, 5, 6, 7],
-                    scaleType: 'point',
-                    hide: true,
-                  },
-                ]}
-                yAxis={[{ hide: true }]}
-                sx={{ '& .MuiChartsAxis-root': { display: 'none' } }}
-              />
-            </Grid>
+        {/* Quick Actions Section */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" color="text.primary">
+              Banking Operations
+            </Typography>
+            <Divider sx={{ mt: 1, mb: 2 }} />
+          </Box>
+          <Grid container spacing={3}>
+            {quickActions.map((action, index) => (
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+                <Card
+                  sx={{
+                    borderRadius: 'shape.borderRadius',
+                    p: 2,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)',
+                    },
+                    animation: `fadeInUp 0.5s ease-in-out ${index * 0.1}s`,
+                    '@keyframes fadeInUp': {
+                      '0%': { opacity: 0, transform: 'translateY(20px)' },
+                      '100%': { opacity: 1, transform: 'translateY(0)' },
+                    },
+                  }}
+                >
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Tooltip title={action.tooltip}>
+                        <Avatar
+                          sx={{
+                            bgcolor:
+                              'linear-gradient(to right, #10b981, #06b6d4)',
+                            color: 'white',
+                            mr: 2,
+                            width: 40,
+                            height: 40,
+                          }}
+                        >
+                          {action.icon}
+                        </Avatar>
+                      </Tooltip>
+                      <Typography variant="h6" color="text.primary">
+                        {action.title}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {action.description}
+                    </Typography>
+                  </CardContent>
+                  <Box sx={{ p: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      component={Link}
+                      to={action.link}
+                      sx={{ py: 1.5 }}
+                    >
+                      Go to {action.title}
+                    </Button>
+                  </Box>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
-        </Paper>
+        </Box>
       </Container>
     </EmployeeLayout>
   );

@@ -20,12 +20,11 @@ import EmployeeDashboard from './pages/employee/Dashboard';
 import EmployeeAccounts from './pages/employee/Accounts';
 import EmployeeDeposit from './pages/employee/Deposit';
 import EmployeeTransactions from './pages/employee/Transactions';
-import EmployeeTemplate from './pages/employee/Template';
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminEmployees from './pages/admin/Employees';
 import AdminTransactions from './pages/admin/Transactions';
-import EmployeeDetail from "./pages/admin/EmployeeDetail";
+import EmployeeDetail from './pages/admin/EmployeeDetail';
 
 export default function App() {
   return (
@@ -106,14 +105,6 @@ export default function App() {
 
         {/* Employee routes */}
         <>
-          <Route
-            path="/employee/template"
-            element={
-              <ProtectedRoute allowedRoles={['employee']}>
-                <EmployeeTemplate />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/employee/dashboard"
             element={

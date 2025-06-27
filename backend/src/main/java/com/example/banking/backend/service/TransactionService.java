@@ -8,11 +8,12 @@ import com.example.banking.backend.dto.response.transaction.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface TransactionService {
 
-    TransferResult internalTransfer(TransferRequest request);
+    TransferResult internalTransfer(TransferRequest request ,  Boolean needToCheckOtp);
 
     TransferResult externalTransfer(TransferExternalRequest request) throws Exception;
 

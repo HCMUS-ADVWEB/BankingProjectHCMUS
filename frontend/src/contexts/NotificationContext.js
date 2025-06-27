@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth } from './AuthContext';
-import webSocketService from '../services/WebSocketService';
+import webSocketService from '../utils/webSocket';
 import notificationService from '../services/NotificationService';
 
 const notificationReducer = (state, action) => {
@@ -33,7 +33,7 @@ const notificationReducer = (state, action) => {
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
       };
-    case 'MARK_AS_READ':
+    case 'MARK_AS_READ': {
       const wasUnread = state.notifications.some(
         (n) => n.id === action.payload && !n.read,
       );
@@ -46,6 +46,7 @@ const notificationReducer = (state, action) => {
           ? Math.max(0, state.unreadCount - 1)
           : state.unreadCount,
       };
+    }
     case 'SET_CONNECTION_STATUS':
       return { ...state, isConnecting: action.payload };
     case 'SET_SUBSCRIPTION':
@@ -95,13 +96,19 @@ export const NotificationProvider = ({ children }) => {
     if (!authState.isAuthenticated || !authState.user?.id) {
       return;
     }
+
+    // Only fetch notifications for customer users
+    if (authState.user?.role !== 'customer') {
+      console.log('Notifications are only available for customer users');
+      return;
+    }
+
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await notificationService.getNotifications(10, 1);
 
-      if (response && response.content) {
-        dispatch({ type: 'SET_NOTIFICATIONS', payload: response.content });
-      } else if (Array.isArray(response)) {
+      // Backend now returns List<NotificationResponse> directly
+      if (Array.isArray(response)) {
         dispatch({ type: 'SET_NOTIFICATIONS', payload: response });
       } else {
         console.warn('Notification response format unexpected:', response);
@@ -113,13 +120,21 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [authState.isAuthenticated, authState.user?.id]);
+  }, [authState.isAuthenticated, authState.user?.id, authState.user?.role]);
 
   const handleNewNotification = useCallback((notification) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
   }, []);
 
   const setupWebSocket = useCallback(async () => {
+    // Only setup WebSocket for customer users
+    if (authState.user?.role !== 'customer') {
+      console.log(
+        'WebSocket notifications are only available for customer users',
+      );
+      return () => {};
+    }
+
     const ws = webSocketService;
 
     try {
@@ -180,10 +195,21 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_CONNECTION_STATUS', payload: false });
     }
-  }, [handleNewNotification, state.subscription, state.isConnecting]);
-  // Fetch notifications and setup WebSocket only when authenticated
+  }, [
+    handleNewNotification,
+    state.subscription,
+    state.isConnecting,
+    authState.user?.role,
+  ]);
+  // Fetch notifications and setup WebSocket only when authenticated and user is customer
   useEffect(() => {
     if (!authState.isAuthenticated || !authState.user?.id) {
+      return;
+    }
+
+    // Only setup notifications for customer users
+    if (authState.user?.role !== 'customer') {
+      console.log('Notifications are only available for customer users');
       return;
     }
 
@@ -235,6 +261,7 @@ export const NotificationProvider = ({ children }) => {
   }, [
     authState.isAuthenticated,
     authState.user?.id,
+    authState.user?.role,
     refreshToken,
     setupWebSocket,
     fetchNotifications,
@@ -247,6 +274,7 @@ export const NotificationProvider = ({ children }) => {
       if (
         !state.isConnecting &&
         authState.isAuthenticated &&
+        authState.user?.role === 'customer' &&
         !webSocketService.connected &&
         !state.subscription
       ) {
@@ -261,11 +289,20 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [
     authState.isAuthenticated,
+    authState.user?.role,
     state.isConnecting,
     setupWebSocket,
     state.subscription,
   ]);
   const markAllAsRead = async () => {
+    // Only allow customers to mark notifications as read
+    if (authState.user?.role !== 'customer') {
+      console.log(
+        'Notification management is only available for customer users',
+      );
+      return;
+    }
+
     try {
       dispatch({ type: 'MARK_ALL_READ' });
 
@@ -276,6 +313,14 @@ export const NotificationProvider = ({ children }) => {
     }
   };
   const markAsRead = async (notificationId) => {
+    // Only allow customers to mark notifications as read
+    if (authState.user?.role !== 'customer') {
+      console.log(
+        'Notification management is only available for customer users',
+      );
+      return;
+    }
+
     try {
       dispatch({ type: 'MARK_AS_READ', payload: notificationId });
 

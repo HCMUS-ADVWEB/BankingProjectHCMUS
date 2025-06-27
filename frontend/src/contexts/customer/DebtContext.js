@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   useContext,
   useReducer,
@@ -258,9 +258,6 @@ export const DebtProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: false });
       return { success: false, error: errorMessage };
     }
-  };
-  const hasToken = () => {
-    return !!localStorage.getItem('accessToken');
   };
 
   const handleChangePage = useCallback((event, newPage) => {

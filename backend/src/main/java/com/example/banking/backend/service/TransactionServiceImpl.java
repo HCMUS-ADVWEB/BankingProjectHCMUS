@@ -42,6 +42,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,7 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setToAccount(null); // Không biết account object của ngân hàng khác
         transaction.setAmount(request.getAmount());
         transaction.setFee(fee);
-        transaction.setFeeType(FeeType.SENDER); // Giả sử phí do người gửi trả);
+        transaction.setFeeType(FeeType.fromValue(request.getFeeType())); // Giả sử phí do người gửi trả);
         transaction.setMessage(request.getContent() != null ? request.getContent() : "");
         transaction.setStatus(TransactionStatusType.PENDING);
         return transaction;
@@ -110,7 +111,8 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.setToAccount(null);
                 transaction.setAmount(request.getAmount());
                 transaction.setFee(fee);
-                transaction.setFeeType(FeeType.SENDER);
+                transaction.setToBank(destinationBank);
+                transaction.setFeeType(FeeType.fromValue(request.getFeeType()));
                 transaction.setStatus(TransactionStatusType.PENDING);
                 transaction.setMessage(request.getContent());
                 Instant now = Instant.now();
@@ -290,19 +292,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public InternalDepositResult internalDeposit(InternalDeposit internalDeposit) {
+    public InternalDepositResult internalDeposit(InternalDeposit internalDeposit ) {
         Account toAccount = getAccountFromNumber(internalDeposit.getAccountNumberReceiver());
 
         if (toAccount == null) {
             throw new BadRequestException("Receiver account not found");
         }
-
-
         Transaction transaction = new Transaction();
-        transaction.setTransactionType(TransactionType.INTERNAL_TRANSFER);
+        transaction.setTransactionType(TransactionType.DEPOSIT);
         transaction.setFromAccount(null);
         transaction.setFromAccountNumber(null);
-        transaction.setToAccountNumber(null);
+        transaction.setToAccountNumber(toAccount.getAccountNumber());
         transaction.setToAccount(toAccount);
         transaction.setAmount(internalDeposit.getAmount());
         transaction.setFee(0.0);
@@ -350,7 +350,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public TransferResult internalTransfer(TransferRequest request) {
+    public TransferResult internalTransfer(TransferRequest request , Boolean needToCheckOtp) {
 
 
         Account accountCurrentUser = getAccountCurrentUser();
@@ -385,15 +385,16 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setUpdatedAt(now);
 
         // Validate OTP if provided
-        if (request.getOtp() != null && !request.getOtp().isEmpty()) {
-            if (!otpService.validateOtp(
-                    getCurrentUser().getId(),
-                    OtpType.TRANSFER,
-                    request.getOtp())) throw new BadRequestException("Invalid OTP");
-        } else {
-            throw new BadRequestException("OTP is required for internal transfer");
+        if (needToCheckOtp) {
+            if (request.getOtp() != null && !request.getOtp().isEmpty()) {
+                if (!otpService.validateOtp(
+                        getCurrentUser().getId(),
+                        OtpType.TRANSFER,
+                        request.getOtp())) throw new BadRequestException("Invalid OTP");
+            } else {
+                throw new BadRequestException("OTP is required for internal transfer");
+            }
         }
-
         // Save transaction
         var savedTransaction = transactionRepository.save(transaction);
 

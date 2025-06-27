@@ -101,18 +101,11 @@ public class DebtServiceImpl implements DebtService {
             throw new BadRequestException("Amount must be greater than 0");
         }
 
-        // Get the creator's account
-        Account creatorAccount = accountRepository.findByUserId(creator.getId())
-                .orElseThrow(() -> new BadRequestException("Creator account not found"));
-
-        // Fetch the debtor's account from the database
         Account debtorAccount = accountRepository.findByAccountNumber(request.getDebtorAccountNumber())
                 .orElseThrow(() -> new BadRequestException("Debtor account not found"));
 
-        // Get the debtor user from the account
         User debtor = debtorAccount.getUser();
 
-        // Ensure creator is not trying to create a debt for themselves
         if (creator.getId().equals(debtor.getId())) {
             throw new BadRequestException("Cannot create a debt reminder for yourself");
         }
@@ -139,15 +132,6 @@ public class DebtServiceImpl implements DebtService {
                         creator.getFullName(),
                         debtReminder.getAmount(),
                         debtReminder.getMessage()))
-                .build());
-
-        // Notify creator
-        notificationService.addNotification(AddNotificationRequest.builder()
-                .userId(creator.getId())
-                .title("Debt Reminder Created")
-                .content(String.format("You have created a debt reminder for %.2f VND for %s",
-                        debtReminder.getAmount(),
-                        debtor.getFullName()))
                 .build());
 
         // Build the response DTO
@@ -207,7 +191,7 @@ public class DebtServiceImpl implements DebtService {
         transferRequest.setOtp(request.getOtp()); // Set the OTP for transaction validation
 
         // Call TransactionService to process the transfer
-        TransferResult transferResult = transactionService.internalTransfer(transferRequest);
+        TransferResult transferResult = transactionService.internalTransfer(transferRequest , false);
 
         if (!transferResult.getSuccess()) {
             throw new BadRequestException("Failed to process debt payment: " + transferResult.getErrorMessage());
@@ -227,15 +211,6 @@ public class DebtServiceImpl implements DebtService {
                         reminder.getDebtor().getFullName(),
                         reminder.getAmount(),
                         request.getMessage()))
-                .build());
-
-        // Notify debtor
-        notificationService.addNotification(AddNotificationRequest.builder()
-                .userId(reminder.getDebtor().getId())
-                .title("Debt Payment Sent")
-                .content(String.format("You have paid the debt of %.2f VND to %s",
-                        reminder.getAmount(),
-                        reminder.getCreator().getFullName()))
                 .build());
 
         // Create PayDebtResponse
@@ -283,15 +258,6 @@ public class DebtServiceImpl implements DebtService {
                             debtReminder.getCreator().getFullName(),
                             debtReminder.getAmount(),
                             request.getCancelledReason()))
-                    .build());
-
-            // Notify creator
-            notificationService.addNotification(AddNotificationRequest.builder()
-                    .userId(debtReminder.getCreator().getId())
-                    .title("Debt Reminder Cancelled")
-                    .content(String.format("You have cancelled the debt reminder of %.2f VND for %s",
-                            debtReminder.getAmount(),
-                            debtReminder.getDebtor().getFullName()))
                     .build());
 
             return ApiResponse.<Void>builder()

@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @SecurityRequirement(name = "bearerAuth")
@@ -31,13 +31,13 @@ public class NotificationController {
             , description = "Customers get all of their notifications")
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getNotifications(
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getNotifications(
             @Parameter(description = "Limit per page") @RequestParam(defaultValue = "10") int limit,
             @Parameter(description = "Page number") @RequestParam(defaultValue = "1") int page
     ) {
-        Page<NotificationResponse> notifications = notificationService.getAllNotifications(limit, page);
+        List<NotificationResponse> notifications = notificationService.getAllNotifications(limit, page);
 
-        return ResponseEntity.ok(ApiResponse.<Page<NotificationResponse>>builder()
+        return ResponseEntity.ok(ApiResponse.<List<NotificationResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Notifications retrieved successfully")
                 .data(notifications)

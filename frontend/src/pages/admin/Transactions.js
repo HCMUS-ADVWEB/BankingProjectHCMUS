@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
-import AdminLayout from "../../layouts/AdminLayout";
-import { useTransaction, TransactionProvider } from "../../contexts/admin/BankTransactionsContext";
-import Loading from "../../components/Loading";
-import TransactionFilter from "../../components/admin/TransactionFilter";
-import TransactionTable from "../../components/admin/TransactionTable";
-import TransactionPagination from "../../components/admin/TransactionPagination";
-import TransactionSummary from "../../components/admin/TransactionSummary";
+import { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
+import AdminLayout from '../../layouts/AdminLayout';
+import {
+  useTransaction,
+  TransactionProvider,
+} from '../../contexts/admin/BankTransactionsContext';
+import Loading from '../../components/Loading';
+import TransactionFilter from '../../components/admin/TransactionFilter';
+import TransactionTable from '../../components/admin/TransactionTable';
+import TransactionPagination from '../../components/admin/TransactionPagination';
+import TransactionSummary from '../../components/admin/TransactionSummary';
 
 function TransactionsPageContent() {
   const {
@@ -22,18 +25,22 @@ function TransactionsPageContent() {
     pageSize,
   } = useTransaction();
 
-  const [selectedBank, setSelectedBank] = useState("All Banks");
+  const [selectedBank, setSelectedBank] = useState('All Banks');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const toVietnamISOString = (date) => {
-    const vnDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    return vnDate.toISOString().split("T")[0];
+    const vnDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return vnDate.toISOString().split('T')[0];
   };
 
-  const startDate = toVietnamISOString(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
-  const endDate = toVietnamISOString(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
+  const startDate = toVietnamISOString(
+    new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+  );
+  const endDate = toVietnamISOString(
+    new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0),
+  );
 
   // Load banks list once
   useEffect(() => {
@@ -45,7 +52,7 @@ function TransactionsPageContent() {
     fetchTransactions({
       startDate,
       endDate,
-      bankCode: selectedBank === "All Banks" ? null : selectedBank,
+      bankCode: selectedBank === 'All Banks' ? null : selectedBank,
       limit: rowsPerPage,
       page,
     });
@@ -53,12 +60,20 @@ function TransactionsPageContent() {
     fetchStatistics({
       startDate,
       endDate,
-      bankCode: selectedBank === "All Banks" ? null : selectedBank,
+      bankCode: selectedBank === 'All Banks' ? null : selectedBank,
       limit: rowsPerPage,
       page,
     });
-
-  }, [selectedBank, selectedDate, page, rowsPerPage, fetchTransactions, fetchStatistics, endDate, startDate]);
+  }, [
+    selectedBank,
+    selectedDate,
+    page,
+    rowsPerPage,
+    fetchTransactions,
+    fetchStatistics,
+    endDate,
+    startDate,
+  ]);
 
   const handleBankChange = (value) => {
     setSelectedBank(value);
@@ -84,7 +99,7 @@ function TransactionsPageContent() {
   return (
     <AdminLayout>
       <TransactionProvider>
-        <Box sx={{bgcolor: "background.default", p: 3}}>
+        <Box sx={{ bgcolor: 'background.default', p: 3 }}>
           <Typography variant="h4" gutterBottom>
             Transaction Details
           </Typography>
@@ -97,14 +112,16 @@ function TransactionsPageContent() {
             onDateChange={handleDateChange}
           />
 
-          <TransactionSummary statistics={statistics ? statistics.totalAmount : 0} />
+          <TransactionSummary
+            statistics={statistics ? statistics.totalAmount : 0}
+          />
 
           {error ? (
-            <Typography sx={{ color: "red", mt: 2 }}>{error}</Typography>
+            <Typography sx={{ color: 'red', mt: 2 }}>{error}</Typography>
           ) : (
             <>
               <TransactionTable transactions={transactions} />
-              
+
               <TransactionPagination
                 totalRecords={statistics ? statistics.totalTransactions : 0}
                 currentPage={currentPage}

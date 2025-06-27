@@ -1,30 +1,11 @@
 import api from '../../utils/api';
-// DebtService.js
-// Service for debt reminder-related API calls
 
 const DebtService = {
-  /**
-   * Fetch debt reminders divided into created and received lists
-   * @param {string|null} status - Filter by status (PENDING, PAID, CANCELLED)
-   * @param {number} limit - Number of items per page
-   * @param {number} page - Page number (1-based)
-   * @param {string} orderBy - Field to sort by
-   * @param {string} order - Sort direction ('asc' or 'desc')
-   * @returns {Promise} Promise containing the debt reminders data
-   */
-  async getDebtReminderLists(
-    status = null,
-    limit = 10,
-    page = 1,
-    orderBy = 'createdAt',
-    order = 'desc',
-  ) {
+  async getDebtReminderLists(status = null, limit = 10, page = 1) {
     const queryParams = new URLSearchParams();
     if (status) queryParams.append('status', status);
     queryParams.append('limit', limit);
     queryParams.append('page', page);
-    queryParams.append('orderBy', orderBy);
-    queryParams.append('order', order);
 
     const url = `/api/debts?${queryParams.toString()}`;
     return api
@@ -35,13 +16,8 @@ const DebtService = {
         throw err;
       });
   },
-  /**
-   * Create a new debt reminder
-   * @param {Object} debtData - Debt reminder data with format { debtorAccountNumber, amount, message }
-   * @returns {Promise} Promise containing the create operation result
-   */
+
   async createDebtReminder(debtData) {
-    // Format data according to API requirements
     const formattedData = {
       debtorAccountNumber:
         debtData.accountNumber || debtData.debtorAccountNumber,
@@ -58,12 +34,6 @@ const DebtService = {
       });
   },
 
-  /**
-   * Cancel a debt reminder
-   * @param {string} reminderId - UUID of the debt reminder
-   * @param {string} reason - Reason for cancellation
-   * @returns {Promise} Promise containing the cancel operation result
-   */
   async cancelDebtReminder(reminderId, reason) {
     return api
       .delete(`/api/debts/${reminderId}`, {
@@ -76,10 +46,6 @@ const DebtService = {
       });
   },
 
-  /**
-   * Request OTP for debt payment
-   * @returns {Promise} Promise containing the OTP request result
-   */
   async requestOtpForPayDebt() {
     return api
       .post('/api/debts/request-otp')
@@ -90,15 +56,9 @@ const DebtService = {
       });
   },
 
-  /**
-   * Pay a debt reminder
-   * @param {string} reminderId - UUID of the debt reminder
-   * @param {Object} paymentData - Payment data including OTP
-   * @returns {Promise} Promise containing the payment operation result
-   */
   async payDebtReminder(reminderId, paymentData) {
     return api
-      .post(`/api/debts/${reminderId}/pay`, paymentData)
+      .post(`/api/debts/${reminderId}`, paymentData)
       .then((res) => res.data)
       .catch((err) => {
         console.error('Error paying debt reminder:', err);

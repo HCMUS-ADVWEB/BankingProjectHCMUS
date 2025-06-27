@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,12 +9,13 @@ import {
   Alert,
   Box,
   CircularProgress,
-  FormHelperText,
   InputAdornment,
+  Typography,
 } from '@mui/material';
 import { useDebt } from '../contexts/customer/DebtContext';
+import api from '../utils/api';
 
-const CreateDebtReminderDialog = ({ open, onClose }) => {
+const CreateDebtReminderDialog = ({ open, onClose, onSuccess }) => {
   const { createDebtReminder, loading, error } = useDebt();
   const [formData, setFormData] = useState({
     accountNumber: '',
@@ -27,12 +28,72 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
     amount: '',
   });
 
+  // State for account lookup
+  const [debtorInfo, setDebtorInfo] = useState(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState('');
+  const lookupTimeoutRef = useRef(null);
+
+  // Function to lookup account info
+  const lookupAccountInfo = async (accountNumber) => {
+    if (!accountNumber.trim()) {
+      setDebtorInfo(null);
+      setLookupError('');
+      return;
+    }
+
+    setLookupLoading(true);
+    setLookupError('');
+
+    try {
+      const response = await api.post('/api/accounts/account-info', {
+        accountNumber: accountNumber.trim(),
+        bankCode: null,
+      });
+
+      if (response.data && response.data.data) {
+        setDebtorInfo(response.data.data);
+        setLookupError('');
+      } else {
+        setDebtorInfo(null);
+        setLookupError('Account not found');
+      }
+    } catch (error) {
+      console.error('Error looking up account:', error);
+      setDebtorInfo(null);
+      setLookupError(
+        error.response?.data?.message || 'Failed to lookup account',
+      );
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+
+    // Trigger account lookup when account number changes
+    if (name === 'accountNumber') {
+      // Clear previous timeout
+      if (lookupTimeoutRef.current) {
+        clearTimeout(lookupTimeoutRef.current);
+      }
+
+      // Reset states immediately when input changes
+      setDebtorInfo(null);
+      setLookupError('');
+
+      // Set new timeout for debounced lookup
+      if (value.trim()) {
+        lookupTimeoutRef.current = setTimeout(() => {
+          lookupAccountInfo(value.trim());
+        }, 500);
+      }
     }
   };
 
@@ -42,6 +103,12 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
 
     if (!formData.accountNumber.trim()) {
       newErrors.accountNumber = 'Account number is required';
+      valid = false;
+    } else if (lookupError) {
+      newErrors.accountNumber = 'Please enter a valid account number';
+      valid = false;
+    } else if (!debtorInfo && formData.accountNumber.trim()) {
+      newErrors.accountNumber = 'Please wait for account verification';
       valid = false;
     }
 
@@ -67,10 +134,17 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
 
     const result = await createDebtReminder(debtData);
     if (result && result.success) {
+      // Notify parent of success
+      onSuccess && onSuccess();
       handleClose();
     }
   };
   const handleClose = () => {
+    // Clear any pending timeout
+    if (lookupTimeoutRef.current) {
+      clearTimeout(lookupTimeoutRef.current);
+    }
+
     setFormData({
       accountNumber: '',
       amount: '',
@@ -80,6 +154,10 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
       accountNumber: '',
       amount: '',
     });
+    // Reset lookup state
+    setDebtorInfo(null);
+    setLookupError('');
+    setLookupLoading(false);
     onClose();
   };
 
@@ -103,13 +181,47 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
           variant="outlined"
           value={formData.accountNumber}
           onChange={handleChange}
-          error={Boolean(formErrors.accountNumber)}
+          error={Boolean(formErrors.accountNumber) || Boolean(lookupError)}
           helperText={
             formErrors.accountNumber ||
+            lookupError ||
             'Enter the account number of the person who owes you money'
           }
-          sx={{ mb: 2, mt: 1 }}
+          InputProps={{
+            endAdornment: lookupLoading && (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 1, mt: 1 }}
         />
+
+        {/* Display debtor information */}
+        {debtorInfo && (
+          <Box
+            sx={{
+              p: 2,
+              mb: 2,
+              color: 'success.contrastText',
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'success.main',
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+              ✓ Account Found
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 0.5 }}>
+              <strong>{debtorInfo.fullName}</strong>
+            </Typography>
+            {debtorInfo.email && (
+              <Typography variant="body2" sx={{ color: 'success.dark' }}>
+                {debtorInfo.email}
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <TextField
           margin="dense"
@@ -152,7 +264,11 @@ const CreateDebtReminderDialog = ({ open, onClose }) => {
             onClick={handleSubmit}
             color="primary"
             variant="contained"
-            disabled={loading}
+            disabled={
+              loading ||
+              lookupLoading ||
+              (formData.accountNumber.trim() && !debtorInfo)
+            }
           >
             Create Debt Reminder
           </Button>

@@ -16,16 +16,16 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import ProfileModal from './ProfileModal';
 
-export default function MainHeader({ navigationItems = [] }) {  
+export default function MainHeader({ navigationItems = [] }) {
   const location = useLocation();
   const { isDarkMode, toggleTheme } = useTheme();
-  const { state, logout } = useAuth();  
-  const { 
-    notifications = [], 
-    unreadCount = 0, 
-    loading = false, 
+  const { state, logout } = useAuth();
+  const {
+    notifications = [],
+    unreadCount = 0,
+    loading = false,
     markAllAsRead = () => console.warn('markAllAsRead not available'),
-    markAsRead = () => console.warn('markAsRead not available')
+    markAsRead = () => console.warn('markAsRead not available'),
   } = useNotifications() || {};
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -114,10 +114,13 @@ export default function MainHeader({ navigationItems = [] }) {
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);
-                
+
                 // Log current notification state when toggling
                 if (!showNotifications) {
-                  console.log('Opening notifications - Current count:', unreadCount);
+                  console.log(
+                    'Opening notifications - Current count:',
+                    unreadCount,
+                  );
                   console.log('Current notifications:', notifications);
                 }
               }}
@@ -158,7 +161,7 @@ export default function MainHeader({ navigationItems = [] }) {
                     Notifications
                   </h3>
                 </div>
-                <NotificationList 
+                <NotificationList
                   notifications={notifications}
                   loading={loading}
                   markAsRead={markAsRead}

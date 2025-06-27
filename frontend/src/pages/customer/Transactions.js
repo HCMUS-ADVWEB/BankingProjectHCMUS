@@ -19,7 +19,6 @@ import {
   TablePagination,
   TableSortLabel,
 } from '@mui/material';
-import { History as HistoryIcon } from '@mui/icons-material';
 import { useTransaction } from '../../contexts/customer/TransactionContext';
 import { formatVND } from '../../utils/constants';
 // Transaction type icons mapping
@@ -75,6 +74,7 @@ export default function TransactionsPage() {
         {/* Header Section */}
         <Box
           sx={{
+            height: '100%',
             mb: 6,
             p: 4,
             borderRadius: 'shape.borderRadius',
