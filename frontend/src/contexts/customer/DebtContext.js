@@ -27,6 +27,10 @@ const debtReducer = (state, action) => {
         ...state,
         createdDebts: action.payload.createdDebts,
         receivedDebts: action.payload.receivedDebts,
+        allCreatedDebts:
+          action.payload.allCreatedDebts || action.payload.createdDebts,
+        allReceivedDebts:
+          action.payload.allReceivedDebts || action.payload.receivedDebts,
         loading: false,
         error: null,
       };
@@ -73,12 +77,15 @@ export const DebtProvider = ({ children }) => {
   const [state, dispatch] = useReducer(debtReducer, {
     createdDebts: [],
     receivedDebts: [],
+    allCreatedDebts: [],
+    allReceivedDebts: [],
     loading: false,
     error: null,
     pagination: {
       page: 0,
       rowsPerPage: 10,
       total: 0,
+      isEstimated: false,
     },
     sort: {
       orderBy: 'createdAt',
@@ -89,18 +96,47 @@ export const DebtProvider = ({ children }) => {
     },
     currentTab: 0,
   });
+  const fetchAllDebtsForCount = useCallback(async () => {
+    try {
+      const { status } = state.filter;
+
+      const response = await DebtService.getDebtReminderLists(status, 100, 1);
+
+      if (response && response.status === 200) {
+        const allCreatedDebts = response.data.createdDebts || [];
+        const allReceivedDebts = response.data.receivedDebts || [];
+
+        return {
+          allCreatedDebts,
+          allReceivedDebts,
+          totalCreated: allCreatedDebts.length,
+          totalReceived: allReceivedDebts.length,
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error fetching all debts for count:', err);
+      return null;
+    }
+  }, [state.filter.status]);
+
   const fetchDebtReminders = useCallback(async () => {
     if (!authState.isAuthenticated) return;
 
     dispatch({ type: 'FETCH_DEBTS_START' });
 
     try {
-      const { status } = state.filter;
+      const allDebtsData = await fetchAllDebtsForCount();
+
+      if (!allDebtsData) {
+        throw new Error('Failed to fetch debt counts');
+      }
+
       const { rowsPerPage, page } = state.pagination;
       const { orderBy, order } = state.sort;
 
       const response = await DebtService.getDebtReminderLists(
-        status,
+        state.filter.status,
         rowsPerPage,
         page + 1,
         orderBy,
@@ -116,16 +152,21 @@ export const DebtProvider = ({ children }) => {
           payload: {
             createdDebts: createdDebtsData,
             receivedDebts: receivedDebtsData,
+            allCreatedDebts: allDebtsData.allCreatedDebts,
+            allReceivedDebts: allDebtsData.allReceivedDebts,
           },
         });
+
+        const totalForCurrentTab =
+          state.currentTab === 0
+            ? allDebtsData.totalCreated
+            : allDebtsData.totalReceived;
 
         dispatch({
           type: 'SET_PAGINATION',
           payload: {
-            total:
-              state.currentTab === 0
-                ? createdDebtsData.length
-                : receivedDebtsData.length,
+            total: totalForCurrentTab,
+            isEstimated: false,
           },
         });
       } else {
@@ -301,9 +342,26 @@ export const DebtProvider = ({ children }) => {
     });
   }, []);
 
-  const handleTabChange = useCallback((event, newValue) => {
-    dispatch({ type: 'SET_TAB', payload: newValue });
-  }, []);
+  const handleTabChange = useCallback(
+    (event, newValue) => {
+      dispatch({ type: 'SET_TAB', payload: newValue });
+
+      const totalForNewTab =
+        newValue === 0
+          ? state.allCreatedDebts.length
+          : state.allReceivedDebts.length;
+
+      dispatch({
+        type: 'SET_PAGINATION',
+        payload: {
+          page: 0,
+          total: totalForNewTab,
+          isEstimated: false,
+        },
+      });
+    },
+    [state.allCreatedDebts.length, state.allReceivedDebts.length],
+  );
 
   const getSortedDebts = useCallback(() => {
     const debts =

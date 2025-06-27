@@ -79,6 +79,7 @@ export const TransactionProvider = ({ children }) => {
       page: 0,
       rowsPerPage: 10,
       total: 0,
+      totalPages: 0,
     },
     sort: {
       orderBy: 'createdAt',
@@ -115,23 +116,43 @@ export const TransactionProvider = ({ children }) => {
         order,
       );
 
-      dispatch({
-        type: 'SET_TRANSACTIONS',
-        payload: response.data || {
-          transactionsAsSender: [],
-          transactionsAsReceiver: [],
-        },
-      });
+      // Handle the new API response structure
+      if (response.data) {
+        dispatch({
+          type: 'SET_TRANSACTIONS',
+          payload: {
+            transactionsAsSender: response.data.transactionsAsSender || [],
+            transactionsAsReceiver: response.data.transactionsAsReceiver || [],
+          },
+        });
 
-      dispatch({
-        type: 'SET_PAGINATION',
-        payload: {
-          total:
-            response.total ||
-            (response.data?.transactionsAsSender?.length || 0) +
-              (response.data?.transactionsAsReceiver?.length || 0),
-        },
-      });
+        dispatch({
+          type: 'SET_PAGINATION',
+          payload: {
+            total: response.data.totalTransactions || 0,
+            totalPages: response.data.totalPages || 0,
+          },
+        });
+      } else {
+        // Fallback for old response format
+        dispatch({
+          type: 'SET_TRANSACTIONS',
+          payload: {
+            transactionsAsSender: response.transactionsAsSender || [],
+            transactionsAsReceiver: response.transactionsAsReceiver || [],
+          },
+        });
+
+        dispatch({
+          type: 'SET_PAGINATION',
+          payload: {
+            total:
+              response.total ||
+              (response.transactionsAsSender?.length || 0) +
+                (response.transactionsAsReceiver?.length || 0),
+          },
+        });
+      }
     } catch (err) {
       dispatch({
         type: 'SET_ERROR',
