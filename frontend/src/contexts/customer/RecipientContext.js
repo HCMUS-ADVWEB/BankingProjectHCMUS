@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useAuth } from '../AuthContext';
 import RecipientService from '../../services/customer/RecipientService';
+import CustomerService from '../../services/CustomerService';
 
 // Reducer to handle all recipient state updates
 const recipientReducer = (state, action) => {
@@ -37,6 +38,8 @@ const recipientReducer = (state, action) => {
       return { ...state, editId: action.payload };
     case 'SET_DIALOG_OPEN':
       return { ...state, dialogOpen: action.payload };
+    case 'SET_BANKS':
+      return { ...state, banks: action.payload };
     default:
       return state;
   }
@@ -65,11 +68,13 @@ export const RecipientProvider = ({ children }) => {
     success: null,
     form: {
       accountNumber: '',
-      bankCode: '',
+      bankName: '',
       nickName: '',
+      recipientName: "",
     },
     editId: null,
     dialogOpen: false,
+    banks: [],
   };
 
   // Set up reducer
@@ -210,6 +215,35 @@ export const RecipientProvider = ({ children }) => {
     [fetchRecipients],
   );
 
+  const getAccountInfo = useCallback(async (accountNumber, bankCode) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      const response = await CustomerService.getAccountInfo(accountNumber, bankCode);
+      const accountData = response.data || null;
+
+      // Update recipientName in form if available
+      if (accountData?.recipientName) {
+        dispatch({
+          type: 'SET_FORM',
+          payload: { recipientName: accountData.recipientName },
+        });
+      }
+
+      return accountData;
+    } catch (err) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to fetch account info',
+      });
+      return null;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
+
   // Handle form change
   const handleFormChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -221,9 +255,10 @@ export const RecipientProvider = ({ children }) => {
       dispatch({
         type: 'SET_FORM',
         payload: {
-          accountNumber: recipient.accountNumber || '',
-          bankCode: recipient.bankCode || recipient.bankName || '',
-          nickName: recipient.nickName || recipient.recipientNickname || '',
+          accountNumber: recipient.recipientAccountNumber || '',
+          bankName: recipient.bankName || '',
+          nickName: recipient.nickName || '',
+          recipientName: recipient.recipientName || '',
         },
       });
       dispatch({
@@ -246,12 +281,38 @@ export const RecipientProvider = ({ children }) => {
   const submitForm = useCallback(async () => {
     const { form, editId } = state;
 
+    let result;
     if (editId) {
-      return await updateRecipient(editId, form);
+      result = await updateRecipient(editId, form);
     } else {
-      return await addRecipient(form);
+      result = await addRecipient(form);
     }
-  }, [state.form, state.editId, addRecipient, updateRecipient]);
+
+    if (result) {
+      closeDialog();
+    }
+
+    return result;
+  }, [state.form, state.editId, addRecipient, updateRecipient, closeDialog]);
+
+  const fetchBanks = useCallback(async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      const response = await CustomerService.getBanks(); // assuming this is your API call
+      dispatch({ type: 'SET_BANKS', payload: response.data || [] });
+    } catch (err) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to fetch banks',
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, []);
+
+
 
   // Fetch recipients when auth state changes
   useEffect(() => {
@@ -269,6 +330,7 @@ export const RecipientProvider = ({ children }) => {
     form: state.form,
     editId: state.editId,
     dialogOpen: state.dialogOpen,
+    banks: state.banks,
 
     // Methods
     fetchRecipients,
@@ -280,6 +342,8 @@ export const RecipientProvider = ({ children }) => {
     openDialog,
     closeDialog,
     submitForm,
+    fetchBanks,
+    getAccountInfo,
   };
 
   return (

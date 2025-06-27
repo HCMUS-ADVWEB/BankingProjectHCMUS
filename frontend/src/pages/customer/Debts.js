@@ -92,10 +92,6 @@ export default function DebtsPage() {
     contextTabChange(event, newValue);
   };
 
-  const onStatusChange = (e) => {
-    contextStatusChange(e);
-  };
-
   const onChangePage = (e, newPage) => {
     contextChangePage(e, newPage);
   };
@@ -355,20 +351,7 @@ export default function DebtsPage() {
                               title="Pay"
                               onClick={async () => {
                                 setSelectedDebt(debt);
-                                // Send OTP immediately when user clicks pay
-                                const result = await requestOtpForPayDebt();
-                                if (result.success) {
-                                  setPayDialogOpen(true);
-                                  setSnackbarMessage('OTP sent to your email');
-                                  setSnackbarSeverity('info');
-                                  setSnackbarOpen(true);
-                                } else {
-                                  setSnackbarMessage(
-                                    result.error || 'Failed to request OTP',
-                                  );
-                                  setSnackbarSeverity('error');
-                                  setSnackbarOpen(true);
-                                }
+                                setPayDialogOpen(true);
                               }}
                             >
                               <PaymentIcon fontSize="small" />
@@ -479,7 +462,7 @@ export default function DebtsPage() {
               </DialogContentText>
               <TextField
                 margin="dense"
-                label="Payment Message (Optional)"
+                label="Payment Message"
                 type="text"
                 fullWidth
                 variant="outlined"
