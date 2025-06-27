@@ -116,7 +116,8 @@ export function TransferProvider({ children, initialAccountNumber }) {
 
       // 2. If success, move to result page
       setResult(res.data);  
-      if (state.result.success) {
+      console.log('Transfer result:', res.data);
+      if (res.data.success) {
         setSuccess('Transfer successful!');
         setError(null);
         setStep(TRANSFER_STEPS.COMPLETE);
