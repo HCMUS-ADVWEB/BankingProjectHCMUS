@@ -79,7 +79,7 @@ public class RecipientServiceImpl implements RecipientService {
 
         recipient.setUser(currentUser);
         recipient.setRecipientAccountNumber(request.getAccountNumber());
-        recipient.setRecipientName(currentUser.getFullName());
+        recipient.setRecipientName(account.getUser().getFullName());
         recipient.setNickName(request.getNickName() == null ? account.getUser().getFullName() : request.getNickName());
         recipient.setBank(null);
         recipientRepository.save(recipient);
