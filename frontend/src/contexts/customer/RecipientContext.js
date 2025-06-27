@@ -70,7 +70,7 @@ export const RecipientProvider = ({ children }) => {
       accountNumber: '',
       bankName: '',
       nickName: '',
-      recipientName: "",
+      recipientName: '',
     },
     editId: null,
     dialogOpen: false,

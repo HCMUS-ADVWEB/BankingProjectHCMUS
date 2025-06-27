@@ -77,7 +77,7 @@ export default function RecipientsPage() {
   return (
     <CustomerLayout>
       <Container
-        maxWidth="xl"
+        maxWidth="2xl"
         sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
       >
         {/* Header Section */}
@@ -230,7 +230,7 @@ export default function RecipientsPage() {
                         {rec.recipientAccountNumber}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
-                        {rec.bankName || "Fin Tech Bank"}
+                        {rec.bankName || 'Fin Tech Bank'}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         {rec.recipientName}

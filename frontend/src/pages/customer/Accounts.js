@@ -20,7 +20,10 @@ function AccountsPage() {
 
   return (
     <CustomerLayout>
-      <Container sx={{ py: 6, bgcolor: 'background.default'}}>
+      <Container
+        maxWidth="2xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
         {/* Header Section */}
         <Box
           sx={{

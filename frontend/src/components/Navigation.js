@@ -56,17 +56,17 @@ export default function Navigation({ items, title }) {
                 className={({ isActive }) =>
                   `flex items-center gap-2.5 p-3 my-3 rounded-md transition-colors duration-200
                   ${
-                    isDarkMode
-                      ? 'text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500/20 hover:to-cyan-500/20'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }
+            isDarkMode
+              ? 'text-gray-200 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500/20 hover:to-cyan-500/20'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }
                   ${
-                    isActive
-                      ? isDarkMode
-                        ? 'bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 text-white'
-                        : 'bg-gray-200 text-gray-900'
-                      : ''
-                  }`
+            isActive
+              ? isDarkMode
+                ? 'bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 text-white'
+                : 'bg-gray-200 text-gray-900'
+              : ''
+            }`
                 }
               >
                 <IconComponent

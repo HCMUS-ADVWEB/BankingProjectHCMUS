@@ -87,7 +87,7 @@ export default function ProfileModal({ isOpen = true, onClose = () => {} }) {
         {/* Content */}
         <div className="p-6">
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {profileFields.map((field, index) => {
                 const IconComponent = field.icon;
                 return (

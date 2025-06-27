@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Button, MenuItem, Select, InputLabel, FormControl,
-  Typography, RadioGroup, FormControlLabel, Radio, IconButton, InputAdornment, Menu
+  Typography, RadioGroup, FormControlLabel, Radio, IconButton, InputAdornment, Menu,
 } from '@mui/material';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -29,7 +29,7 @@ const TransferFormStep = () => {
     banks,
     isFetchingName,
     fetchBanksAndRecipients,
-    fetchAccountInfo
+    fetchAccountInfo,
   } = useTransfer();
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const TransferFormStep = () => {
       const recipientName = await fetchAccountInfo(
         form.accountNumberReceiver,
         form.bankId,
-        form.transferType
+        form.transferType,
       );
       setForm((prev) => ({ ...prev, recipientName }));
     };

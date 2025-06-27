@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Container, Backdrop, CircularProgress, Paper, Avatar } from '@mui/material';
+import { History as HistoryIcon } from '@mui/icons-material';
 import AdminLayout from '../../layouts/AdminLayout';
 import {
   useTransaction,
   TransactionProvider,
 } from '../../contexts/admin/BankTransactionsContext';
-import Loading from '../../components/Loading';
 import TransactionFilter from '../../components/admin/TransactionFilter';
 import TransactionTable from '../../components/admin/TransactionTable';
 import TransactionPagination from '../../components/admin/TransactionPagination';
@@ -94,15 +94,92 @@ function TransactionsPageContent() {
     setPage(1);
   };
 
-  if (loading) return <Loading />;
+  if (loading && transactions === undefined) return (
+    <Container maxWidth="2xl"
+      sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+    >
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </Container>
+  );
 
   return (
     <AdminLayout>
       <TransactionProvider>
-        <Box sx={{ bgcolor: 'background.default', p: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            Transaction Details
-          </Typography>
+        <Container maxWidth="2xl"
+          sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+        >
+          {/* Header Section */}
+          <Paper
+            sx={{
+              mb: 4,
+              p: 3,
+              borderRadius: 'shape.borderRadius',
+              bgcolor: 'background.paper',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'fadeIn 1s ease-in-out',
+              '@keyframes fadeIn': {
+                '0%': { opacity: 0, transform: 'translateY(-20px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+              '&:hover': {
+                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+                transform: 'translateY(-4px)',
+                transition: 'all 0.3s ease',
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 700,
+                    background: 'linear-gradient(to right, #10b981, #06b6d4)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
+                      color: 'white',
+                      mr: 2,
+                      width: 40,
+                      height: 40,
+                    }}
+                  >
+                    <HistoryIcon />
+                  </Avatar>
+                  Transactions List
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                  View transactions list details.
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+
+          {/* Loading Backdrop */}
+          <Backdrop
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            open={loading}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
 
           <TransactionFilter
             selectedBank={selectedBank}
@@ -131,7 +208,7 @@ function TransactionsPageContent() {
               />
             </>
           )}
-        </Box>
+        </Container>
       </TransactionProvider>
     </AdminLayout>
   );
