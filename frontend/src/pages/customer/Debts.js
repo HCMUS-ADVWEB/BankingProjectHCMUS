@@ -92,10 +92,6 @@ export default function DebtsPage() {
     contextTabChange(event, newValue);
   };
 
-  const onStatusChange = (e) => {
-    contextStatusChange(e);
-  };
-
   const onChangePage = (e, newPage) => {
     contextChangePage(e, newPage);
   };

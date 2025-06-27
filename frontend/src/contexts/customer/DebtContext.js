@@ -259,9 +259,6 @@ export const DebtProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     }
   };
-  const hasToken = () => {
-    return !!localStorage.getItem('accessToken');
-  };
 
   const handleChangePage = useCallback((event, newPage) => {
     dispatch({ type: 'SET_PAGINATION', payload: { page: newPage } });
