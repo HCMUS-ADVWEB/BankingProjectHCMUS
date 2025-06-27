@@ -470,10 +470,10 @@ export default function ForgotPasswordPage() {
                 </div>
                 {formik.touched.confirmPassword &&
                   formik.errors.confirmPassword && (
-                    <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
+                  <div className="flex items-center mt-1 text-red-500/80 text-sm animate-fadeIn">
                       *<span>{formik.errors.confirmPassword}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
