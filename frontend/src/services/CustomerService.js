@@ -61,13 +61,14 @@ const CustomerService = {
   },
 
   // External transfer
-  async externalTransfer({ receiverAccountNumber, amount, content, otp, bankCode }) {
+  async externalTransfer({ receiverAccountNumber, amount, content, otp, bankCode, feeType }) {
     return api.post('/api/transactions/external', {
       receiverAccountNumber,
       amount,
       content,
       otp,
       bankCode,
+      feeType,
     })
       .then(res => res.data)
       .catch(err => {
