@@ -9,11 +9,17 @@ const CustomerService = {
     return api.get('/api/accounts/my-account');
   },
 
-  async getRecipients(limit = 20, page = 1) {
-    return api
-      .get('/api/recipients', {
-        params: { limit, page },
-      })
+  async getBanks() {
+    return api.get('/api/banks')
+      .then((res) => res.data)
+      .catch((err) => {
+        console.error('Error fetching banks:', err);
+        throw err;
+      });
+  },
+
+  async getRecipients() {
+    return api.get('/api/recipients')
       .then((res) => res.data)
       .catch((err) => {
         console.error('Error fetching recipients:', err);
@@ -21,71 +27,54 @@ const CustomerService = {
       });
   },
 
-  /**
-   * Request OTP for transaction
-   * @param {string} userId - User ID
-   * @param {string} email - User email
-   * @param {string} otpType - Type of OTP (e.g., 'TRANSFER')
-   * @returns {Promise} Promise containing the OTP request result
-   */
-  async requestOtp(userId, email, otpType = 'TRANSFER') {
-    return api
-      .post('/api/otp', {
-        userId,
-        email,
-        otpType,
-      })
+  async getAccountInfo(accountNumber, bankCode = null) {
+    return api.post('/api/accounts/account-info', { accountNumber, bankCode })
       .then((res) => res.data)
       .catch((err) => {
-        console.error('Error requesting OTP:', err);
+        console.error('Error fetching account info:', err);
         throw err;
       });
   },
 
-  /**
-   * Perform internal transfer (within the same bank)
-   * @param {Object} transferData - Transfer data
-   * @returns {Promise} Promise containing the transfer result
-   */
-  async internalTransfer(transferData) {
-    return api
-      .post('/api/transactions/internal', transferData)
+  async sendOtp(otpType = 'TRANSFER') {
+    return api.post('/api/otp', { otpType })
       .then((res) => res.data)
       .catch((err) => {
-        console.error('Error performing internal transfer:', err);
+        console.error('Error sending OTP:', err);
         throw err;
       });
   },
 
-  /**
-   * Perform external transfer (to another bank)
-   * @param {Object} transferData - Transfer data
-   * @returns {Promise} Promise containing the transfer result
-   */
-  async externalTransfer(transferData) {
-    return api
-      .post('/api/transactions/external', transferData)
-      .then((res) => res.data)
-      .catch((err) => {
-        console.error('Error performing external transfer:', err);
-        throw err;
-      });
+  async internalTransfer({ accountNumberReceiver, amount, message, feeType, otp }) {
+    return api.post('/api/transactions/internal', {
+      accountNumberReceiver,
+      amount,
+      message,
+      feeType,
+      otp
+    })
+    .then(res => res.data)
+    .catch(err => {
+      console.error('Internal transfer failed:', err);
+      throw err;
+    });
   },
 
-  /**
-   * Save a new recipient
-   * @param {Object} recipientData - Recipient data
-   * @returns {Promise} Promise containing the save recipient result
-   */
-  async saveRecipient(recipientData) {
-    return api
-      .post('/api/recipients', recipientData)
-      .then((res) => res.data)
-      .catch((err) => {
-        console.error('Error saving recipient:', err);
-        throw err;
-      });
-  },
+  // External transfer  
+  async externalTransfer({ receiverAccountNumber, amount, content, otp, bankCode }) {
+    return api.post('/api/transactions/external', {
+      receiverAccountNumber,
+      amount,
+      content,
+      otp,
+      bankCode
+    })
+    .then(res => res.data)
+    .catch(err => {
+      console.error('External transfer failed:', err);
+      throw err;
+    });
+  }
 };
 
 export default CustomerService;
