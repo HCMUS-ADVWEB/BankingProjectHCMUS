@@ -2,6 +2,8 @@ FROM openjdk:19-jdk-slim
 
 WORKDIR /app
 
+COPY . .
+
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     maven \
@@ -9,4 +11,4 @@ RUN apt-get update && apt-get install -y \
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "cd /app && mvn spring-boot:run"] 
+CMD ["mvn", "spring-boot:run"]

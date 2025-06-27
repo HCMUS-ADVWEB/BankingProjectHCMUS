@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: banking-postgres
+    environment:
+      POSTGRES_USER: bank_user
+      POSTGRES_PASSWORD: bank_password
+      POSTGRES_DB: bankdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - banking-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: banking-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - banking-network
+    restart: unless-stopped
+
+  banking-backend:
+    container_name: banking-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    networks:
+      - banking-network
+    env_file:
+      - ./backend/.env
+    environment:
+      - SPRING_DB_HOST=postgres
+      - SPRING_DB_PORT=5432
+      - SPRING_DB_NAME=bankdb
+      - SPRING_DB_USERNAME=bank_user
+      - SPRING_DB_PASSWORD=bank_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    volumes:
+      - maven-repo:/root/.m2
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  banking-frontend:
+    container_name: banking-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    networks:
+      - banking-network
+    env_file:
+      - ./frontend/.env
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8080
+    restart: unless-stopped
+
+networks:
+  banking-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  maven-repo:
