@@ -4,6 +4,8 @@ import com.example.banking.backend.dto.request.transaction.InterbankTransferRequ
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -23,9 +25,10 @@ public class SignatureUtil {
         String requestBody = request.toString();
 
         // Đọc private key từ file
-        String privateKeyPEM = Files.readString(
-                new ClassPathResource("keys/private_key_pkcs8.pem").getFile().toPath()
-        );
+        String privateKeyPEM = "" ;
+        try (InputStream inputStream = new ClassPathResource("keys/private_key_pkcs8.pem").getInputStream()) {
+             privateKeyPEM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        }
         PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(
                 new PKCS8EncodedKeySpec(
                         Base64.getDecoder().decode(privateKeyPEM.replaceAll("-----[\\w ]+-----|\n|\r", ""))));
