@@ -263,11 +263,11 @@ public class AccountServiceImpl implements AccountService {
                 String timestamp = String.valueOf(Instant.now().toEpochMilli());
                 ObjectMapper objectMapper = new ObjectMapper();
                 String requestBody = objectMapper.writeValueAsString(interbankRequest);
-                String hashInput = requestBody + timestamp + request.getBankCode() + destinationBank.getSecretKey();
+                String hashInput = requestBody + timestamp + "FIN" + destinationBank.getSecretKey();
                 String hmac = CryptoUtils.generateHMAC(hashInput, destinationBank.getSecretKey());
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Bank-Code", request.getBankCode());
+                headers.set("Bank-Code", "FIN");
                 headers.set("X-Timestamp", timestamp);
                 headers.set("X-Request-Hash", hmac);
                 HttpEntity<AccountExternalRequest> httpEntity = new HttpEntity<>(interbankRequest, headers);
