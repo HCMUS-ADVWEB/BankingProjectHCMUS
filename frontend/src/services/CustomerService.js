@@ -51,29 +51,29 @@ const CustomerService = {
       amount,
       message,
       feeType,
-      otp
+      otp,
     })
-    .then(res => res.data)
-    .catch(err => {
-      console.error('Internal transfer failed:', err);
-      throw err;
-    });
+      .then(res => res.data)
+      .catch(err => {
+        console.error('Internal transfer failed:', err);
+        throw err;
+      });
   },
 
-  // External transfer  
+  // External transfer
   async externalTransfer({ receiverAccountNumber, amount, content, otp, bankCode }) {
     return api.post('/api/transactions/external', {
       receiverAccountNumber,
       amount,
       content,
       otp,
-      bankCode
+      bankCode,
     })
-    .then(res => res.data)
-    .catch(err => {
-      console.error('External transfer failed:', err);
-      throw err;
-    });
+      .then(res => res.data)
+      .catch(err => {
+        console.error('External transfer failed:', err);
+        throw err;
+      });
   },
 
   async saveRecipient(recipientData) {

@@ -148,7 +148,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
     try {
       const res = await CustomerService.getAccountInfo(
         accountNumber,
-        transferType === TRANSFER_TYPES.EXTERNAL ? bankCode : null
+        transferType === TRANSFER_TYPES.EXTERNAL ? bankCode : null,
       );
 
       if (transferType === TRANSFER_TYPES.INTERNAL) {
@@ -180,7 +180,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
 
   const saveRecipientIfNotExist = async (accountNumber, accountName) => {
     const exists = state.recipients.some(
-      (r) => r.recipientAccountNumber === accountNumber && !r.bankCode
+      (r) => r.recipientAccountNumber === accountNumber && !r.bankCode,
     );
 
     if (!exists) {
@@ -222,7 +222,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
     setOtp,
     handleVerifyOtp,
     formatCurrency,
-    resetTransfer
+    resetTransfer,
   };
 
   return <TransferContext.Provider value={value}>{children}</TransferContext.Provider>;

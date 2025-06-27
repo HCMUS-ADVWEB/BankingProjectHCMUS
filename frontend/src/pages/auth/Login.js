@@ -114,10 +114,10 @@ export default function LoginPage() {
       try {
         await login(values.username, values.password, values.recaptcha);
         loginSuccessful = true;
-        
+
         // Don't reset reCAPTCHA immediately on success to avoid timeout
         // Let the navigation happen naturally
-        
+
       } catch (error) {
         // Login failed - reset reCAPTCHA immediately
         console.log('Login failed, resetting reCAPTCHA');

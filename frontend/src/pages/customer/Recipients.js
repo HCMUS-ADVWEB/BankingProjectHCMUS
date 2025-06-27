@@ -230,7 +230,7 @@ export default function RecipientsPage() {
                         {rec.recipientAccountNumber}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
-                        {rec.bankName || "Fin Tech Bank"}
+                        {rec.bankName || 'Fin Tech Bank'}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         {rec.recipientName}

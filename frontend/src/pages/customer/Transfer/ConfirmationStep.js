@@ -1,5 +1,5 @@
 import {
-  Box, Typography, Button, Alert, Divider, IconButton
+  Box, Typography, Button, Alert, Divider, IconButton,
 } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -14,28 +14,28 @@ const ConfirmationStep = () => {
     setStep,
     sendOtp,
     setLoading,
-    setSuccess
+    setSuccess,
   } = useTransfer();
 
   const handleConfirm = async () => {
-  if (!transferInfo) return;
+    if (!transferInfo) return;
 
-  setLoading(true);
-  setError(null);
-  setSuccess(null);
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-  try {
+    try {
     // 🚨 No actual transfer API call — just move to OTP step
-    await sendOtp(); // ✅ send OTP before showing OTP step
+      await sendOtp(); // ✅ send OTP before showing OTP step
 
-    setStep(TRANSFER_STEPS.OTP);
-  } catch (err) {
-    console.error('Transfer failed:', err);
-    setError('Failed to send OTP. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+      setStep(TRANSFER_STEPS.OTP);
+    } catch (err) {
+      console.error('Transfer failed:', err);
+      setError('Failed to send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const handleBack = () => {

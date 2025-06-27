@@ -128,10 +128,10 @@ export const NotificationProvider = ({ children }) => {
 
   const setupWebSocket = useCallback(async () => {
     console.log('🔄 Setting up WebSocket connection...');
-    console.log('Auth state:', { 
-      isAuthenticated: authState.isAuthenticated, 
+    console.log('Auth state:', {
+      isAuthenticated: authState.isAuthenticated,
       role: authState.user?.role,
-      userId: authState.user?.id 
+      userId: authState.user?.id,
     });
 
     // Only setup WebSocket for customer users
@@ -147,7 +147,7 @@ export const NotificationProvider = ({ children }) => {
       connected: ws.connected,
       hasClient: !!ws.client,
       activeSubscriptions: ws.activeSubscriptions?.size || 0,
-      connectionPromise: !!ws.connectionPromise
+      connectionPromise: !!ws.connectionPromise,
     });
 
     try {
