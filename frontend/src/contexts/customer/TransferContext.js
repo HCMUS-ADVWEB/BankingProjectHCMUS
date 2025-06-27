@@ -154,7 +154,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
       if (transferType === TRANSFER_TYPES.INTERNAL) {
         await saveRecipientIfNotExist(accountNumber, res.data.fullName);
       }
-
+      setError(null);
       return res.data.fullName;
     } catch (err) {
       console.error('Failed to fetch account info:', err);
