@@ -1,335 +1,210 @@
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Grid,
-  InputAdornment,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Divider,
-  Switch,
+  Box, TextField, Button, MenuItem, Select, InputLabel, FormControl,
+  Typography, RadioGroup, FormControlLabel, Radio, IconButton, InputAdornment, Menu
 } from '@mui/material';
-import {
-  Send as SendIcon,
-  AccountBalance as BankIcon,
-  Person as PersonIcon,
-  AttachMoney as MoneyIcon,
-  Message as MessageIcon,
-} from '@mui/icons-material';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import MessageIcon from '@mui/icons-material/Message';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import ContactsIcon from '@mui/icons-material/Contacts';
 import { useTransfer } from '../../../contexts/customer/TransferContext';
 
+import {
+  TRANSFER_STEPS,
+  TRANSFER_TYPES,
+  FEE_TYPES,
+  DEFAULT_TRANSFER_FORM,
+} from '../../../utils/transferConstants';
+
 const TransferFormStep = () => {
+  const [form, setForm] = useState(DEFAULT_TRANSFER_FORM);
+  const [recipientMenuAnchor, setRecipientMenuAnchor] = useState(null);
+
   const {
-    form,
+    transferInfo,
+    setTransferInfo,
+    setStep,
     recipients,
-    formatCurrency,
-    handleChange,
-    handleRecipientChange,
-    handleConfirm,
-    loading,
-    error,
+    banks,
+    isFetchingName,
+    fetchBanksAndRecipients,
+    fetchAccountInfo
   } = useTransfer();
 
+  useEffect(() => {
+    fetchBanksAndRecipients();
+  }, [fetchBanksAndRecipients]);
+
+  useEffect(() => {
+    if (transferInfo) {
+      setForm(transferInfo);
+    }
+  }, [transferInfo]);
+
+  useEffect(() => {
+    const updateRecipientName = async () => {
+      if (!form.accountNumberReceiver) {
+        setForm((prev) => ({ ...prev, recipientName: '' }));
+        return;
+      }
+
+      const recipientName = await fetchAccountInfo(
+        form.accountNumberReceiver,
+        form.bankId,
+        form.transferType
+      );
+      setForm((prev) => ({ ...prev, recipientName }));
+    };
+
+    updateRecipientName();
+  }, [form.accountNumberReceiver, form.bankId, form.transferType, fetchAccountInfo]);
+
+  const handleRecipientMenuOpen = (event) => {
+    setRecipientMenuAnchor(event.currentTarget);
+  };
+
+  const handleRecipientSelect = (recipient) => {
+    setForm((prev) => ({
+      ...prev,
+      accountNumberReceiver: recipient.recipientAccountNumber,
+      recipientName: recipient.recipientName,
+      transferType: recipient.bankName ? TRANSFER_TYPES.EXTERNAL : TRANSFER_TYPES.INTERNAL,
+      bankId: recipient.bankCode || '',
+    }));
+    setRecipientMenuAnchor(null);
+  };
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    setTransferInfo(form);
+    setStep(TRANSFER_STEPS.CONFIRM);
+  };
+
   return (
-    <>
-      {' '}
-      <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
-        Transfer Details
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
-      {error && (
-        <Box sx={{ mb: 3 }}>
-          <Typography color="error" variant="body2">
-            {error}
-          </Typography>
-        </Box>
-      )}
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
+    <Box p={4} maxWidth={600} mx="auto">
+      <Typography variant="h5" mb={3}>Transfer Money</Typography>
+
+      <FormControl fullWidth margin="normal">
+        <InputLabel>Transfer Type</InputLabel>
+        <Select
+          value={form.transferType}
+          onChange={handleChange('transferType')}
+          label="Transfer Type"
+        >
+          <MenuItem value={TRANSFER_TYPES.INTERNAL}>Internal</MenuItem>
+          <MenuItem value={TRANSFER_TYPES.EXTERNAL}>External</MenuItem>
+        </Select>
+      </FormControl>
+
+      <TextField
+        label="Account Number"
+        value={form.accountNumberReceiver}
+        onChange={handleChange('accountNumberReceiver')}
+        fullWidth
+        margin="normal"
+        InputProps={{
+          startAdornment: <AccountBalanceIcon sx={{ mr: 1 }} />,
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={handleRecipientMenuOpen}>
+                <ContactsIcon />
+              </IconButton>
+              <Menu
+                anchorEl={recipientMenuAnchor}
+                open={Boolean(recipientMenuAnchor)}
+                onClose={() => setRecipientMenuAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                fullWidth
+              >
+                {recipients.map((r) => (
+                  <MenuItem key={r.id} onClick={() => handleRecipientSelect(r)} sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{r.nickName}</Typography>
+                    <Typography variant="body2">{r.recipientName}</Typography>
+                    <Typography variant="body2">{r.recipientAccountNumber}</Typography>
+                    <Typography variant="body2" color="text.secondary">{r.bankName}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </InputAdornment>
+          ),
         }}
-        sx={{ maxWidth: '600px', mx: 'auto' }}
-      >
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: 2,
-                borderRadius: 1,
-                bgcolor: 'background.default',
-                mb: 1,
-                border: '1px solid',
-                borderColor: 'divider',
-                maxWidth: '500px',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <BankIcon sx={{ mr: 1, color: 'primary.main' }} />
-                <Typography fontWeight="medium">
-                  {form.transferType === 'internal'
-                    ? 'Internal Transfer'
-                    : 'External Transfer'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="body2" color="text.secondary"></Typography>
-                <Switch
-                  checked={form.transferType === 'external'}
-                  onChange={(e) =>
-                    handleChange({
-                      target: {
-                        name: 'transferType',
-                        value: e.target.checked ? 'external' : 'internal',
-                      },
-                    })
-                  }
-                  color="primary"
-                />
-                <Typography variant="body2" color="text.secondary"></Typography>
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3}>
-          <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                maxWidth: '500px',
-              }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Recipient</InputLabel>
-                    <Select
-                      value={form.accountNumberReceiver || 'manual'}
-                      onChange={handleRecipientChange}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <PersonIcon />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="manual">Enter manually</MenuItem>
-                      {recipients.map((rec) => (
-                        <MenuItem
-                          key={rec.recipientId}
-                          value={rec.accountNumber}
-                        >
-                          {rec.recipientNickname || rec.recipientName} (
-                          {rec.accountNumber})
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
+      />
 
-                <Grid item xs={12}>
-                  <TextField
-                    label="Account Number"
-                    name="accountNumberReceiver"
-                    fullWidth
-                    value={form.accountNumberReceiver}
-                    onChange={handleChange}
-                    required
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <BankIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
+      <TextField
+        label="Recipient Name"
+        value={isFetchingName ? 'Loading...' : form.recipientName}
+        disabled
+        fullWidth
+        margin="normal"
+      />
 
-                {form.transferType === 'external' && (
-                  <>
-                    <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
-                      <TextField
-                        label="Source Account Number"
-                        name="sourceAccountNumber"
-                        fullWidth
-                        value={form.sourceAccountNumber}
-                        onChange={handleChange}
-                        required
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <BankIcon />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
-                      <TextField
-                        label="Bank ID"
-                        name="bankId"
-                        fullWidth
-                        value={form.bankId}
-                        onChange={handleChange}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <BankIcon />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item size={{ sx: 12, sm: 6, md: 6 }}>
-                      <TextField
-                        label="Recipient Name"
-                        name="recipientName"
-                        fullWidth
-                        value={form.recipientName}
-                        onChange={handleChange}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <PersonIcon />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-                  </>
-                )}
-              </Grid>
-            </Box>
-          </Grid>
-          <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                maxWidth: '500px',
-              }}
-            >
-              <Grid container spacing={2}>
-                <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
-                  <TextField
-                    label="Amount"
-                    name="amount"
-                    fullWidth
-                    value={formatCurrency(form.amount)}
-                    onChange={handleChange}
-                    required
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <MoneyIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-
-                <Grid item size={{ sx: 12, sm: 12, md: 12 }}>
-                  <TextField
-                    label="Message"
-                    name="message"
-                    fullWidth
-                    value={form.message}
-                    onChange={handleChange}
-                    multiline
-                    rows={2}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment
-                          position="start"
-                          sx={{ alignSelf: 'flex-start', mt: 1.5 }}
-                        >
-                          <MessageIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </Grid>
-          {/* Group 4: Fee Type */}{' '}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              p: 2,
-              borderRadius: 1,
-              border: '1px solid',
-              borderColor: 'divider',
-              maxWidth: '500px',
-            }}
+      {form.transferType === TRANSFER_TYPES.EXTERNAL && (
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Select Bank</InputLabel>
+          <Select
+            value={form.bankId}
+            onChange={handleChange('bankId')}
+            label="Select Bank"
           >
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <MoneyIcon sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography>
-                {form.feeType === 'RECEIVER' ? 'Receiver' : 'Sender'}{' '}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mr: 1 }}
-              ></Typography>
-              <Switch
-                checked={form.feeType === 'RECEIVER'}
-                onChange={(e) =>
-                  handleChange({
-                    target: {
-                      name: 'feeType',
-                      value: e.target.checked ? 'RECEIVER' : 'SENDER',
-                    },
-                  })
-                }
-                color="primary"
-              />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ ml: 1 }}
-              ></Typography>
-            </Box>
-          </Box>
-          {/* Group 5: Confirm Button */}
-          <Grid item xs={12}>
-            {' '}
-            <Button
-              type="button"
-              variant="contained"
-              color="primary"
-              fullWidth
-              size="large"
-              startIcon={<SendIcon />}
-              sx={{ py: 1.5, mt: 2, maxWidth: '500px' }}
-              disabled={loading || !form.accountNumberReceiver || !form.amount}
-              onClick={() => {
-                console.log('Continue button clicked');
-                handleConfirm();
-              }}
-            >
-              Continue
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
-    </>
+            {banks.map((bank) => (
+              <MenuItem key={bank.bankCode} value={bank.bankCode}>
+                {bank.bankName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+      <TextField
+        label="Amount"
+        type="number"
+        value={form.amount}
+        onChange={handleChange('amount')}
+        fullWidth
+        margin="normal"
+        InputProps={{ startAdornment: <AttachMoneyIcon sx={{ mr: 1 }} /> }}
+      />
+
+      <TextField
+        label="Message to Receiver"
+        value={form.message}
+        onChange={handleChange('message')}
+        fullWidth
+        margin="normal"
+        InputProps={{ startAdornment: <MessageIcon sx={{ mr: 1 }} /> }}
+      />
+
+      <FormControl component="fieldset" margin="normal">
+        <Typography>Transaction Fee Paid By</Typography>
+        <RadioGroup
+          row
+          value={form.feeType}
+          onChange={handleChange('feeType')}
+        >
+          <FormControlLabel value={FEE_TYPES.SENDER} control={<Radio />} label="Sender" />
+          <FormControlLabel value={FEE_TYPES.RECEIVER} control={<Radio />} label="Receiver" />
+        </RadioGroup>
+      </FormControl>
+
+      <Button
+        variant="contained"
+        color="primary"
+        fullWidth
+        size="large"
+        startIcon={<MonetizationOnIcon />}
+        onClick={handleSubmit}
+        sx={{ mt: 2 }}
+        disabled={!form.recipientName || isFetchingName}
+      >
+        Confirm Transfer
+      </Button>
+    </Box>
   );
 };
 
