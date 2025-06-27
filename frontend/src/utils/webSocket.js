@@ -25,10 +25,11 @@ class WebSocketService {
       return this.connectionPromise;
     }
 
+    console.log('🔌 WebSocket connecting...');
     this.connectionPromise = new Promise((resolve, reject) => {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        console.error('No access token found');
+        console.error('❌ No access token found');
         const error = new Error('No access token found');
         this.connectionPromise = null;
         reject(error);
@@ -47,7 +48,7 @@ class WebSocketService {
         // Set connection timeout
         this.connectionTimeout = setTimeout(() => {
           if (!this.connected) {
-            console.error('Connection timeout');
+            console.error('⏰ Connection timeout');
             try {
               sockJS.close();
             } catch (e) {
@@ -68,6 +69,7 @@ class WebSocketService {
           heartbeatIncoming: 10000,
           heartbeatOutgoing: 10000,
           onConnect: (_frame) => {
+            console.log('✅ WebSocket connected');
             try {
               this.connected = true;
               this.retryCount = 0;
@@ -85,17 +87,20 @@ class WebSocketService {
             }
           },
           onStompError: (frame) => {
-            console.error('STOMP error:', frame);
+            console.error(
+              '❌ STOMP error:',
+              frame.headers?.['message'] || 'Unknown error',
+            );
             this.handleConnectionError(frame);
             this.connectionPromise = null;
             reject(new Error(frame.headers?.['message'] || 'STOMP error'));
           },
           onWebSocketClose: () => {
-            console.warn('WebSocket closed');
+            console.warn('🔌 WebSocket disconnected');
             this.handleConnectionError();
           },
           onWebSocketError: (error) => {
-            console.error('WebSocket error:', error);
+            console.error('❌ WebSocket error:', error);
             this.handleConnectionError(error);
             if (this.connectionPromise) {
               this.connectionPromise = null;
@@ -106,13 +111,13 @@ class WebSocketService {
 
         this.client.activate();
       } catch (error) {
-        console.error('Connection error:', error);
+        console.error('❌ Connection failed:', error);
         this.handleConnectionError(error);
         this.connectionPromise = null;
         reject(error);
       }
     }).catch((error) => {
-      console.error('WebSocket connection failed:', error);
+      console.error('❌ WebSocket connection failed:', error);
       this.connectionPromise = null;
       throw error;
     });
@@ -125,7 +130,7 @@ class WebSocketService {
       return;
     }
 
-    console.error('Connection error:', error);
+    console.error('❌ Connection error:', error);
     this.connected = false;
     this.connectionPromise = null;
 
@@ -145,19 +150,25 @@ class WebSocketService {
       const delay = Math.min(1000 * Math.pow(2, this.retryCount), 30000);
       this.retryCount++;
 
+      console.log(
+        `🔄 Reconnecting in ${delay}ms (${this.retryCount}/${this.maxRetries})`,
+      );
+
       this.reconnectTimeout = setTimeout(() => {
         if (!this.disconnecting) {
+          console.log('🔄 Reconnecting...');
           this.connect().catch((err) => {
-            console.error('Reconnection attempt failed:', err);
+            console.error('❌ Reconnection failed:', err);
           });
         }
       }, delay);
     } else {
-      console.error('Max reconnection attempts reached');
+      console.error('🛑 Max reconnection attempts reached');
     }
   }
 
   disconnect() {
+    console.log('🛑 WebSocket disconnecting...');
     this.disconnecting = true;
 
     if (this.reconnectTimeout) {
@@ -189,6 +200,8 @@ class WebSocketService {
     this.connected = false;
     this.connectionPromise = null;
     this.retryCount = 0;
+
+    console.log('✅ WebSocket disconnected');
 
     // Reset disconnect flag after a short delay
     setTimeout(() => {

@@ -127,25 +127,41 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   const setupWebSocket = useCallback(async () => {
+    console.log('🔄 Setting up WebSocket connection...');
+    console.log('Auth state:', { 
+      isAuthenticated: authState.isAuthenticated, 
+      role: authState.user?.role,
+      userId: authState.user?.id 
+    });
+
     // Only setup WebSocket for customer users
     if (authState.user?.role !== 'customer') {
       console.log(
-        'WebSocket notifications are only available for customer users',
+        '❌ WebSocket notifications are only available for customer users',
       );
       return () => {};
     }
 
     const ws = webSocketService;
+    console.log('📡 WebSocket service status:', {
+      connected: ws.connected,
+      hasClient: !!ws.client,
+      activeSubscriptions: ws.activeSubscriptions?.size || 0,
+      connectionPromise: !!ws.connectionPromise
+    });
 
     try {
       if (ws.connected && state.subscription) {
+        console.log('✅ Already connected with active subscription');
         return () => {};
       }
 
       if (state.isConnecting) {
+        console.log('⏳ Connection already in progress');
         return () => {};
       }
 
+      console.log('🚀 Starting WebSocket connection...');
       dispatch({ type: 'SET_CONNECTION_STATUS', payload: true });
 
       if (state.subscription) {
