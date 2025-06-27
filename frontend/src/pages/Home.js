@@ -32,7 +32,6 @@ const NAVIGATION_ITEMS = [
 
 export default function HomePage() {
   const { state } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div
@@ -42,7 +41,7 @@ export default function HomePage() {
       {/* Enhanced Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/20 border-b border-white/10">
         {/* Logo and Navigation */}
-        <div className="max-w-7xl mx-auto flex items-center h-16 px-4 lg:px-6">
+        <div className="max-w-7xl mx-auto flex items-center h-16 px-6">
           {/* Logo - Fixed width container */}
           <div className="flex items-center w-48">
             <div
@@ -76,7 +75,7 @@ export default function HomePage() {
           </div>
 
           {/* Desktop Navigation - Centered */}
-          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
+          <nav className="flex items-center gap-6 flex-1 justify-center">
             {NAVIGATION_ITEMS.map((item) => (
               <a
                 key={item.label}
@@ -94,20 +93,8 @@ export default function HomePage() {
 
           {/* Login Button - Fixed width container */}
           <div className="flex items-center justify-end w-48">
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-gray-300 hover:text-white transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
-
             {/* Login Button */}
-            <div className="hidden md:block">
+            <div className="block">
               <a
                 href={
                   state.isAuthenticated
@@ -124,37 +111,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-black/90 backdrop-blur-xl border-t border-white/10">
-            <div className="px-4 py-6 space-y-4">
-              {NAVIGATION_ITEMS.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="block text-gray-300 hover:text-white transition-colors font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
-              <a
-                href={
-                  state.isAuthenticated
-                    ? `/${(state.user?.role || 'customer').toLowerCase()}/dashboard`
-                    : '/auth/login'
-                }
-                className="inline-flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg
-                bg-gradient-to-r from-emerald-500 to-cyan-500 mt-4"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <ShieldUser className="h-4 w-4" />
-                {state.isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
-              </a>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Hero Section */}
@@ -186,14 +142,14 @@ export default function HomePage() {
 
           {/* Main Heading */}
           <div className="space-y-3 pt-2">
-            <h1 className="font-bold leading-tight font-serif text-4xl md:text-6xl text-white">
+            <h1 className="font-bold leading-tight font-serif text-6xl text-white">
               Internet
               <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 {' '}
                 Banking
               </span>
             </h1>
-            <p className="text-gray-300 leading-relaxed font-serif text-3xl md:text-5xl font-semibold max-w-7xl mx-auto">
+            <p className="text-gray-300 leading-relaxed font-serif text-5xl font-semibold max-w-7xl mx-auto">
               Experience digital finance
               <br></br>
               with secured and friendly platform.
@@ -222,7 +178,7 @@ export default function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-20 mx-32">
+          <div className="grid grid-cols-4 gap-8 pt-20 mx-32">
             {GENERAL_STATS.map((stat, index) => (
               <div key={index} className="text-center group">
                 <div
@@ -270,20 +226,20 @@ export default function HomePage() {
                 Customer Experience
               </span>
             </div>
-            <h2 className="mb-4 text-3xl md:text-4xl leading-tight font-bold font-serif text-white">
+            <h2 className="mb-4 text-4xl leading-tight font-bold font-serif text-white">
               Why Customers
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
                 {' '}
                 Choose Us
               </span>
             </h2>
-            <p className="text-gray-300 leading-relaxed font-serif text-lg md:text-xl font-medium max-w-3xl mx-auto">
+            <p className="text-gray-300 leading-relaxed font-serif text-xl font-medium max-w-3xl mx-auto">
               Join with other customers who trust us with their financial future
             </p>
           </div>
 
           {/* Features Grid */}
-          <div className="grid lg:grid-cols-3 gap-6 mb-16">
+          <div className="grid grid-cols-3 gap-6 mb-16">
             {CUSTOMER_EXPERIENCES.map((feature, index) => (
               <div key={index} className="group">
                 <div
@@ -343,21 +299,21 @@ export default function HomePage() {
                 Banking Solutions
               </span>
             </div>
-            <h2 className="mb-4 text-3xl md:text-4xl leading-tight font-bold font-serif text-white">
+            <h2 className="mb-4 text-4xl leading-tight font-bold font-serif text-white">
               Complete Banking in
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {' '}
                 One Platform
               </span>
             </h2>
-            <p className="text-gray-300 leading-relaxed font-serif text-lg md:text-xl font-medium max-w-3xl mx-auto">
+            <p className="text-gray-300 leading-relaxed font-serif text-xl font-medium max-w-3xl mx-auto">
               From account management to transfers, experience comprehensive
               banking
             </p>
           </div>
 
           {/* Services Grid */}
-          <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-6">
             {SOLUTIONS.map((service, index) => (
               <div key={index} className="group">
                 <div
@@ -428,20 +384,20 @@ export default function HomePage() {
                 Multi-Level Access
               </span>
             </div>
-            <h2 className="mb-4 text-3xl md:text-4xl leading-tight font-bold font-serif text-white">
+            <h2 className="mb-4 text-4xl leading-tight font-bold font-serif text-white">
               Designed for
               <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-violet-400 bg-clip-text text-transparent">
                 {' '}
                 Every Role
               </span>
             </h2>
-            <p className="text-gray-300 leading-relaxed font-serif text-lg md:text-xl font-medium max-w-3xl mx-auto">
+            <p className="text-gray-300 leading-relaxed font-serif -xl font-medium max-w-3xl mx-auto">
               Role-based access for customers, employees, and administrators
             </p>
           </div>
 
           {/* Roles Grid */}
-          <div className="grid lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-3 gap-6 mb-12">
             {MANAGEMENTS.map((roleData, index) => (
               <div key={index} className="group">
                 <div
@@ -503,13 +459,13 @@ export default function HomePage() {
               rounded-2xl p-8 hover:border-white/20 transition-all duration-500"
             >
               <div className="max-w-2xl mx-auto">
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 font-serif">
+                <h3 className="text-3xl font-bold text-white mb-4 font-serif">
                   Ready to Transform Your Banking?
                 </h3>
-                <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-6">
+                <p className="text-gray-300 text-lg leading-relaxed mb-6">
                   Join customers who have switched to smarter, secure banking.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-row gap-3 justify-center">
                   <a
                     href={
                       state.isAuthenticated
@@ -541,9 +497,9 @@ export default function HomePage() {
       {/* Enhanced Footer */}
       <footer className="border-t border-white/10 bg-gradient-to-b from-slate-800 via-gray-800 to-zinc-900 py-8">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-3 gap-8 mb-8">
             {/* Company Info */}
-            <div className="lg:col-span-2">
+            <div className="col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className="relative flex h-10 w-10 items-center justify-center rounded-xl
@@ -640,7 +596,7 @@ export default function HomePage() {
           </div>
 
           {/* Footer Bottom Section */}
-          <div className="flex flex-col border-t border-white/10 pt-8 lg:flex-row justify-between items-center gap-4">
+          <div className="flex border-t border-white/10 pt-8 flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
               © {CURRENT_YEAR} Fintech HUB. All rights reserved. Transforming
               Finance Through Technology

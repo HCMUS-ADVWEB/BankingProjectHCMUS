@@ -1,4 +1,5 @@
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Container, Typography, Button, Paper, Avatar, Backdrop, CircularProgress } from '@mui/material';
+import { Group as GroupIcon, Add as AddIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../layouts/AdminLayout';
 import { useEffect } from 'react';
@@ -10,7 +11,6 @@ import AddEmployeeDialog from '../../components/admin/AddEmployeeDialog';
 import DeleteConfirmationDialog from '../../components/admin/DeleteConfirmationDialog';
 import ErrorSuccessMessage from '../../components/ErrorSuccessMessage';
 import EmployeeTable from '../../components/admin/EmployeeTable';
-import Loading from '../../components/Loading';
 
 function EmployeesContent() {
   const navigate = useNavigate();
@@ -87,28 +87,127 @@ function EmployeesContent() {
     }
   };
 
-  if (loading && !employees.length) {
-    return <Loading />;
-  }
-
   return (
     <AdminLayout>
-      <Box sx={{ p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Box
+      <Container
+        maxWidth="2xl"
+        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+      >
+        {/* Loading Backdrop */}
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={loading && !employees.length}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        {/* Header Section */}
+        <Paper
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
+            mb: 4,
+            p: 3,
+            borderRadius: 'shape.borderRadius',
+            bgcolor: 'background.paper',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            animation: 'fadeIn 1s ease-in-out',
+            '@keyframes fadeIn': {
+              '0%': { opacity: 0, transform: 'translateY(-20px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+            '&:hover': {
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+              transform: 'translateY(-4px)',
+              transition: 'all 0.3s ease',
+            },
           }}
         >
-          <Typography variant="h4">Employee List</Typography>
-          <Button variant="contained" onClick={openAddDialog}>
-            Add Employee
-          </Button>
-        </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 700,
+                  background: 'linear-gradient(to right, #10b981, #06b6d4)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
+                    color: 'white',
+                    mr: 2,
+                    width: 40,
+                    height: 40,
+                  }}
+                >
+                  <GroupIcon />
+                </Avatar>
+                Employee List
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                Manage your team members and their details.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={openAddDialog}
+              startIcon={<AddIcon />}
+              sx={{
+                bgcolor: 'linear-gradient(to right, #10b981, #06b6d4)',
+                color: 'white',
+                textTransform: 'none',
+                borderRadius: 'shape.borderRadius',
+                px: 3,
+                py: 1,
+                '&:hover': {
+                  bgcolor: 'linear-gradient(to right, #059669, #0284c7)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                },
+              }}
+            >
+              Add Employee
+            </Button>
+          </Box>
+        </Paper>
 
         <ErrorSuccessMessage error={error} success={success} />
+
+        {/* Content Section */}
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 'shape.borderRadius',
+            bgcolor: 'background.paper',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            mb: 4,
+          }}
+        >
+          <EmployeeTable
+            employees={getPaginatedEmployees()}
+            onRowClick={(emp) =>
+              navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })
+            }
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            pagination={{
+              ...pagination,
+              totalCount: employees.length,
+            }}
+            onPageChange={handleChangePage}
+          />
+        </Paper>
 
         <AddEmployeeDialog
           open={dialogs.openAddDialog}
@@ -128,21 +227,7 @@ function EmployeesContent() {
           onConfirm={handleConfirmDelete}
           employeeName={selectedEmployee?.fullName}
         />
-
-        <EmployeeTable
-          employees={getPaginatedEmployees()}
-          onRowClick={(emp) =>
-            navigate(`/admin/employees/${emp.id}`, { state: { employee: emp } })
-          }
-          onEdit={handleEdit}
-          onDelete={handleDeleteClick}
-          pagination={{
-            ...pagination,
-            totalCount: employees.length,
-          }}
-          onPageChange={handleChangePage}
-        />
-      </Box>
+      </Container>
     </AdminLayout>
   );
 }

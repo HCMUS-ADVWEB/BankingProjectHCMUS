@@ -26,7 +26,7 @@ const OtpVerificationStep = () => {
       <Box display="flex" alignItems="center" mb={3}>
         <IconButton
           color="primary"
-          onClick={() => setStep(TRANSFER_STEPS.CONFIRM)}
+          onClick={() => setStep(TRANSFER_STEPS.COMPLETE)}
           sx={{ mr: 1 }}
         >
           <ArrowBackIcon />

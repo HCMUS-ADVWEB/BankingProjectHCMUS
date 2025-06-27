@@ -1,7 +1,6 @@
 import Navigation from '../components/Navigation';
 import MainHeader from '../components/MainHeader';
 import {
-  Component,
   Home,
   Send,
   Users,

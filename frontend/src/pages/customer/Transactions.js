@@ -220,8 +220,8 @@ export default function TransactionsPage() {
   return (
     <CustomerLayout>
       <Container
-        maxWidth="xl"
-        sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
+        maxWidth="2xl"
+        sx={{ py: 6, bgcolor: 'background.default', minHeight: '100vh' }}
       >
         <Backdrop
           sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

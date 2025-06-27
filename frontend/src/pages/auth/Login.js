@@ -19,6 +19,7 @@ export default function LoginPage() {
   const recaptchaRef = useRef(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [recaptchaKey, setRecaptchaKey] = useState(0); // Force re-render reCAPTCHA
 
   useEffect(() => {
     if (state.isAuthenticated) {
@@ -68,6 +69,23 @@ export default function LoginPage() {
     },
   ];
 
+  // Helper function to safely reset reCAPTCHA
+  const resetRecaptcha = () => {
+    try {
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      formik.setFieldValue('recaptcha', '');
+      // Force re-render by incrementing key
+      setRecaptchaKey(prev => prev + 1);
+    } catch (error) {
+      console.warn('Error resetting reCAPTCHA:', error);
+      // Fallback: clear field and force re-render
+      formik.setFieldValue('recaptcha', '');
+      setRecaptchaKey(prev => prev + 1);
+    }
+  };
+
   const formik = useFormik({
     initialValues: {
       username: '',
@@ -91,42 +109,32 @@ export default function LoginPage() {
 
     onSubmit: async (values) => {
       setIsLoading(true);
+      let loginSuccessful = false;
 
       try {
         await login(values.username, values.password, values.recaptcha);
+        loginSuccessful = true;
 
-        // Only reset reCAPTCHA after successful login or if we need to retry
-        // Wait a bit to ensure any ongoing reCAPTCHA operations complete
-        setTimeout(() => {
-          if (recaptchaRef.current) {
-            try {
-              recaptchaRef.current.reset();
-              formik.setFieldValue('recaptcha', '');
-            } catch (error) {
-              console.warn('Error resetting reCAPTCHA:', error);
-              // If reset fails, just clear the form field
-              formik.setFieldValue('recaptcha', '');
-            }
-          }
-        }, 500);
+        // Don't reset reCAPTCHA immediately on success to avoid timeout
+        // Let the navigation happen naturally
+
       } catch (error) {
-        // On login failure, reset reCAPTCHA after a delay
-        setTimeout(() => {
-          if (recaptchaRef.current) {
-            try {
-              recaptchaRef.current.reset();
-              formik.setFieldValue('recaptcha', '');
-            } catch (resetError) {
-              console.warn(
-                'Error resetting reCAPTCHA after login failure:',
-                resetError,
-              );
-              formik.setFieldValue('recaptcha', '');
-            }
-          }
-        }, 100);
+        // Login failed - reset reCAPTCHA immediately
+        console.log('Login failed, resetting reCAPTCHA');
+        resetRecaptcha();
       } finally {
         setIsLoading(false);
+
+        // If login was successful but user is still on this page
+        // (maybe navigation was slow), reset after a short delay
+        if (loginSuccessful) {
+          setTimeout(() => {
+            // Only reset if we're still on login page (not navigated away)
+            if (window.location.pathname.includes('login')) {
+              resetRecaptcha();
+            }
+          }, 1000);
+        }
       }
     },
   });
@@ -137,11 +145,17 @@ export default function LoginPage() {
   };
 
   const handleRecaptchaExpired = () => {
+    console.log('reCAPTCHA expired');
     formik.setFieldValue('recaptcha', '');
+    // Force re-render to get a fresh reCAPTCHA
+    setRecaptchaKey(prev => prev + 1);
   };
 
   const handleRecaptchaError = () => {
+    console.log('reCAPTCHA error');
     formik.setFieldValue('recaptcha', '');
+    // Force re-render to get a fresh reCAPTCHA
+    setRecaptchaKey(prev => prev + 1);
   };
 
   return (
@@ -364,6 +378,7 @@ export default function LoginPage() {
           <div className="mb-7">
             <div className="flex justify-center">
               <ReCAPTCHA
+                key={recaptchaKey} // Force re-render when key changes
                 ref={recaptchaRef}
                 sitekey={process.env.REACT_APP_GG_SITE_KEY}
                 onChange={handleRecaptchaChange}

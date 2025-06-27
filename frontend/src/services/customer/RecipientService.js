@@ -46,9 +46,7 @@ const RecipientService = {
 
   async deleteRecipient(recipientId) {
     return api
-      .delete('/api/recipients', {
-        data: { recipientId },
-      })
+      .delete(`/api/recipients/${recipientId}`)
       .then((res) => res.data)
       .catch((err) => {
         console.error('Error deleting recipient:', err);

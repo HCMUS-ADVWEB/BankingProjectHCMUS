@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +14,7 @@ import {
 import { useRecipient } from '../contexts/customer/RecipientContext';
 
 const AddRecipientDialog = ({ open, onClose }) => {
-  const { addNewRecipient, loading, error } = useRecipient();
+  const { addNewRecipient, loading, error, banks, fetchBanks, getAccountInfo } = useRecipient();
 
   const [formData, setFormData] = useState({
     accountNumber: '',
@@ -22,24 +22,55 @@ const AddRecipientDialog = ({ open, onClose }) => {
     nickName: '',
   });
 
+  const [recipientName, setRecipientName] = useState('');
+  const [accountError, setAccountError] = useState(null);
+  const [loadingAccount, setLoadingAccount] = useState(false);
+
+  // Fetch banks when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchBanks();
+    }
+  }, [open]);
+
+  // Fetch account info when accountNumber or bankCode changes
+  useEffect(() => {
+    const fetchRecipientName = async () => {
+      const { accountNumber, bankCode } = formData;
+      if (!accountNumber) {
+        setRecipientName('');
+        setAccountError(null);
+        return;
+      }
+      setLoadingAccount(true);
+      setAccountError(null);
+      try {
+        const result = await getAccountInfo(accountNumber, bankCode || null);
+        setRecipientName(result?.fullName || '');
+      } catch (err) {
+        setAccountError('Invalid account number or bank');
+        setRecipientName('');
+      } finally {
+        setLoadingAccount(false);
+      }
+    };
+
+    fetchRecipientName();
+  }, [formData.accountNumber, formData.bankCode]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSubmit = async () => {
     const { accountNumber, bankCode, nickName } = formData;
 
-    if (!accountNumber) {
-      return;
-    }
+    if (!accountNumber) return;
 
     const bankCodeValue = bankCode.trim() === '' ? null : bankCode;
 
-    const success = await addNewRecipient(
-      accountNumber,
-      bankCodeValue,
-      nickName,
-    );
+    const success = await addNewRecipient(accountNumber, bankCodeValue, nickName);
     if (success) {
       handleClose();
     }
@@ -51,6 +82,8 @@ const AddRecipientDialog = ({ open, onClose }) => {
       bankCode: '',
       nickName: '',
     });
+    setRecipientName('');
+    setAccountError(null);
     onClose();
   };
 
@@ -63,6 +96,12 @@ const AddRecipientDialog = ({ open, onClose }) => {
             {error}
           </Alert>
         )}
+        {accountError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {accountError}
+          </Alert>
+        )}
+
         <TextField
           autoFocus
           margin="dense"
@@ -76,7 +115,8 @@ const AddRecipientDialog = ({ open, onClose }) => {
           required
           helperText="Account number is required"
           sx={{ mb: 2, mt: 1 }}
-        />{' '}
+        />
+
         <TextField
           select
           margin="dense"
@@ -92,12 +132,30 @@ const AddRecipientDialog = ({ open, onClose }) => {
           <MenuItem value="">
             <em>None (Internal Transfer)</em>
           </MenuItem>
-          <MenuItem value="BANKING">Our Banking</MenuItem>
-          <MenuItem value="SACOMBANK">Sacombank</MenuItem>
-          <MenuItem value="VIETCOMBANK">Vietcombank</MenuItem>
-          <MenuItem value="AGRIBANK">Agribank</MenuItem>
-          <MenuItem value="BIDV">BIDV</MenuItem>
+          {banks.map((bank) => (
+            <MenuItem key={bank.bankCode} value={bank.bankCode}>
+              {bank.bankName}
+            </MenuItem>
+          ))}
         </TextField>
+
+        <TextField
+          margin="dense"
+          name="recipientName"
+          label="Recipient Name"
+          type="text"
+          fullWidth
+          variant="outlined"
+          value={recipientName}
+          disabled
+          InputProps={{
+            endAdornment: loadingAccount ? (
+              <CircularProgress size={20} sx={{ mr: 1 }} />
+            ) : null,
+          }}
+          sx={{ mb: 2 }}
+        />
+
         <TextField
           margin="dense"
           name="nickName"
@@ -110,12 +168,12 @@ const AddRecipientDialog = ({ open, onClose }) => {
           sx={{ mb: 2 }}
         />
       </DialogContent>
+
       <DialogActions>
         <Button onClick={handleClose} color="inherit">
           Cancel
         </Button>
         <Box sx={{ position: 'relative' }}>
-          {' '}
           <Button
             onClick={handleSubmit}
             color="primary"

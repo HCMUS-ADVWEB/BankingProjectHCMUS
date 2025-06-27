@@ -48,7 +48,7 @@ export default function EmployeeDashboard() {
   return (
     <EmployeeLayout>
       <Container
-        maxWidth="xl"
+        maxWidth="2xl"
         sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}
       >
         {/* Header Section */}
