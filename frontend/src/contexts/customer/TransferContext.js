@@ -65,7 +65,7 @@ export function TransferProvider({ children, initialAccountNumber }) {
   const setRecipients = useCallback((recipients) => dispatch({ type: 'SET_RECIPIENTS', payload: recipients }), []);
   const setBanks = useCallback((banks) => dispatch({ type: 'SET_BANKS', payload: banks }), []);
   const setFetchingName = useCallback((fetching) => dispatch({ type: 'SET_FETCHING_NAME', payload: fetching }), []);
-  
+
   const resetTransfer = () => {
     dispatch({ type: 'RESET_TRANSFER' });
   };
@@ -150,6 +150,11 @@ export function TransferProvider({ children, initialAccountNumber }) {
         accountNumber,
         transferType === TRANSFER_TYPES.EXTERNAL ? bankCode : null
       );
+
+      if (transferType === TRANSFER_TYPES.INTERNAL) {
+        await saveRecipientIfNotExist(accountNumber, res.data.fullName);
+      }
+
       return res.data.fullName;
     } catch (err) {
       console.error('Failed to fetch account info:', err);
@@ -172,6 +177,28 @@ export function TransferProvider({ children, initialAccountNumber }) {
   const setResult = (resultData) => {
     dispatch({ type: 'SET_RESULT', payload: resultData });
   };
+
+  const saveRecipientIfNotExist = async (accountNumber, accountName) => {
+    const exists = state.recipients.some(
+      (r) => r.recipientAccountNumber === accountNumber && !r.bankCode
+    );
+
+    if (!exists) {
+      const newRecipient = {
+        accountNumber,
+        bankCode: null,  // for internal transfers
+        nickName: accountName,
+      };
+
+      try {
+        await CustomerService.saveRecipient(newRecipient);
+        await fetchBanksAndRecipients(); // to refresh the local list
+      } catch (error) {
+        console.error('Failed to save recipient', error);
+      }
+    }
+  };
+
 
 
   const value = {

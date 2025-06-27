@@ -26,7 +26,6 @@ const ResultStep = () => {
     formatCurrency,
     setStep,
     resetTransfer,
-    handleSaveRecipient,
     loading,
     error,
   } = useTransfer();
@@ -107,18 +106,6 @@ const ResultStep = () => {
         </Button>
 
         <Box display="flex" gap={1} flexWrap="wrap">
-          {transferInfo?.transferType === TRANSFER_TYPES.EXTERNAL && (
-            <Button
-              variant="outlined"
-              color="success"
-              onClick={handleSaveRecipient}
-              startIcon={<SaveIcon />}
-              disabled={loading}
-            >
-              Save Recipient
-            </Button>
-          )}
-
           <Button
             variant="outlined"
             color="primary"

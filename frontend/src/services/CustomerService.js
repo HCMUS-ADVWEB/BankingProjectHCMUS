@@ -74,7 +74,16 @@ const CustomerService = {
       console.error('External transfer failed:', err);
       throw err;
     });
-  }
+  },
+
+  async saveRecipient(recipientData) {
+    return api.post('/api/recipients', recipientData)
+      .then((res) => res.data)
+      .catch((err) => {
+        console.error('Error saving recipient:', err);
+        throw err;
+      });
+  },
 };
 
 export default CustomerService;
