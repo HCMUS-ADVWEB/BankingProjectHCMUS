@@ -8,6 +8,7 @@ import {
   History,
   Settings,
   CreditCard,
+  Delete,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeProvider } from '@mui/material/styles';
@@ -24,6 +25,11 @@ export default function CustomerLayout({ children }) {
       label: 'Change Password',
       href: '/customer/change-password',
       icon: Settings,
+    },
+    {
+      label: 'Close account',
+      href: '/customer/close-account',
+      icon: Delete,
     },
   ];
   const { theme } = useTheme();

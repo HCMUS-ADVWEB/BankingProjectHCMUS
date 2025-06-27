@@ -106,12 +106,12 @@ export const TransactionProvider = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
 
     try {
-      const { page, rowsPerPage } = state.pagination;
       const { orderBy, order } = state.sort;
 
+      // Fetch all transactions for client-side filtering
       const response = await TransactionService.getTransactions(
-        rowsPerPage,
-        page + 1,
+        100, // Fetch a large number to get all transactions
+        1, // Always start from page 1
         orderBy,
         order,
       );
@@ -161,13 +161,7 @@ export const TransactionProvider = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [
-    authState.isAuthenticated,
-    state.pagination.page,
-    state.pagination.rowsPerPage,
-    state.sort.orderBy,
-    state.sort.order,
-  ]);
+  }, [authState.isAuthenticated, state.sort.orderBy, state.sort.order]);
 
   // Fetch transaction details
   const fetchTransactionDetails = useCallback(async (transactionId) => {
@@ -190,6 +184,70 @@ export const TransactionProvider = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);
+
+  // Fetch all transactions for client-side filtering
+  const fetchAllTransactions = useCallback(async () => {
+    if (!authState.isAuthenticated) return;
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      // Fetch a large number to get all transactions
+      // Based on the totalTransactions: 34, we'll use a safe large number
+      const response = await TransactionService.getTransactions(
+        1000, // Large page size to get all transactions
+        1, // First page
+        'createdAt',
+        'desc',
+      );
+
+      // Handle the new API response structure
+      if (response.data) {
+        dispatch({
+          type: 'SET_TRANSACTIONS',
+          payload: {
+            transactionsAsSender: response.data.transactionsAsSender || [],
+            transactionsAsReceiver: response.data.transactionsAsReceiver || [],
+          },
+        });
+
+        dispatch({
+          type: 'SET_PAGINATION',
+          payload: {
+            total: response.data.totalTransactions || 0,
+            totalPages: response.data.totalPages || 0,
+          },
+        });
+      } else {
+        // Fallback for old response format
+        dispatch({
+          type: 'SET_TRANSACTIONS',
+          payload: {
+            transactionsAsSender: response.transactionsAsSender || [],
+            transactionsAsReceiver: response.transactionsAsReceiver || [],
+          },
+        });
+
+        dispatch({
+          type: 'SET_PAGINATION',
+          payload: {
+            total:
+              response.total ||
+              (response.transactionsAsSender?.length || 0) +
+                (response.transactionsAsReceiver?.length || 0),
+          },
+        });
+      }
+    } catch (err) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: err.response?.data?.message || 'Failed to fetch transactions',
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [authState.isAuthenticated]);
 
   // Handle pagination changes
   const handleChangePage = useCallback((event, newPage) => {
@@ -272,6 +330,7 @@ export const TransactionProvider = ({ children }) => {
     // Methods
     fetchTransactions,
     fetchTransactionDetails,
+    fetchAllTransactions,
     handleChangePage,
     handleChangeRowsPerPage,
     handleRequestSort,
