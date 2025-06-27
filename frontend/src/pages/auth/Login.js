@@ -19,20 +19,10 @@ export default function LoginPage() {
   const recaptchaRef = useRef(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(true); // Track component mount status
-
-  useEffect(() => {
-    setIsMounted(true);
-    return () => {
-      setIsMounted(false); // Cleanup on unmount
-    };
-  }, []);
+  const [recaptchaKey, setRecaptchaKey] = useState(0); // Force re-render reCAPTCHA
 
   useEffect(() => {
     if (state.isAuthenticated) {
-      // Clear any pending timeouts before navigation
-      setIsLoading(false);
-
       switch (state.user?.role) {
         case 'customer':
           navigate('/customer/dashboard');
@@ -79,19 +69,20 @@ export default function LoginPage() {
     },
   ];
 
-  // Safe reCAPTCHA reset function
-  const safeResetRecaptcha = () => {
-    if (isMounted && recaptchaRef.current) {
-      try {
+  // Helper function to safely reset reCAPTCHA
+  const resetRecaptcha = () => {
+    try {
+      if (recaptchaRef.current) {
         recaptchaRef.current.reset();
-        formik.setFieldValue('recaptcha', '');
-      } catch (error) {
-        console.warn('Error resetting reCAPTCHA:', error);
-        // Fallback: just clear the form field
-        if (isMounted) {
-          formik.setFieldValue('recaptcha', '');
-        }
       }
+      formik.setFieldValue('recaptcha', '');
+      // Force re-render by incrementing key
+      setRecaptchaKey(prev => prev + 1);
+    } catch (error) {
+      console.warn('Error resetting reCAPTCHA:', error);
+      // Fallback: clear field and force re-render
+      formik.setFieldValue('recaptcha', '');
+      setRecaptchaKey(prev => prev + 1);
     }
   };
 
@@ -118,21 +109,31 @@ export default function LoginPage() {
 
     onSubmit: async (values) => {
       setIsLoading(true);
+      let loginSuccessful = false;
 
       try {
         await login(values.username, values.password, values.recaptcha);
-
-        // Don't reset reCAPTCHA on successful login - component will unmount anyway
-        // Just keep loading state until navigation happens
-
+        loginSuccessful = true;
+        
+        // Don't reset reCAPTCHA immediately on success to avoid timeout
+        // Let the navigation happen naturally
+        
       } catch (error) {
-        // Only reset reCAPTCHA on login failure
-        if (isMounted) {
-          safeResetRecaptcha();
-        }
+        // Login failed - reset reCAPTCHA immediately
+        console.log('Login failed, resetting reCAPTCHA');
+        resetRecaptcha();
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
+        setIsLoading(false);
+
+        // If login was successful but user is still on this page
+        // (maybe navigation was slow), reset after a short delay
+        if (loginSuccessful) {
+          setTimeout(() => {
+            // Only reset if we're still on login page (not navigated away)
+            if (window.location.pathname.includes('login')) {
+              resetRecaptcha();
+            }
+          }, 1000);
         }
       }
     },
@@ -140,21 +141,21 @@ export default function LoginPage() {
 
   // Handle reCAPTCHA changes with error handling
   const handleRecaptchaChange = (token) => {
-    if (isMounted) {
-      formik.setFieldValue('recaptcha', token || '');
-    }
+    formik.setFieldValue('recaptcha', token || '');
   };
 
   const handleRecaptchaExpired = () => {
-    if (isMounted) {
-      formik.setFieldValue('recaptcha', '');
-    }
+    console.log('reCAPTCHA expired');
+    formik.setFieldValue('recaptcha', '');
+    // Force re-render to get a fresh reCAPTCHA
+    setRecaptchaKey(prev => prev + 1);
   };
 
   const handleRecaptchaError = () => {
-    if (isMounted) {
-      formik.setFieldValue('recaptcha', '');
-    }
+    console.log('reCAPTCHA error');
+    formik.setFieldValue('recaptcha', '');
+    // Force re-render to get a fresh reCAPTCHA
+    setRecaptchaKey(prev => prev + 1);
   };
 
   return (
@@ -377,6 +378,7 @@ export default function LoginPage() {
           <div className="mb-7">
             <div className="flex justify-center">
               <ReCAPTCHA
+                key={recaptchaKey} // Force re-render when key changes
                 ref={recaptchaRef}
                 sitekey={process.env.REACT_APP_GG_SITE_KEY}
                 onChange={handleRecaptchaChange}
