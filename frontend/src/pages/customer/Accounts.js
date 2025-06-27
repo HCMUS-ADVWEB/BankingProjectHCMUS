@@ -1,7 +1,7 @@
 import { useAccount, AccountProvider } from '../../contexts/customer/AccountContext';
 import CustomerLayout from '../../layouts/CustomerLayout';
 import {
-  Box, Container, Typography, Grid, Card, CardContent, Skeleton, Alert, Divider,
+  Box, Container, Typography, Grid, Card, CardContent, Alert, Divider,
 } from '@mui/material';
 import { AccountBalance, CreditCard } from '@mui/icons-material';
 import Loading from '../../components/Loading';

@@ -218,7 +218,7 @@ export default function RecipientsPage() {
                 <TableBody>
                   {recipients.map((rec) => (
                     <TableRow
-                      key={rec.recipientId}
+                      key={rec.id}
                       sx={{
                         '&:hover': {
                           bgcolor: 'action.hover',
@@ -227,7 +227,7 @@ export default function RecipientsPage() {
                       }}
                     >
                       <TableCell sx={{ textAlign: 'left' }}>
-                        {rec.accountNumber}
+                        {rec.recipientAccountNumber}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
                         {rec.bankName || '-'}
@@ -236,7 +236,7 @@ export default function RecipientsPage() {
                         {rec.recipientName}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'center' }}>
-                        {rec.recipientNickname}
+                        {rec.nickName}
                       </TableCell>
                       <TableCell sx={{ textAlign: 'right' }}>
                         {' '}
@@ -247,7 +247,7 @@ export default function RecipientsPage() {
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          onClick={() => handleDelete(rec.recipientId)}
+                          onClick={() => handleDelete(rec.id)}
                           sx={{ color: 'error.main', mr: 1 }}
                         >
                           <DeleteIcon />
@@ -256,7 +256,7 @@ export default function RecipientsPage() {
                           variant="outlined"
                           color="primary"
                           startIcon={<SendIcon />}
-                          onClick={() => handleTransfer(rec.accountNumber)}
+                          onClick={() => handleTransfer(rec.recipientAccountNumber)}
                           sx={{ py: 0.5 }}
                         >
                           Transfer
@@ -307,23 +307,33 @@ export default function RecipientsPage() {
             Edit Recipient
           </DialogTitle>
           <DialogContent>
-            <TextField
-              label="Account Number"
-              name="accountNumber"
-              fullWidth
-              sx={{ mb: 2, mt: 1 }}
-              value={form.accountNumber}
-              onChange={handleFormChange}
-              required
-            />
-            <TextField
-              label="Bank Code"
-              name="bankCode"
-              fullWidth
-              sx={{ mb: 2 }}
-              value={form.bankCode}
-              onChange={handleFormChange}
-            />
+            <Box sx={{ mb: 2, mt: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Account Number
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {form.accountNumber}
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Bank Name
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {form.bankName}
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Full Name
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {form.recipientName}
+              </Typography>
+            </Box>
+
             <TextField
               label="Nickname"
               name="nickName"
@@ -344,9 +354,11 @@ export default function RecipientsPage() {
               disabled={loading}
             >
               Update
-            </Button>{' '}
-          </DialogActions>{' '}
+            </Button>
+          </DialogActions>
         </Dialog>
+
+
         {/* New AddRecipientDialog component */}
         <AddRecipientDialog
           open={addDialogOpen}

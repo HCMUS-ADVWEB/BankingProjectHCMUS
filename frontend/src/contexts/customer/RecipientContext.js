@@ -65,8 +65,9 @@ export const RecipientProvider = ({ children }) => {
     success: null,
     form: {
       accountNumber: '',
-      bankCode: '',
+      bankName: '',
       nickName: '',
+      recipientName: "",
     },
     editId: null,
     dialogOpen: false,
@@ -221,9 +222,10 @@ export const RecipientProvider = ({ children }) => {
       dispatch({
         type: 'SET_FORM',
         payload: {
-          accountNumber: recipient.accountNumber || '',
-          bankCode: recipient.bankCode || recipient.bankName || '',
-          nickName: recipient.nickName || recipient.recipientNickname || '',
+          accountNumber: recipient.recipientAccountNumber || '',
+          bankName: recipient.bankName || '',
+          nickName: recipient.nickName || '',
+          recipientName: recipient.recipientName || '',
         },
       });
       dispatch({
