@@ -36,6 +36,14 @@ const ResultStep = () => {
     resetTransfer();
   };
 
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mb: 3 }}>
+        {error}
+      </Alert>
+    );
+  }
+
 
   return (
     <>
@@ -124,12 +132,6 @@ const ResultStep = () => {
           </Button>
         </Box>
       </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      )}
     </>
   );
 };
